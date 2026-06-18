@@ -80,14 +80,6 @@ declare function save(filePath: string, data: string|Byte[], encoding?: FileEnco
 declare function readClipboard(): string | null;
 declare function writeClipboard(data: string): void;
 
-// FIX: future
-/*
-declare type HTTPRequestCallback = (status: Integer, data: string, error?: Error) => void;
-declare type HTTPRequestOptions = { method?: 'GET' | 'POST', headers?: { [key: string]: string }, postContent?: string, timeOut?: number, encoding?: FileEncoding } | undefined | null;
-declare function httpRequest(url: string, options: HTTPRequestOptions, callback: undefined | null): { status: Integer, data: string|Byte[] };
-declare function httpRequest(url: string, options: HTTPRequestOptions, callback: HTTPRequestCallback): void;
-*/
-
 declare type NumbstrictSupportedType = string | number | boolean | object
 declare function composeNumbstrict(v: NumbstrictSupportedType, multiLine?: boolean, brackets?: boolean): string
 declare function parseNumbstrict(s: string): NumbstrictSupportedType
@@ -119,7 +111,7 @@ declare type BranchParamId =
 declare type LayerParamId =
 	"enableLayer1" | "enableLayer2" | "enableLayer3" | "enableLayer4" | "enableLayer5" | "enableLayer6" | "enableLayer7" | "enableLayer8" | "enableLayer9" | "enableLayer10" | "enableLayer11" | "enableLayer12"
 declare type GenomeParamId =
-	"env_time" | "env_loop" | "env_tilt" | "env_kf" | "vol_atk" | "vol_dcy" | "vol_sus" | "vol_fade" | "mod_atk" | "mod_dcy" | "mod_sh" | "mod_vel" | "lfo_rate" | "lfo_amt" | "lfo_bal" | "lfo_dly" | "a_form" | "a_noise" | "a_color" | "a_freq" | "a_mod" | "b_form" | "b_noise" | "b_freq" | "b_mod" | "b_sh" | "fm_amt" | "fm_mod" | "sub_am" | "osc_mix" | "mix_mod" | "flt_type" | "flt_freq" | "flt_mod" | "flt_sep" | "flt_q" | "flt_kf" | "saturate" | "rvb_mix" | "rvb_atk" | "rvb_len" | "rvb_damp" | "rvb_chors" | "rvb_size" | "adj_bass" | "adj_treb" | "adj_pan" | "adj_clip"
+	"env_time" | "env_loop" | "env_tilt" | "env_kf" | "vol_atk" | "vol_dcy" | "vol_sus" | "vol_fade" | "mod_atk" | "mod_dcy" | "mod_sh" | "mod_vel" | "lfo_rate" | "lfo_amt" | "lfo_bal" | "lfo_dly" | "a_form" | "a_noise" | "a_color" | "a_freq" | "a_mod" | "b_form" | "b_noise" | "b_freq" | "b_mod" | "b_sh" | "fm_amt" | "fm_mod" | "sub_am" | "osc_mix" | "mix_mod" | "flt_type" | "flt_freq" | "flt_mod" | "flt_sep" | "flt_q" | "flt_kf" | "saturate" | "rvb_mix" | "rvb_atk" | "rvb_len" | "rvb_damp" | "rvb_chor" | "rvb_size" | "adj_bass" | "adj_treb" | "adj_pan" | "adj_clip"
 
 declare type ParamId = ControlParamId | BranchParamId | LayerParamId | GenomeParamId
 

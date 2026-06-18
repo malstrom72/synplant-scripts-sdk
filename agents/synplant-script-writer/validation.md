@@ -21,6 +21,19 @@ the UI and is bounded by the ~20 s suspension limit. See
 [`tools/jsconsole-bridge-mcp/README.md`](../../tools/jsconsole-bridge-mcp/README.md) and
 [`vibe-coding.md`](vibe-coding.md).
 
+To check that the TypeScript `GenomeParamId` union still matches the live engine's `GENES` array,
+capture the live gene names and run the SDK drift check:
+
+```text
+sp_eval("JSON.stringify(GENES.map(function (g) { return g.NAME; }))")
+```
+
+Save the returned JSON array to a temporary file, then run:
+
+```sh
+node tools/check-genome-param-ids.js /path/to/live-genes.json
+```
+
 ## JavaScript syntax
 
 Synplant's engine is ECMAScript 3 with a few additions (string indexing, `JSON`, `Object.assign`,
