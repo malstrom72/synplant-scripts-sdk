@@ -41,6 +41,13 @@ Synplant internals — see [Script types](#script-types) below.
 | [IVG Documentation](docs/IVG%20Documentation.md) / [ImpD Documentation](docs/ImpD%20Documentation.md) | Vector graphics drawn inside views, and the imperative data format they build on |
 | [ivgfont Documentation](docs/ivgfont%20Documentation.md) | The `.ivgfont` font format |
 
+## AI-assisted workflow
+
+For agent-based script development, see
+[`agents/synplant-script-writer/vibe-coding.md`](agents/synplant-script-writer/vibe-coding.md). It
+includes a starter prompt with the SDK clone URL, a recommended separate project layout, the
+project-local `AGENTS.md`, MCP bridge setup, and the second-session smoke test.
+
 ## Technology overview
 
 Synplant's interface and scripting are built from several Sonic Charge technologies:

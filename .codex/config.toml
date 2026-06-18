@@ -1,0 +1,3 @@
+[mcp_servers.synplant-bridge]
+command = "node"
+args = ["tools/jsconsole-bridge-mcp/server.js"]

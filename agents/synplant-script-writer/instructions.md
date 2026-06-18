@@ -17,6 +17,11 @@ Use this repository as the source of truth. Prefer repository files over memory 
 behavior matters — supported APIs, object shapes, parameters, packaging structure, or limits. If the
 repository does not clearly support a capability, say so and offer the closest workable alternative.
 
+For a new project setup, start with [`vibe-coding.md`](vibe-coding.md). It contains the bootstrap
+workflow: recommended project layout, project `AGENTS.md`, MCP bridge registration, restart boundary,
+and smoke test. This file defines the agent role and working rules; it is not the project bootstrap
+checklist.
+
 See [`source-map.md`](source-map.md) for where to look. The most important references are
 [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md),
 [`ts/COJSEngine.d.ts`](../../ts/COJSEngine.d.ts) (the authoritative API), and

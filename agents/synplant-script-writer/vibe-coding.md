@@ -10,13 +10,17 @@ Copy this into a fresh agent session to bootstrap a Synplant script project:
 ```text
 I want to build Sonic Charge Synplant scripts with this SDK. Clone the SDK into:
 
-  references/synplant-scripts-sdk/
+  git clone https://github.com/malstrom72/synplant-scripts-sdk.git references/synplant-scripts-sdk
 
 Then read and follow the project bootstrap instructions in:
 
+  references/synplant-scripts-sdk/agents/synplant-script-writer/vibe-coding.md
+
+Use the agent behavior and source-of-truth rules from:
+
   references/synplant-scripts-sdk/agents/synplant-script-writer/instructions.md
 
-Set up the project as those instructions describe, then wait for my script idea.
+Set up the project as vibe-coding.md describes, then wait for my script idea.
 ```
 
 ## Recommended project layout
@@ -103,7 +107,10 @@ folder setup is needed.
      Otherwise add it to `~/.codex/config.toml` (ask the user before editing a file outside the
      workspace), then reopen Codex.
 3. Open Synplant, open the JS Console, type `bridge on`.
-4. Resume the assistant session and run the smoke test:
+4. Restart or reopen the MCP client after registering the server. The `sp_status` and `sp_eval`
+   tools are unavailable until the client has loaded the MCP server, so the smoke test normally
+   happens in this second session, not during the initial bootstrap.
+5. Resume the assistant session and run the smoke test:
 
    ```text
    Run the Synplant bridge smoke test now. Check sp_status, then evaluate 1 + 1 over the bridge.
