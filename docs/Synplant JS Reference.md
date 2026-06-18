@@ -67,14 +67,18 @@ trace output and [`display(...)`](#display) for blocking, user-visible checkpoin
 ## Runtime Boundaries
 
 Synplant scripts do not run in the real-time audio or MIDI processing callback. A script cannot
-receive raw incoming MIDI events or process the live audio stream sample-by-sample. What scripts
-*can* do is considerable:
+receive raw incoming MIDI events or process the live audio stream sample-by-sample. They also cannot
+bounce/export rendered audio: [`analyzePatchAudio(...)`](#analyzepatchaudio) synthesizes internally
+for pitch/level analysis and returns measurements, not audio buffers or audio files. There is no
+network or internet API.
+
+What scripts *can* do is considerable:
 
 -   **Read and write the patch.** The full patch — genome, control parameters, branches (the DNA
     tree), layers — is available through [`getElement('patch')`](#getelement) /
     [`setElement('patch', …)`](#setelement).
--   **Render audio offline.** [`analyzePatchAudio(...)`](#analyzepatchaudio) synthesizes a patch
-    offline and returns measured pitch and/or volume, without touching the live audio engine.
+-   **Analyze audio offline.** [`analyzePatchAudio(...)`](#analyzepatchaudio) synthesizes a patch
+    internally and returns measured pitch and/or volume, without touching the live audio engine.
 -   **Drive the AI sound matcher.** The entire Papageno / Genopatch engine is scriptable through the
     [`papageno`](#papageno-genopatch) object — load a reference sound, run an evolutionary search,
     read back solutions.

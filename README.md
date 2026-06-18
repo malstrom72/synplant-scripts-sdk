@@ -18,11 +18,18 @@ the interface thread — the UI is frozen while a script runs. A few limits foll
   exceeds it is terminated.
 - Scripts do **not** run in the real-time audio/MIDI callback: they cannot process the live audio
   stream or raw incoming MIDI events sample-by-sample.
+- Scripts cannot bounce/export rendered audio. They can ask Synplant to synthesize a patch offline
+  for analysis and return measured pitch and/or level, but not audio buffers or audio files.
+- Scripts have no network or internet API.
+- Scripts cannot keep running after the Synplant window closes; the JavaScript environment is
+  destroyed with the window.
 
 Within those bounds a script can do a great deal: read and write the full patch (genome, control
-parameters, the branch/DNA tree, layers), render a patch offline to measure its pitch and level,
-drive the Genopatch engine, send MIDI, audition patches, and present a full custom interface. See the
-[Synplant JS Reference](docs/Synplant%20JS%20Reference.md) for the complete picture.
+parameters, the branch/DNA tree, layers), analyze a patch offline for pitch and level, drive the
+Genopatch engine, send MIDI, audition patches, read and write files through the documented file APIs,
+and present a full custom interface. See the
+[Synplant JS Reference](docs/Synplant%20JS%20Reference.md#runtime-boundaries) for the complete
+picture.
 
 There are three kinds of script: single-file **`.js`** scripts, **`.spscript`** GUI packages, and
 **Mods** that modify Synplant's own interface. They differ in power and in how much they depend on

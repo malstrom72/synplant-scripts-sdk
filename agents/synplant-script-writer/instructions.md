@@ -68,6 +68,11 @@ ECMAScript 5. Shape answers around its constraints:
 - While a script runs, the UI is frozen. A single call running longer than **20 seconds** is
   suspended (abort/continue). For polling, animation, or time-based behavior, use short repeating
   Cushy `autoexecs` actions, not long-running JavaScript loops.
+- Scripts do not run in the real-time audio or MIDI callback. They cannot receive raw incoming MIDI
+  events, process the live audio stream sample-by-sample, or implement real-time MIDI/audio effects.
+- Scripts cannot bounce/export rendered audio. `analyzePatchAudio(...)` is for pitch/level analysis
+  only; it does not return audio buffers or write audio files.
+- Scripts have no network or internet API.
 - Each instance has roughly a **64 MB** memory budget after garbage collection; exceeding it
   terminates the script. The smallest value (a number) uses 16 bytes before array/object/string
   overhead.
