@@ -1,0 +1,138 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+@define LEGACYMODE_WIDTH = 400
+@define LEGACYMODE_HEIGHT = 160
+@define LEGACYMODE_TOP = 115
+
+transitions: {
+	default: {
+		restart: true
+		time: 0.1
+		scale: 0
+		scaleCurve: 0.1
+		opacity: 0
+		opacityCurve: 0.9
+		offset: { 30, -130 }
+		offsetCurve: 0.2
+	}
+	close: {
+		restart: true
+		time: 0.2
+		scale: 0
+		scaleCurve: 0.5
+		opacity: 0
+		opacityCurve: 0.9
+		offset: { 30, -130 }
+		offsetCurve: 0.5
+	}
+}
+
+@define shadowIntensity=0.20
+@define shadowBlur=12
+@define shadowExpand=5
+@define shadowX=0
+@define shadowY=2
+
+bounds: {
+	(w-@LEGACYMODE_WIDTH)/2-@shadowExpand+@shadowX/2,
+	@LEGACYMODE_TOP-@shadowExpand+@shadowY,
+	@LEGACYMODE_WIDTH+@shadowExpand*2,
+	@LEGACYMODE_HEIGHT+@shadowExpand*2
+}
+
+@define internalBounds={ @shadowExpand-@shadowX, @shadowExpand-@shadowY, @LEGACYMODE_WIDTH, @LEGACYMODE_HEIGHT }
+		
+views: {
+	// Drop shadow
+	{
+		type: "vector"
+		file: "rectDropShadow"
+		defines: {
+			"shadowBlur": "@shadowBlur"
+			"shadowIntensity": "@shadowIntensity"
+		}
+	}
+	{
+		type: "click"
+		bounds: @internalBounds
+		action: "nop"
+		hint: "" // empty hint removes hints by underlying views from popuping up
+		cursor: "arrow"
+	}
+	{
+		type: "dragArea"
+		bounds: @internalBounds
+		clamp: "full"
+		positionVariable: upgradeUrgePosition
+		hint: ""
+	}
+	{
+		type: "group"
+		bounds: @internalBounds
+		views: {
+			{
+				type: "rectangle"
+				fill: "@ALERT_BACKGROUND_COLOR"
+				rounded: { 6, 6 }
+				frame: { color: "@ALERT_FRAME_COLOR", stroke: 3 }
+			}
+			{
+				type: "caption"
+				bounds: { 5, 24, w-10, 40 }
+				font: { ivgfont: "NowRegular", size: 18, color: "@ALERT_TEXT_COLOR", gamma: 1.2 }
+				align: "center"
+				ellipsis: "middle"
+				text: "Running audio in compatibility mode."
+			}
+			{
+				type: "group"
+				bounds: { 5, 54, w-10, 40 }
+				views: {
+					{
+						type: "caption"
+						font: { ivgfont: "NowRegular", size: 18, color: "@ALERT_TEXT_COLOR", gamma: 1.2 }
+						align: "center"
+						ellipsis: "middle"
+						text: "tell me more"
+					}
+					{
+						type: "rectangle"
+						bounds: { (w-112)/2, 29, 112, 1 }
+						fill: "@ALERT_TEXT_COLOR"
+					}
+					{
+						type: "click"
+						bounds: { 143, 6, 115, 25 }
+						cursor: "hand"
+						action: "legacyMode.readMore"
+					}
+				}
+			}
+			{
+				type: "group"
+				bounds: { (w-320)/2, 110, 320, 34 }
+				views: {
+					{
+						type: "button"
+						bounds: { 0, 0, 145, h }
+						action: "legacyMode.userClose"
+						caption: "dismiss"
+						rounded: { 4, 4 }
+						standard: { fill: "@ALERT_SECONDARY_BUTTON_COLOR", frame: "@ALERT_SECONDARY_BUTTON_FRAME_COLOR", font: { ivgfont: "JostBook", size: 18, color:"@ALERT_TEXT_COLOR", gamma: 1.2 } }
+						down: { fill: "@ALERT_SECONDARY_BUTTON_DOWN_COLOR", frame: { color: "@ALERT_SECONDARY_BUTTON_FRAME_COLOR", stroke: 2}, font: { ivgfont: "JostBook", size: 17.8, color:"@ALERT_TEXT_COLOR", gamma: 1.2 } }
+					}
+					{
+						type: "button"
+						bounds: { w-145, 0, 145, h }
+						action: "legacyMode.upgradePatch"
+						caption: "Upgrade Patch"
+						rounded: { 4, 4 }
+						standard: { fill: "@ALERT_PRIMARY_BUTTON_COLOR", frame: { color: "@ALERT_PRIMARY_BUTTON_FRAME_COLOR", stroke: 2}, font: { ivgfont: "JostBook", size: 18, color:"@ALERT_TEXT_COLOR", gamma: 1.2 } }
+						down: { fill: "@ALERT_PRIMARY_BUTTON_DOWN_COLOR", frame: { color: "@ALERT_PRIMARY_BUTTON_FRAME_COLOR", stroke: 3}, font: { ivgfont: "JostBook", size: 17.8, color:"@ALERT_TEXT_COLOR", gamma: 1.2 } }
+					}
+				}
+			}
+		}
+	}
+}

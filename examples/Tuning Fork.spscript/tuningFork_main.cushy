@@ -1,0 +1,75 @@
+@include scriptSupport.makaron
+
+@define scriptIdentifier=tuningFork
+@define scriptName=Tuning Fork
+@define uiHue=0.55
+@define backgroundColor=hsv(@uiHue,0.07,1.0)
+@define frameColor=hsv(@uiHue,0.4,0.4)
+@define fillColor=hsv(@uiHue,0.2,0.8)
+@define downColor=hsv(@uiHue,0.4,0.5)
+@define strokeColor=hsv(@uiHue,0.5,0.4)
+@define captionFont={ ivgfont: "sans-serif", size: 14, color: "hsv(@uiHue,0.5,0.3)" }
+
+transitions: {
+	open: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+	close: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	@bringWindowToFront(@scriptIdentifier)
+	{
+		action: "@scriptIdentifier.close"
+		onClose: true
+		onReload: false
+	}
+}
+
+@begin checkbox(x, y, title, action, params, hint, extra)
+	{
+		type: "button"
+		rounded: { 3, 3 }
+		bounds: { @x, @y, 20, 20 }
+		action: "@action"
+	@if (@params != @<@>)
+		params: @params
+	@endif
+		hint: "@hint"
+		mask: "press"
+		standard: { frame: "@strokeColor" }
+		@extra
+	}
+	{
+		type: "paged"
+		index: "@action.checked"
+		pages: {
+			"true": {
+				{
+					type: "rectangle"
+					rounded: { 3, 3 }
+					bounds: { @x + 2, @y + 2, 16, 16 }
+					fill: "hsv(@uiHue,0.4,0.7)"
+				}
+			}
+		}
+	}
+	{
+		type: "caption"
+		bounds: { @x + 24, @y, 44, 20 }
+		align: "middle center"
+		font: @captionFont
+		text: "@title"
+	}
+@end
+
+@window(296, 24, 140, 68, "@scriptName", @backgroundColor, @frameColor, white, @scriptIdentifier, @<
+	@checkbox(36, 12, Enable, @scriptIdentifier.toggle, , Enable, )
+@>)
+

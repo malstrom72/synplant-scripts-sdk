@@ -1,0 +1,1751 @@
+/*
+	GUI Variables
+	#############
+
+	Constants
+	=========
+	
+	MODEL.NAME								// public name, *may* change between versions
+	MODEL.IDENTIFIER						// "internal" name, will never change between (compatible) versions
+	MODEL.VERSION
+	PLATFORM.OS = 'windows'|'mac'
+	PLATFORM.CPU = 'x86'|'x86-64'|'ppc'|'arm64'
+	BUILD.TARGET = 'Debug'|'Beta'|'Release'
+	BUILD.VERSION
+	BUILD.NUMBER
+	BUILD.DATE
+	BUILD.TIME
+	BUILD.COPYRIGHT
+	BUILD.COMPILER
+	BUILD.LIBS
+	DIRS.BINARY								// The dir wherein the plug-in / application resides
+	DIRS.PATCHES							// e.g. "/Library/Audio/Presets/Sonic Charge/"
+	DIRS.DOCUMENTS							// e.g. "/Users/magnus/Documents/Sonic Charge/"
+	DIRS.DOCUMENTATION						// e.g. "/Library/Documentation/Sonic Charge/"
+	DIRS.SUPPORT							// e.g. "/Library/Application Support/Sonic Charge/"
+
+	Readable
+	========
+
+	feedbacks.*
+	patch.modified							// modified since loaded ("true" or "false")
+	patch.identity							// integer that changes on any modification to the patch
+	params.*.default						// default value (from 0 to 1)
+	undo.description
+	redo.description
+	isRegistered							// true or false
+	registrationName						// empty if not registered
+	trialTimeLeft							// "<n> days", "1 day", "<n> weeks", "1 week" or "0 days"
+	trialExpired							// true or false (never true if isRegistered)	
+	isEnabled								// true if not suspended and (for effects) not bypassed
+	midiConfig.assignedCount				// integer from 0 and up
+	program.*.key							// note name of program in bank, or empty if midiConfig.programKeys.enabled is false
+
+	Read and Writable
+	=================
+
+	patch.name								// name of current patch
+	params.*								// e.g. params.volume, values are from 0 to 1
+	params.*.human							// human readable string, for hints and text entry
+	programNumber							// number, 1 is first program in memory
+	program.*.name							// names of all programs in bank, * is from 1 and up
+	midiConfig.programChanges				// false | true
+	midiConfig.inputChannel					// "any" or 1 .. 16.
+	midiConfig.pitchBendRange				// integer
+	midiConfig.pitchBendHeldOnly			// false | true
+	midiConfig.masterTuning					// in Hz (default is 440)
+	midiConfig.programKeys.enabled			// false | true
+	midiConfig.programKeys.baseNoteNumber	// 1 .. 127
+	midiConfig.programKeys.baseNoteName		// "c3" etc
+	midiConfig.cc.*							// Midi CC numbers for parameters, e.g. midi.cc.volume. "off" or 0 to 127.
+	midiLearnCC								// empty string or variable name.
+	midiLearnKey							// empty string or variable name.
+	uiScale									// as fraction, e.g. "1/1" is standard size, any update will force a reload (including reset of caches!)
+	preferences.*							// everything under `preferences.` is read from and saved to preferences (immediately, so there is a performance penalty in using these). Notice that unlike standard variables, if a key doesn't exist, empty will be returned (and not the name of the variable).
+	instance.*								// everything under `instance.` is retained even if GUI is closed and reopened (but not kept if plugin is uninstantiated). Notice that unlike standard variables, if a key doesn't exist, empty will be returned (and not the name of the variable).
+	project.*								// everything under `project.` is stored / restored with the song state / fxb (not fxp) / aupreset (if aupreset == fxb). Notice that unlike standard variables, if a key doesn't exist, empty will be returned (and not the name of the variable).
+
+	Actions
+	#######
+		
+	action: "changeParam", params: { param: <name>, (to: <value> | by: <amount> | toggle: <bool> | toVariable: <var> | byVariable: <var>), [whenEqual: (nothing|checked|disabled)=checked] }	// Either sets parameter to an absolute value ("to"), increases or decreases it by an amount ("by") or toggles between 0.0 and 1.0 ("toggle"). Automates changes in host. Do not prefix <name> with "params."
+	action: "initPatch", TODO : params: { [ name: <name>="[xlate]Init Patch[/xlate]" ] }														// initializes patch (sets all parameters to default values), <name> is [var] expanded
+	action: "copyPatch"																															// copies patch to clipboard
+	action: "pastePatch"																														// pastes patch from clipboard (if possible)
+	action: "exchangePatch"																														// exchanges patch <=> clipboard
+	action: "randomizePatch"																													// randomizes all parameters and name
+	action: "openPatch"
+	action: "savePatch"
+	action: "choosePatch", TODO: [ topItems: { { <caption>, <action>, [<params>] } | - ... }, bottomItems: ... ]
+	action: "switchPatch", params: { step:-1|1, wrap: true|false=false }
+	action: "chooseProgram", TODO: [ topItems: { { <caption>, <action>, [<params>] } | - ... }, bottomItems: ... ]
+	action: "switchProgram", params: { step:-1|1, wrap: true|false=false }
+	action: "undo"
+	action: "redo"
+	action: "toggleVersionCheck"
+	action: "register"
+	action: "unitTest", params: <iterations=100000>
+	action: "resetMidiConfig"
+	action: "loadMidiConfig"
+	action: "saveMidiConfig"
+	action: "makeMidiConfigDefault"
+
+	Product Specific Parameters
+	===========================
+	params.modWheel      // custom, default=0.0
+	params.rotation      // custom, default=0.0
+	params.tuning        // custom, default=0.0
+	params.atonality     // custom, default=0.0
+	params.effect        // custom, default=0.0
+	params.release       // custom, default=0.0
+	params.volume        // custom, default=0.0
+	params.wheelTarget   // discrete, 10 steps, default=0.0
+	params.wheelScale    // custom, default=0.0
+	params.velSens       // custom, default=0.0
+	params.glideTime     // custom, default=0.0
+	params.voiceMode     // discrete, 3 steps, default=0.0
+	params.bulbMode      // discrete, 4 steps, default=0.0
+	params.tempoSync     // discrete, 8 steps, default=0.0
+	params.branch1       // custom, default=0.0
+	params.branch2       // custom, default=0.0
+	params.branch3       // custom, default=0.0
+	params.branch4       // custom, default=0.0
+	params.branch5       // custom, default=0.0
+	params.branch6       // custom, default=0.0
+	params.branch7       // custom, default=0.0
+	params.branch8       // custom, default=0.0
+	params.branch9       // custom, default=0.0
+	params.branch10      // custom, default=0.0
+	params.branch11      // custom, default=0.0
+	params.branch12      // custom, default=0.0
+
+
+	Product Specific Feedbacks
+	==========================
+*/
+
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+@define keyRingSize = 372
+@define keyRingMargin = 4
+@define keyRingWidth = 31
+
+@define popDisplayLeft_voiceMode = 41
+@define popDisplayLeft_wheelTarget = 196
+@define popDisplayLeft_tempoSync = 353
+@define popDisplayTop = 588
+@define popDisplayWidth = 108
+@define popDisplayHeight = 24
+@define popDisplayItemHeight = 18
+@define popDisplayRowHeight = 18
+@define popDisplayRows_voiceMode = 3
+@define popDisplayRows_wheelTarget = 10
+@define popDisplayRows_tempoSync = 8
+@define popDisplayMenuMargin = 10
+
+@define animationFps = 20
+
+@begin storeLastContextMenu
+	storeAction: lastContextMenuAction
+	storeParams: lastContextMenuParams
+	storeCaption: lastContextMenuCaption
+@end
+
+@begin standardControlContextMenu(identifier)
+	{ "Enter Exact Value...", "edit", { text: "Enter exact value for [var]params.@identifier.name[/var]", variable: params.@identifier.human } }
+	{ "Reset to Default", "changeParam", { param: "@identifier", toVariable: params.@identifier.default, whenEqual: "nothing" } }
+	{ "Edit MIDI Controllers", "toggleCushy", "Synplant2_midiEdit" }
+	// <<< injection point for additional standard control context menu items
+@end
+
+@if (@SIDEBAR == true)
+bounds: { 0, 0, @GUI_WIDTH+100, @GUI_HEIGHT }
+@else
+bounds: { 0, 0, @GUI_WIDTH, @GUI_HEIGHT }
+@endif
+
+autoexecs: {
+	{
+		action: "batch"
+		params: {
+			{ "set", { lastMainMenuAction, "" } }
+			{ "set", { lastMainMenuParams, "" } }
+			{ "set", { lastMainMenuCaption, "" } }
+			{ "set", { lastContextMenuAction, "" } }
+			{ "set", { lastContextMenuParams, "" } }
+			{ "set", { lastContextMenuCaption, "" } }
+			{ "set", { lastScriptMenuAction, "" } }
+			{ "set", { lastScriptMenuParams, "" } }
+			{ "set", { lastScriptMenuCaption, "" } }
+			{ "set", { modalLayout, "" } }
+			{ "set", { scriptLayout, "" } }
+			{ "set", { devLayout, "" } }
+			{ "set", { volumeLayout, "" } }
+			{ "set", { zoomLayout, "" } }
+			{ "set", { legacyModeLayout, "" } }
+			{ "main.checkLegacyMode" }
+		}
+		onReload: false
+	}
+	{
+		action: "switch"
+		params: {
+			variable: modalLayout
+			cases: {
+				"Synplant2_branchVolumes": { "set", { volumeLayout, "Synplant2_branchVolumeSliders" } }
+			}
+			default: { "set", { volumeLayout, "" } }
+		}
+		onChanged: modalLayout
+	}
+	{
+		action: "batch"
+		params: {
+			{ "main.initGUI", {
+				@export(animationFps)
+				@export(keyRingSize)
+				@export(popDisplayLeft_voiceMode)
+				@export(popDisplayLeft_wheelTarget)
+				@export(popDisplayLeft_tempoSync)
+				@export(popDisplayTop)
+				@export(popDisplayWidth)
+				@export(popDisplayHeight)
+				@export(popDisplayItemHeight)
+			} }
+		}
+		onReload: true
+	}
+	{
+		action: "main.openGUI"
+		onReload: true
+	}
+	{
+		action: "main.closeGUI"
+		onReload: true
+		onClose: true
+	}
+	{
+		action: "main.animate"
+		delay: (1 / @animationFps)
+		repeat: {
+			visible: (1 / @animationFps)
+			invisible: suspend
+		}
+	}
+	{	// prevent layered led lights from loading and showing asynchronously with key ring label changes
+		action: "refresh"
+		onChanged: main.keyRing.isLayeredMode
+		onInit: false
+	}
+	{	// show trial info and re-open introduction
+		action: "main.showPendingModals"
+		delay: 1/10
+		repeat: 1/10
+	}
+	{
+		onChanged: main.isLegacyMode
+		onInit: false
+		action: "main.checkLegacyMode"
+	}
+	// <<< injection point for additional autoexecs
+}
+
+translations: {
+	"<modified:false>": ""
+	"<modified:true>": "*"
+	"<main.seedHint:mac>": "Plant Seed (CMD: Random, ALT: Clone)"
+	"<main.seedHint:windows>": "Plant Seed (CTRL: Random, ALT: Clone)"
+	"<main.seedHint:randomize>": "New Random Seed"
+	"<main.seedHint:clone>": "Clone Selected Branch"
+	// <<< injection point for additional translations
+}
+
+hints: {
+	font: { ivgfont: "sans-serif", size: 14, color: "@HINT_TEXT_COLOR" }
+	offset: { 0, 0 }
+	margins: { 4, 4, 4, 4 }
+	box: {
+		fill: "@HINT_BACKGROUND_COLOR"
+		opacity: 95
+		padding: { 8, 3, 8, 4 }
+		inset: { 5, 4, 5, 5 }
+		vector: {
+			file: "rectDropShadow"
+			defines: {
+				"shadowBlur": "8"
+				"shadowIntensity": "0.075"
+			}
+		}
+	}
+}
+
+views: {
+	//
+	// ***** Background *****
+	//
+	{
+		type: "rectangle"
+		fill: "@MAIN_BACKGROUND_COLOR"
+	}
+
+	//
+	// ***** Bulb *****
+	//
+	{
+		type: "group"
+		bounds: { 100, 212, 300, 300 }
+		views: {
+			// Context menu
+			{
+				type: "click"
+				mask: "context"
+				hitMask: { ivgCode: "bounds 0,0,300,300; fill white; ellipse 150,150,150" }
+				action: "popup"
+				params: {
+					@storeLastContextMenu
+					items: {
+						{ "Clone Selected Branch", "main.cloneBranch" }
+						{ "Grow New Random Branch", "main.regrowBranch" }
+						{ "Normalize Branch Volumes", "batch", {
+							{ "openCushy", "Synplant2_branchVolumes" }
+							{ "main.autoLevelBranches" }
+							@hintAction(Normalized branch volumes)
+						} }
+						{ "Edit Branch Volumes", "toggleCushy", "Synplant2_branchVolumes" }
+						{ "Edit MIDI Controllers", "toggleCushy", "Synplant2_midiEdit" }
+						// <<< injection point for additional bulb context menu items
+					}
+				}
+			}
+
+			// Plant
+			{
+				type: "plant"
+				coreSize: 14 // pixels
+				updateRates: {
+					focused: 30 // fps
+					standard: 15 // fps
+					invisible: 2 // fps
+				}
+				slowDown: {
+					focused: 1.0
+					standard: 2.0
+					invisible: 2.0
+				}
+				animateTime: 1.25 // secs
+				gamma: 2.0
+				hueVariation: 0.07
+				alphaDrop: 0.97
+				mutedAlpha: 0.1
+				branchLengthRange: { 12, 65 }
+				rootAlphaRange: { 0.7, 1.0 }	// from shortest to highest, affects to branch lengths too
+				segmentSize: 3					// will affect total size and also a greater initial segment size will make longer "broccoli stems"
+				segmentThreshold: 0.5			// stop at this segment length
+				alphaThreshold: 0.05			// stop when dropped alpha <= this
+				plantZoom: 1.0
+				twistMask: 2					// twists at (segmentNumber & twistMask == 0) (notice that fewer twists = more curvy apparence)
+				swayAmountRange: { 0.5, 4.5 }
+				swayRateRange: { 2.0, 50.0 }
+				rootTwistRange: { 1.0, 5.0 }	// related to "curlyness", i.e. atonality
+				twigTwistRange: { 4.0, 10.0 }	// related to "curlyness", i.e. atonality
+				flareSizeRange: { 4.0, 20.0 }
+				twirlAmount: 0.05
+				twirlLimit: 5.0
+				lineAccuracy: 1					// higher = more errors, but less lines
+
+				basePen: {
+					color: "@MAIN_BULB_PEN_COLOR"
+					stroke: 2.0
+					caps: "round"
+					joints: "bevel"
+					quality: 0.1
+				}
+
+				twig: {
+					maxGenerations: 2
+					mask: 3						// generate twig at (segmentNumber & mask == 0)
+					lengthScale: 0.7
+					alphaScale: 0.9
+					strokeScale: 0.8
+					nonlinearity: 1
+					randomLength: 0.2
+				}
+
+				planting: {
+					plantingVariable: main.isPlanting // will start animation when false -> true, will set back to false when done
+					deteriorateTime: 1.0 // secs
+					dropSpeed: 10.0 // pixels per sec
+					dropAcceleration: 60.0 // pixels per sec
+				}
+
+				decaying: {
+					maxDecay: 15.0
+					decayTime: 4.0 // secs
+					reviveTime: 10.0 // secs
+					saturation: ($ * 0.5)
+					alphaDrop: ($ * 0.75)
+				}
+				
+				selector: {
+					branchVariable: main.selectedBranch
+					inset: { 14, 14 }			// { min, max } from center and outer edge
+					selectedImage: { name: "seed", scale: 40 }
+					hoverImage: { ivgCode: "bounds 0,0,8,8; fill @MAIN_BULB_BRANCH_SEED_COLOR; ellipse 4,4,4" }
+					cloningFilm: {
+						ivgFile: "cloneBranch"
+						defines: {
+							"size": "20"
+							"background": "@MAIN_BULB_BRANCH_CLONE_BACKGROUND_COLOR"
+							"color": "@MAIN_BULB_BRANCH_CLONE_FOREGROUND_COLOR"
+						}
+
+					}
+					hoverGuidesPen: { color: "@MAIN_BULB_GUIDE_SECTION_COLOR", stroke: 1, dash: 1 }
+					fineTranslation: 0.001 // per px
+					hints: {
+						fineTracking: "Branch [var]calculated:main.selectedBranch+1[/var] \\[[var]main.selectedBranch.name[/var]\\] = [var]main.selectedBranch.length[/var]"
+					}
+				}
+				
+				modWheel: {
+					adjust: -6.0 // px
+					pen: { color: "@MAIN_BULB_GUIDE_WHEEL_COLOR", stroke: 2, caps: "butt", dash: 1/12, dashOffset: 3/24 }
+					hoverPen: { color: "@MAIN_BULB_GUIDE_WHEEL_ACTIVE_COLOR", stroke: 2 }
+					clickSpan: 8
+					cursor: { mac: "openHand" }
+					hints: {
+						fineTracking: "Mod Wheel = [var]params.modWheel.human[/var]"
+						hover: "Mod Wheel"
+					}
+					contextClickAction: "popup"
+					contextClickParams: {
+						@storeLastContextMenu
+						items: {
+							@standardControlContextMenu(modWheel)						
+						}
+					}
+				}
+
+				rotationHandle: {
+					size: 5 // px
+					pen: { color: "@MAIN_BULB_GUIDE_ROTATION_COLOR", stroke: 2 }
+					hoverPen: { color: "@MAIN_BULB_GUIDE_ROTATION_ACTIVE_COLOR" }
+					// alwaysVisible: tutorial.rotationHandleAlwaysVisible // can be variable
+					position: { 135, -36 }	// "unrotated" at 3 o clock, i.e. x is distance from seed, y = 0 is in line with branch
+					cursor: "cross"
+					hints: {
+						hover: "Rotation"
+					}
+					contextClickAction: "popup"
+					contextClickParams: {
+						@storeLastContextMenu
+						items: {
+							@standardControlContextMenu(rotation)						
+						}
+					}
+				}
+
+				mwtHues: {
+					0.0 	  	// growth+
+					0.0 	  	// growth-
+					-0.22   	// filter+
+					0.22   		// filter-
+					0.15 	  	// env time+
+					-0.15 	  	// env time-
+					0.3 	  	// fm
+					-0.4     	// lfo amount
+					0.4 	  	// effect
+					-0.3 	  	// volume
+				}
+			}
+			
+			// Seed
+			{
+				type: "group"
+				bounds: { (w-60)/2, (h-60)/2, 60, 60 }
+				views: {
+					// Seed shadow
+					{
+						type: "raster"
+						image: { ivgCode: "bounds 0,0,60,60; fill gradient:[ radial 30,30,25 stops:0.4,@MAIN_BACKGROUND_COLOR,1.0,#00000000 ]; RECT 0,0,60,60" }
+					}
+
+					// Seed
+					{
+						type: "paged"
+						index: main.isPlanting
+						pages: {
+							false: {
+								{
+									type: "button"
+									bounds: { (w-28)/2, (h-28)/2, 28, 28 }
+									rounded: 100
+									standard: { image: { name: "seed" } }
+									down: { image: { name: "seed", scale: 95, offset:{ 1, 1 } } }
+									hint: "[xlate]<main.seedHint:[var]main.seedModifier[/var]>[/xlate]"
+									actions: {
+										{ "click", "main.plant" }
+										{ "down", "main.plant.down" }
+										{ "up", "main.plant.up" }
+
+										{ "down+windows+control", "main.randomize.down" }
+										{ "up+windows+control", "main.randomize.up" }
+										{ "release+windows+control", "main.randomize.release" }
+										{ "click+windows+control", "main.randomize.click" }
+
+										{ "down+mac+command", "main.randomize.down" }
+										{ "up+mac+command", "main.randomize.up" }
+										{ "release+mac+command", "main.randomize.release" }
+										{ "click+mac+command", "main.randomize.click" }
+
+										{ "click+alt", "main.cloneBranch" }
+
+										{ "context", "popup", {
+											@storeLastContextMenu
+											items: {
+												{ "Plant Seed", "main.plant" }
+												{ "New Random Seed", "main.randomize" }
+												{ "Clone Selected Branch", "main.cloneBranch" }
+												{ "Manipulate Genes", "toggleCushy", "Synplant2_dna" }
+												// <<< injection point for additional seed context menu items
+											}
+										} }
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			{
+				type: "paged"
+				index: main.seedModifier
+				pages: {
+					randomize: {
+						{
+							type: "vector"
+							bounds: { (w-36)/2, (h-36)/2, 36, 36 }
+							file: "diceIcon"
+							defines: {
+								"size": "32"
+								"backgroundColor": "@MAIN_BULB_SEEDMODIFIER_BACKGROUND_COLOR"
+								"primaryColor": "@MAIN_BULB_SEEDMODIFIER_RANDOMIZE_COLOR_1"
+								"secondaryColor": "@MAIN_BULB_SEEDMODIFIER_RANDOMIZE_COLOR_2"
+							}
+							bindings: {
+								"number": main.seedDice
+							}
+						}
+					}							
+					clone: {
+						{
+							type: "paged"
+							index: main.seedModifierEnabled
+							bounds: { (w-28)/2, (h-28)/2, 28, 28 }
+							pages: {
+								@begin cloneIcon(opacity)
+								{
+									type: "vector"
+									file: "cloneIcon"
+									defines: {
+										"size": "28"
+										"background": "@MAIN_BULB_SEEDMODIFIER_BACKGROUND_COLOR"
+										"color": "@MAIN_BULB_SEEDMODIFIER_CLONE_COLOR"
+									}
+									opacity: @opacity
+								}
+								@end
+								true: { @cloneIcon(100)	}
+								false: { @cloneIcon(32) }
+							}
+						}
+					}
+				}
+			}
+
+			// Soft-clip overlay
+			{
+				type: "vector"
+				code: "fill gradient:[radial 150,150,150 from:@MAIN_SOFTCLIP_OVERLAY_COLOR to:black] opacity:$softClip; ELLIPSE 150,150,150"
+				blend: "add"
+				bindings: {
+					"softClip": main.quantizedSoftClip
+				}
+			}
+		}
+	}
+
+	{
+		type: "cushy"
+		bounds: { 0, 0, @GUI_WIDTH, @GUI_HEIGHT }		// limit the layout area in case we have a bigger window during development
+		layoutVariable: volumeLayout
+		transitions: true
+	}
+
+	//
+	// ***** Faceplate *****
+	//
+	{
+		type: "raster"
+		image: "faceplate"
+	}
+
+/**
+
+    ooooooooooooo   .oooooo.   ooooooooo.
+    8'   888   `8  d8P'  `Y8b  `888   `Y88.
+         888      888      888  888   .d88'
+         888      888      888  888ooo88P'
+         888      888      888  888
+         888      `88b    d88'  888
+        o888o      `Y8bood8P'  o888o
+
+**/
+
+@begin devCaptionFont(color) { ivgfont: "sans-serif", size: 14, color: @color } @end
+
+@if (@DEVELOP == true)
+	//
+	// ***** Development views *****
+	//
+	{
+		type: "group"
+		bounds: { w-5*18, 1, 5*18, 16 }
+		views: {
+			@begin devButton(pos, caption, content)
+			{
+				type: "button"
+				bounds: { @pos*18, 0, 16,16 }
+				caption: @caption
+				standard: { frame: "green", font: @devCaptionFont("green") }
+				down: 		{ frame: "green", fill: "green", font: @devCaptionFont("black") }
+				disabled: { frame: "gray",  font: @devCaptionFont("gray") }
+				@content
+			}
+			@end
+			// dna
+			@devButton(0,"d", @<
+				action: "openCushy"
+				params: "Synplant2_dna"
+				hint: "open dna"
+			@>)
+			// papageno
+			@devButton(1,"g", @<
+				action: "openCushy"
+				params: "Synplant2_papageno"
+				hint: "open papageno"
+			@>)
+			// Tests
+			@devButton(2,"t", @<
+				action: "batch"
+				params: {
+					{ "edit", { text: "Number of iterations", variable: test.iterations, default: "100000", reaction: {
+						"execute", { action: "unitTest", paramsVariable: test.iterations }
+					} } }
+				}
+				hint: "unit tests"
+			@>)
+			// Reload (why here, because I need it early when I make mistakes)
+			@devButton(4,"r", @<
+				hint: "reload"
+				actions: {
+					{ "click", "reload" }
+					{ "click+shift", "reload", "reset" }
+				}
+			@>)
+		}
+	}
+@endif
+
+  //
+  // ***** Logo *****
+  //
+  {
+    type: "group"
+    bounds: { 306, 16, 186, 90 }
+    views: {
+      {
+        type: "vector"
+        file: "synplant2logo"
+        scale:52
+        opacity: @MAIN_LOGO_OPACITY
+        bindings: {
+          "recolor": main.logoColoringBook.colors
+          "snow": main.logoColoringBook.snow
+        }
+      }			
+      {
+        type: "click"
+        bounds: { 5, 27, 165, 40 }
+        cursor: "hand"
+        action: "toggleCushy"
+        params: "Synplant2_about"
+      }
+    }
+  }
+
+	//
+	// ***** Top Buttons *****
+	//
+	@begin topButton(left, top, states, image)
+		bounds: { @left, @top, 52, 52 }
+		rounded: 100
+		standard: { image: { name:@image, slices: @states, index: 0 }, rect: { 8,7.8,36,36 } }
+		down: { image: { name:@image, slices: @states, index: 1 } }
+		@if (@states == 3)
+			disabled: { image: { name:@image, slices: @states, index: 2 } }
+		@else
+			disabled: { image: { name:@image, slices: @states, index: 0, opacity:60 } } // Can this happen?
+		@endif
+		@if (@states == 4)
+			checked:     { image: { name:@image, slices: @states, index: 2 } }
+			checkedDown: { image: { name:@image, slices: @states, index: 3 } }
+		@endif
+	@end
+
+	// Main menu
+	{	
+		type: "button"
+		@topButton(8, 4, 2, "btnmenu")
+		actions: {
+			{
+				"click+shift", "switch", {
+					variable: lastMainMenuAction
+					cases: {
+						"undo": {
+							"switch", {
+								variable: undo.description
+								cases: { "": { "nop" } }
+								default: { "batch", {
+									@hintAction(Undid: [var]undo.description[/var])
+									{ "undo" } 
+								} }
+							}
+						}
+						"redo": {
+							"switch", {
+								variable: redo.description
+								cases: { "": { "nop" } }
+								default: { "batch", {
+									@hintAction(Redid: [var]redo.description[/var])
+									{ "redo" }
+								} }
+							}
+						}
+						"": { "nop" }
+					}
+					default: {
+						"batch", {
+							@hintAction(Repeat: [var]lastMainMenuCaption[/var])
+							{ "execute", { actionVariable: lastMainMenuAction, paramsVariable: lastMainMenuParams } }
+						}
+					}
+				}
+			}
+			{
+				"press", "popup", {
+					storeAction: lastMainMenuAction
+					storeParams: lastMainMenuParams
+					storeCaption: lastMainMenuCaption
+
+					//
+					// ***** Main menu items *****
+					//
+
+					items: {
+						{ "&Undo [var]undo.description[/var]", "undo" }
+						{ "&Redo [var]redo.description[/var]", "redo" }
+						-
+						{ "&Open Patch...", "batch", {
+							{ "main.flushDirCache" }
+							{ "openPatch" }
+						} }
+						{ "&Save Patch...", "batch", {
+							{ "main.flushDirCache" }
+							{ "main.stopPapagenoAutoSelect" }
+							{ "savePatch" }
+						} }
+						{ "&Copy Patch", "copyPatch" }
+						{ "&Paste Patch", "pastePatch" }
+						{ "Genopatch (Sample To Patch)", "main.openPapageno" }
+						// <<< injection point for main menu items in patch group
+						-
+						{ "Plant Seed", "main.plant" }
+						{ "New Random Seed", "main.randomize" }
+						{ "Manipulate Genes", "toggleCushy", "Synplant2_dna" }
+						{ "Clone Selected Branch", "main.cloneBranch" }
+						{ "Grow New Random Branch", "main.regrowBranch" }
+						// <<< injection point for main menu items in plant group
+						-
+						{ "Correct Tuning", "batch", {
+							{ "main.autoTune" }
+							@hintAction(Corrected tuning)
+						} }
+						{ "Normalize Volume", "batch", {
+							{ "main.autoLevel" }
+							@hintAction(Normalized volume)
+						} }
+						{ "Normalize Branch Volumes", "batch", {
+							{ "openCushy", "Synplant2_branchVolumes" }
+							{ "main.autoLevelBranches" }
+							@hintAction(Normalized branch volumes)
+						} }
+						{ "Edit Branch Volumes", "toggleCushy", "Synplant2_branchVolumes" }
+						// <<< injection point for main menu items in functions group
+						-
+						{ "Edit MIDI Controllers", "switch", {
+							variable: modalLayout
+							cases: {
+								Synplant2_dna: {
+									"batch", {
+										{ "set", { midiLearnCC, "" }, { ignoreChecked: true } }
+										{ "switch", @toggle(dna.editMidiControllers, "false", "true") }
+									}
+								}
+							}
+							default: {
+								"toggleCushy", "Synplant2_midiEdit"
+							}
+						} }
+						{ "MIDI Settings", "toggleCushy", "Synplant2_settings" }
+						{ "MIDI Program List", "toggleCushy", "Synplant2_programList" }
+						// <<< injection point for main menu items in midi group
+						-
+						{ "Register...", "main.register" }
+						{ "Read User Guide", "launch", "file://[var]DIRS.DOCUMENTATION[/var]Synplant Docs/Synplant User Guide.pdf" }
+						{ "Run Introduction", "main.runIntroduction" }
+						{ "Auto-check for Updates", "toggleVersionCheck" }
+						{ "Zoom", "switch", @toggle(zoomLayout, "", "Synplant2_zoom") }
+						{ "About", "toggleCushy", "Synplant2_about" }
+						// <<< injection point for main menu items in misc group
+					}
+				}
+			}
+			{ "press+shift", "nop" }
+		}
+		hint: "Main Menu (SHIFT: repeat last function)"
+	}
+
+	// Save
+	{
+		type: "button"
+		@topButton(56, 4, 4, "btnsave")
+		action: "batch"
+		params: {
+			{ "main.stopPapagenoAutoSelect" }
+			{ "main.saveButton" }
+		}
+		hint: "Save Patch"
+	}
+
+	// DNA
+	{
+		type: "button"
+		@topButton(104, 4, 4, "btndna")
+		action: "toggleCushy"
+		params: "Synplant2_dna"
+		hint: "Manipulate Genes"
+	}
+
+	// Geno
+	{
+		type: "button"
+		@topButton(152, 4, 4, "btngeno")
+		hint: "Genopatch (Sample To Patch)"
+		action: "main.openPapageno"
+	}
+
+	// Undo
+	{
+		type: "button"
+		@topButton(200, 4, 3, "btnundo")
+		action: "switch"
+		params: {
+			variable: undo.description
+			cases: { "": { "nop", { enabled: false } } }
+			default: { "batch", {
+				@hintAction(Undid: [var]undo.description[/var])
+				{ "undo" }
+			} }
+		}
+		hint: "Undo [var]undo.description[/var]"
+	}
+
+	// Redo
+	{
+		type: "button"
+		@topButton(248, 4, 3, "btnredo")
+		action: "switch"
+		params: {
+			variable: redo.description
+			cases: { "": { "nop", { enabled: false } } }
+			default: { "batch", {
+				@hintAction(Redid: [var]redo.description[/var])
+				{ "redo" }
+			} }
+		}
+		hint: "Redo [var]redo.description[/var]"
+	}
+
+	// Scripts
+	{
+		type: "group"
+		visibility: main.scriptsAvailable
+		views: {
+			{
+				type: "button"
+				bounds: { @GUI_WIDTH - 23, 3, 20, 20 }
+				rounded: 100
+				vector: {
+					file: "scriptIcon"
+					defines: {
+						"color": "@MAIN_SCRIPT_BUTTON_ICON_COLOR"
+						"background": "@MAIN_SCRIPT_BUTTON_ICON_BACKGROUND_COLOR"
+					}
+				}
+				actions: {
+					{ "press", "switch", {
+						variable: isRegistered
+						cases: {
+							"true": {
+								"batch", {
+									{ "set", { main.scriptIsRepeating, "false" } }
+									{ "popup", {
+										items: main.scriptPopup
+										storeAction: lastScriptMenuAction
+										storeParams: lastScriptMenuParams
+										storeCaption: lastScriptMenuCaption
+									} }
+								}
+							}
+						}
+						default: {
+							"alert", {
+								type: "info"
+								buttons: "ok"
+								default: "ok"
+								text: "Please register Synplant to use this feature."
+							}
+						}
+					} }
+					{ "press+shift", "switch", {
+						variable: lastScriptMenuAction
+						cases: {
+							"": { "nop" }
+						}
+						default: {
+							"batch", {
+								{ "set", { main.scriptIsRepeating, "true" } }
+								@hintAction(Repeat: [var]lastScriptMenuCaption[/var])
+								{ "execute", { actionVariable: lastScriptMenuAction, paramsVariable: lastScriptMenuParams } }
+							}
+						}
+					} }
+				}
+				standard: { frame: "@MAIN_SCRIPT_BUTTON_COLOR", fill: "@MAIN_SCRIPT_BUTTON_BACKGROUND_COLOR" }
+				down: {  frame: "@MAIN_SCRIPT_BUTTON_DOWN_COLOR", fill: "@MAIN_SCRIPT_BUTTON_DOWN_BACKGROUND_COLOR" }
+			}
+		}
+	}
+
+	//
+	// ***** Patch selector *****
+	//
+	{
+		type: "group"
+		bounds: { 8, 52, 284, 40 }
+		views: {
+			{
+				type: "button"
+				bounds: { 0, 0, 28, 40 }
+				// { 11, 6, 6, 10 }
+				action: "switchPatch"
+				params: {
+					step: -1
+					wrap: false
+				}
+				rounded: { 2, 2 }
+				standard: { image: { name:"btnprev", slices: 3, index: 0 }, rect: { 6,6,18,28 } }
+				down: 	  { image: { name:"btnprev", slices: 3, index: 1 } }
+				disabled: { image: { name:"btnprev", slices: 3, index: 2 } }
+				hint: "Previous Patch"
+			}
+			{
+				type: "button"
+				bounds: { 32-8, 52-52, 28, 40 }
+				// { 7, 6, 10, 10 } 
+				action: "switchPatch"
+				params: {
+					step: 1
+					wrap: false
+				}
+				rounded: { 2, 2 }
+				standard: { image: { name:"btnnext", slices: 3, index: 0 }, rect: { 3,6,19,28 } }
+				down: 	  { image: { name:"btnnext", slices: 3, index: 1 } }
+				disabled: { image: { name:"btnnext", slices: 3, index: 2 } }
+				hint: "Next Patch"
+			}
+			// Patch display
+			{
+				type: "group"
+				bounds: { 64-8, 56-52, 228, 32 }
+				views: {
+					{
+						type: "raster"
+						image: "patchdisplay"
+					}
+					{
+						type: "click"
+						bounds: { 1, 3, w-2, h-6 }
+						actions: {
+							{ "click", "batch", {
+								{ "main.flushDirCache" }
+								{ "choosePatch" }
+							} }
+							{ "release+windows+control", "main.loadRandomPatch.release" }
+							{ "press+windows+control", "main.loadRandomPatch.press" }
+							{ "release+mac+command", "main.loadRandomPatch.release" }
+							{ "press+mac+command", "main.loadRandomPatch.press" }
+						}
+						hint: "[var]patch.name[/var]"
+					}			
+					@begin patchDisplay(width)
+						{
+							// { 2, 9, 1, 9 }
+							type: "caption"
+							bounds: { 7, 4, @width, 26 }
+							font: { ivgfont: "NowRegular", size: 13, color: "@MAIN_DISPLAY_TEXT_COLOR", gamma: 1.2, unknown: "?" }
+							ellipsis: "middle"
+							text: "[var]patch.name[/var][xlate]<modified:[var]patch.modified[/var]>[/xlate]"
+						}
+					@end
+					{
+						type: "paged"
+						index: main.patchDisplayMode
+						pages: {
+							"standard": {
+								@patchDisplay(216)
+							}
+							"legacy": {
+								@patchDisplay(216-22)
+								// Legacy mode icon
+								{
+									type: "group"
+									bounds: { w-27, 4, 24, 24 }
+									views: {
+										{
+											type: "vector"
+											file: "warningIcon"
+											defines: {
+												'color': "@ALERT_ICON_COLOR"
+												'size': "22"
+												'backgroundColor': "@ALERT_ICON_BACKGROUND_COLOR"
+											},
+											bindings: {
+												"shakeX": main.legacyModeIconOffset.x
+												"shakeY": main.legacyModeIconOffset.y
+											}
+										}
+										{
+											type: "click"
+											cursor: "hand"
+									        action: "main.showHideLegacyModeInfo"
+											hint: "Running audio in compatibility mode."
+										}
+									}
+								}
+							}
+							"random": {
+								{
+									// { 2, 9, 1, 9 }
+									type: "caption"
+									bounds: { 7, 4, 216, 26 }
+									font: { ivgfont: "NowRegular", size: 13, color: "@MAIN_DISPLAY_TEXT_COLOR", gamma: 1.2, unknown: "?" }
+									align: "center"
+									ellipsis: "middle"
+									text: "Load Random ([var]main.loadRandomPatch.directory[/var])"
+								}
+							}
+						}
+					}
+					{
+						type: "raster"
+						blend: "add"
+						image: "patchspecular"
+					}
+				}
+			}
+		}
+	}
+
+
+/**
+
+    ooo        ooooo ooooo oooooooooo.
+    `88.       .888' `888' `888'   `Y8b
+     888b     d'888   888   888      888
+     8 Y88. .P  888   888   888      888
+     8  `888'   888   888   888      888
+     8    Y     888   888   888     d88'
+    o8o        o888o o888o o888bood8P'
+
+**/
+
+	//
+	// ***** Arc sliders *****
+	//
+	@begin customArcSlider(angle, sweep, identifier, snap, bidirectional, hintVar, additionalMenuItems)
+	{
+		type: "slider"
+		bounds: { 10, 122, 480, 480 }
+		variable: params.@identifier
+		defaultVariable: params.@identifier.default
+		hint: "[var]params.@identifier.name[/var] = [var]@hintVar[/var]"
+		@if (@snap == true)
+			snap: { value: 0.5 } 
+		@endif
+		slit: {
+			center: { 240, 240 }, radius: 209, sweep: { @angle, @sweep }
+			// thickness: 2, color: "#ccaaaa"
+		}
+		cap: {
+			size: { 30, 30 }
+			rounded: 100
+			// color: "#40400040"
+			// image: { name: "arcSlider", slices:8, index:0, offset: { 0, 1 } }
+		}
+		vector: {
+			file: "arcsliderCap"
+			@if (@bidirectional == true)
+				defines: { bi: "yes" }
+			@else
+				defines: { bi: "no" }
+			@endif
+			clip: { -22, -24, 44, 48 }
+		}
+		clickActions: {
+			{ "context", "popup", { 
+				@storeLastContextMenu
+				items: {
+					@standardControlContextMenu(@identifier)
+					@additionalMenuItems
+				}
+			} }
+		}
+		slew: {
+			time: 0.1
+		}
+	}
+	@end
+
+	@begin arcSlider(angle, sweep, identifier, snap, bidirectional, hintVar)
+		@customArcSlider(@angle, @sweep, @identifier, @snap, @bidirectional, @hintVar, @<@>)
+	@end   
+	@customArcSlider( -25.0,  50, tuning, true, true, params.tuning.human, @<
+		-
+		{ "Correct Tuning", "batch", {
+			{ "main.autoTune" }
+			@hintAction(Corrected tuning)
+		} }
+		// <<< injection point for additional tuning context menu items
+	@>)
+	@arcSlider( 272.5,  50, atonality, false, false, main.atonalityHint)
+	@arcSlider(  37.5,  50, effect, true, false, main.effectHint)
+	@arcSlider( 257.5, -50, release, false, false, main.releaseHint)
+	@customArcSlider( 152.5, -50, volume, true, false, params.volume.human, @<
+		-
+		{ "Normalize Volume", "batch", {
+			{ "main.autoLevel" }
+			@hintAction(Normalized volume)
+		} }
+		// <<< injection point for additional volume context menu items
+	@>)
+
+	//
+	// ***** Keyring button animation *****
+	// 
+	{
+		type: "paged"
+		bounds: { 64, 176, @keyRingSize, @keyRingSize+8 }
+		index: main.keyRing.isLayeredMode
+		pages: {
+			"true": {
+				{
+					type: "raster"
+					image: "layerring"
+				}
+				{
+					type: "paged"
+					index: main.keyRing.isButtonDown
+					pages: {
+						"true": {
+							{
+								type: "animation"
+								variable: main.keyRing.whichButtonDown
+								film: {
+									image: "layerbuttons"
+									frames: 12
+								}
+							}
+						}
+					}
+				}
+			}
+			"false": {
+				{
+					type: "paged"
+					index: main.keyRing.isButtonDown
+					pages: {
+						"true": {
+							{
+								type: "animation"
+								variable: main.keyRing.whichButtonDown
+								film: {
+									image: "keyringbuttons"
+									frames: 12
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//
+	// ***** Bulb mode switch *****
+	// 
+	{
+		type: "group"
+		bounds: { 188, 532, 124, 36 }
+		views: {
+			{
+				type: "slider"
+				variable: params.bulbMode
+				defaultVariable: params.bulbMode.default
+				hint: "Bulb Mode = [var]params.bulbMode.human[/var]"
+				slit: {
+					center: { 62, -170 }, radius: 190, sweep: { 190, -20 }
+					// thickness:2,
+					// color:"green"
+				}
+				cap: {
+					size: { 34, 22 }
+					rounded: 50
+					// color: "teal"
+				}
+				film: {
+					image: "switchmode"
+					frames: 4
+				}
+				clickActions: {
+					{ "context", "popup", { 
+						@storeLastContextMenu
+						items: {
+							@standardControlContextMenu(bulbMode)
+						}
+					} }
+				}
+			}
+		}
+	}
+
+	//
+	// ***** Keyring *****
+	//
+	@begin keyRingHitMask
+		hitMask: {
+			ivgFile: "keyRingMask"
+			defines: {
+				"size": "@keyRingSize"
+				"margin": "@keyRingMargin"
+				"width": "@keyRingWidth"
+			}
+		}
+	@end
+	{
+		type: "group"
+		bounds: { 64, 176, @keyRingSize, @keyRingSize+8 }
+		views: {
+			{
+				type: "click"
+				actions: {
+					{ "press", "main.keyRing.click" }
+					{ "release", "main.keyRing.release" }
+				}
+				mousePosition: main.keyRing.mousePosition
+				@keyRingHitMask
+			}
+			{	// separate group for this to hide / show hint correctly with delay
+				type: "group"
+				visibility: main.keyRing.randomize
+				views: {
+					{
+						type: "hover"
+						hint: "Grow New Random Branch"
+						@keyRingHitMask
+					}
+				}
+			}
+			{
+				type: "vector"
+				file: "keyRingLabels"
+				defines: {
+					"size": "@keyRingSize"
+					"color": "@MAIN_KEYRING_TEXT_COLOR"
+				},
+				bindings: {
+					"mode": main.bulbMode,
+					"randomize": @boolVarToYesNo(main.keyRing.randomize)
+					"labels": main.keyRing.labelStrings
+				}
+			}
+			{
+				type: "paged"
+				index: main.keyRing.isLayeredMode
+				pages: {
+					"true": {
+						{
+							type: "vector"
+							file: "keyRingLights"
+							defines: { "intensity": "80" }
+							bindings: { "enabledLayers": main.keyRing.enabledLayers }
+						}
+						{
+							type: "vector"
+							file: "keyRingGlow"
+							blend: "add"
+							defines: { "intensity": "44" }
+							bindings: { "enabledLayers": main.keyRing.enabledLayers }
+						}
+					}
+				}
+			}
+		}
+	}
+
+	
+
+
+/**
+
+    oooooooooo.    .oooooo.   ooooooooooooo
+    `888'   `Y8b  d8P'  `Y8b  8'   888   `8
+     888     888 888      888      888
+     888oooo888' 888      888      888
+     888    `88b 888      888      888
+     888    .88P `88b    d88'      888
+    o888bood8P'   `Y8bood8P'      o888o
+
+**/
+
+	//
+	// ***** Displays *****
+	//
+	@begin bottomDisplay(identifier, prefix)
+	{
+		type: "group"
+		bounds: { @(popDisplayLeft_@identifier), @popDisplayTop-@popDisplayRowHeight*@(popDisplayRows_@identifier), @popDisplayWidth, @popDisplayRowHeight*@(popDisplayRows_@identifier)+@popDisplayHeight }
+		views: {
+			{
+				type: "group"
+				bounds: { 0, @popDisplayRowHeight*@(popDisplayRows_@identifier), @popDisplayWidth, @popDisplayHeight }
+				views: {
+					{
+						type: "raster"
+						image:"smalldisplay"
+					}
+					// {
+					//    type: "vector"
+					//    bounds: { 95, 10, 9, 7 }
+					//    code: "FILL #666666; PATH svg:m0,0.5h8l-4,6z"
+					// }
+					{
+						type: "vector"
+						bounds: { 2, 4, 105, 19 }
+						code: 'options aa-gamma:1.2; font "NowRegular" size:12 color:@MAIN_DISPLAY_TEXT_COLOR; TEXT at:{$width/2},{$height-6} anchor:center [@(prefix)$value]'
+						bindings: {
+							"value": main.@(identifier)Menu.selected
+						}
+					}
+				}
+			}
+			{
+				type: "click"
+				actions: {
+					{ "context", "popup", { 
+						@storeLastContextMenu
+						items: {
+							@standardControlContextMenu(@(identifier))
+						}
+					} }
+					{ "press", "main.@(identifier)Menu.press" }
+					{ "release", "main.@(identifier)Menu.release" }
+				}
+				mousePosition: main.@(identifier)Menu.mousePosition
+				hitMask: { ivgCode: "bounds 1,{@popDisplayItemHeight*@(popDisplayRows_@identifier)+2},@popDisplayWidth,{@popDisplayHeight-3}; wipe white;" }
+				hint: "[var]params.@identifier.name[/var] = [var]params.@identifier.human[/var]"
+			}
+		}
+	}
+	@end
+	@bottomDisplay(voiceMode,)
+	@bottomDisplay(wheelTarget,)
+	@bottomDisplay(tempoSync, @<sync: @>)
+
+	//	
+	// ***** Bottom sliders *****
+	//
+	@begin slider(left, top, image, offset, identifier, snap)
+	{
+		type: "slider"
+		bounds: { @left, @top, 160, 36 }
+		variable: params.@identifier
+		defaultVariable: params.@identifier.default
+		hint: "[var]params.@identifier.name[/var] = [var]params.@identifier.human[/var]"
+		@if (@snap == true)
+			snap: { value: 0.5 } 
+		@endif          
+		slit: {
+			start: { 24, 17.5 }, end: { 132, 17.5 }
+			// thickness: 1, color: "#aaaacc"
+		}
+		cap: {
+			size: { 34, 22 }
+			rounded: 100
+			// color: "#4466ee"
+			image: { name: @image, offset: { @offset, 1 } }
+		}
+		clickActions: {
+			{ "context", "popup", { 
+				@storeLastContextMenu
+				items: {
+					@standardControlContextMenu(@identifier)
+				}
+			} }
+		}
+		slew: {
+			time: 0.1
+		}
+	}
+	@end
+	@slider(16, 624, "sliderleft", 2, glideTime, false)
+	@slider(172, 624, "slidermid", 3, wheelScale, false)
+	@slider(328, 624, "sliderright", 2, velSens, true)
+
+	{
+		type: "vector"
+		bounds: { @GUI_WIDTH-300-8, h-34, 300, 34 }
+		code: "options aa-gamma:3; font [Drawpen] size:18 color:@MAIN_BALLPOINT_PEN_COLOR; TEXT at:$width,{$height-10} anchor:right [$name]"
+		bindings: {
+			"name": main.JohnHancock
+		}
+	}
+
+/**** TEMPORARY STUFF START ******/
+/**** TEMPORARY STUFF START ******/
+/**** TEMPORARY STUFF START ******/
+@if (@SIDEBAR == true)
+@begin knob(left, top, identifier)
+	{
+		type: "group"
+		bounds: { @left, @top, 70, 60 }
+		views: {
+			{
+				type: "knob"
+				bounds: { 15, 0, 40, 40 }
+				variable: params.@identifier
+				sweep: { -135, 270 }
+				defaultVariable: params.@identifier.default
+				hint: "[var]params.@identifier.name[/var] = [var]params.@identifier.human[/var]"
+				cap: {
+					color: "green"
+					frame: { color: "white", stroke: 1.5 }
+					dial: { color: "white", stroke: 1.5, caps: "round" }
+				}
+			}
+			{
+				type: "click"
+				mask: "context"
+				action: "popup"
+				params: {
+					@storeLastContextMenu
+					items: {
+						@standardControlContextMenu(@identifier)						
+					}
+				}
+			}
+			{
+				type: "caption"
+				bounds: { 0, 40, 70, 20 }
+				text: "[var]params.@identifier.name[/var]"
+				align: "center"
+				font: @devCaptionFont("silver")
+				ellipsis: "middle"
+			}
+		}
+	}
+@end
+@begin selector(left, top, identifier, steps)
+	{
+		type: "group"
+		bounds: { @left, @top, 70, 60 }
+		views: {
+			{
+				type: "knob"
+				bounds: { 20, 5, 30, 30 }
+				variable: params.@identifier
+				sweep: { -135, 270 }
+				defaultVariable: params.@identifier.default
+				hint: "[var]params.@identifier.name[/var] = [var]params.@identifier.human[/var]"
+				cap: {
+					color: "green"
+					frame: { color: "white", stroke: 1.5 }
+					dial: { color: "white", stroke: 1.5, caps: "round" }
+				}
+				transmission: {
+					resolution: 20
+					vertical: 20*(@steps-1)
+					horizontal: 0
+					fine: 100
+				}
+			}
+			{
+				type: "caption"
+				bounds: { 0, 40, 70, 20 }
+				text: "[var]params.@identifier.name[/var]"
+				align: "center"
+				font: @devCaptionFont("silver")
+				ellipsis: "middle"
+			}
+		}
+	}
+@end
+@begin button(left, top, identifier, default, steps)
+	{
+		type: "group"
+		bounds: { @left, @top, 70, 60 }
+		views: {
+			{
+				type: "button"
+				bounds: { 25, 10, 20, 20 }
+				action: "changeParam"
+				params: { param: "@identifier", toggle }
+				hint: "[var]params.@identifier.name[/var] = [var]params.@identifier.human[/var]"
+				mask: "press"
+				standard: { frame: "white" }
+				checked: { frame: "white", fill: "green" }
+				disabled: { frame: "gray" }
+			}
+			{
+				type: "caption"
+				bounds: { 0, 40, 70, 20 }
+				text: "[var]params.@identifier.name[/var]"
+				align: "center"
+				font: @devCaptionFont("silver")
+				ellipsis: "middle"
+			}
+		}
+	}
+@end
+
+
+	@knob(517, 28, modWheel)
+	@knob(517, 103, rotation)
+	@selector(517, 239, voiceMode, 3)
+	@selector(517, 169, wheelTarget, 9)
+	@selector(517, 309, tempoSync, 8)
+
+@begin varKnob(left, top, label, variable, min, max)
+ {
+		type: "group"
+		bounds: { @left, @top, 70, 60 }
+		views: {
+			{
+				type: "knob"
+				bounds: { 15, 0, 40, 40 }
+				variable: @variable
+				range: { @min, @max }
+				sweep: { -135, 270 }
+				cap: {
+					color: "#aa5500"
+					frame: { color: "white", stroke: 1.5 }
+					dial: { color: "white", stroke: 1.5, caps: "round" }
+				}
+			}
+			{
+				type: "caption"
+				bounds: { 0, 40, 70, 20 }
+				text: @label
+				align: "center"
+				font: @devCaptionFont("silver")
+			}
+		}
+	}
+@end
+
+@varKnob(517, 480, "tmperature", main.logoColoringBook.temperature, 0, 1)
+
+	{
+		type: "button"
+		bounds: { 511, 382, 80, 20 }
+		rounded: { 2, 2 }
+		standard: { frame: "green", font: @devCaptionFont("green") }
+		down: { frame: "green", fill: "green", font: @devCaptionFont("black") }
+		checked: { frame: "green", fill: "green", font: @devCaptionFont("black") }
+		disabled: { frame: "gray", font: @devCaptionFont("gray") }
+		caption: "legacy"
+		action: "switch"
+		params: @toggle(LegacyMode, false, true)
+	}
+/**** TEMPORARY STUFF END ******/
+/**** TEMPORARY STUFF END ******/
+/**** TEMPORARY STUFF END ******/
+
+@endif
+
+	// <<< injection point for additional main views
+
+	{
+		type: "click"
+		mask: "context+shift"
+		action: "switch"
+		params: {
+			variable: lastContextMenuAction
+			cases: {
+				"": { "nop" }
+			}
+			default: {
+				"batch", {
+					@hintAction(Repeat: [var]lastContextMenuCaption[/var])
+					{ "execute", { actionVariable: lastContextMenuAction, paramsVariable: lastContextMenuParams } }
+				}
+			}
+		}
+	}
+
+	@if (@PRERELEASE == true)
+		{
+			type: "caption"
+			@edit(prerelease)
+			bounds: { 120, 676, 148, 28 }
+			font: { ivgfont: "sans-serif", size: 14, color: "black" }
+			text: "PRERELEASE BUILD ([var]BUILD.NUMBER[/var])"
+		}
+	@endif
+
+	// dynamic cushy view used by modal dialogs
+	{
+		type: "cushy"
+		bounds: { 0, 0, @GUI_WIDTH, @GUI_HEIGHT }		// limit the layout area in case we have a bigger window during development
+		layoutVariable: modalLayout
+		transitions: true
+	}
+
+	{	// group to handle z-order between multiple windows here
+		type: "group"
+		views: {
+			// dynamic cushy view used by script windows
+			{
+				type: "cushy"
+				layoutVariable: scriptLayout
+				transitions: true
+			}
+
+			// dynamic cushy view used by development tools
+			{
+				type: "cushy"
+				layoutVariable: devLayout
+				transitions: true
+			}
+		}
+	}
+
+	// legacy mode view
+	{
+		type: "cushy"
+		bounds: { 0, 0, @GUI_WIDTH, @GUI_HEIGHT }
+		layoutVariable: legacyModeLayout
+		transitions: true
+	}
+
+	// dynamic cushy view used by zoom window
+	{
+		type: "cushy"
+		layoutVariable: zoomLayout
+		uiScaling: false
+	}
+
+
+	// stayUpMenuHandler menu layer
+	@begin stayUpMenu(identifier, prefix, align)
+		{
+			type: "group"
+			bounds: {
+				@(popDisplayLeft_@identifier)-@popDisplayMenuMargin,
+				@popDisplayTop-@popDisplayRowHeight*@(popDisplayRows_@identifier)-@popDisplayMenuMargin,
+				@popDisplayWidth+(@popDisplayMenuMargin*2),
+				@popDisplayRowHeight*@(popDisplayRows_@identifier)+(@popDisplayMenuMargin*2)
+			}
+			visibility: main.@(identifier)Menu.isVisible
+			views: {
+				{
+					type: "vector"
+					file: "stayUpMenu"
+					defines: {
+						"margin": "@popDisplayMenuMargin"
+						"rowheight": "@popDisplayItemHeight"
+						"prefix": "@prefix"
+						"align": @align
+						"frameColor": "@STAYUPMENU_FRAME_COLOR"
+						"backgroundColor": "@STAYUPMENU_BACKGROUND_COLOR"
+						"backgroundSelectedColor": "@STAYUPMENU_BACKGROUND_SELECTED_COLOR"
+						"textColor": "@STAYUPMENU_TEXT_COLOR"
+						"textSelectedColor": "@STAYUPMENU_TEXT_SELECTED_COLOR"
+					}
+					bindings: {
+						"list": main.@(identifier)Menu.list
+						"selected": main.@(identifier)Menu.selectedIndex
+					}
+				}
+				{
+					type: "click"
+					bounds: { @popDisplayMenuMargin, @popDisplayMenuMargin, @popDisplayWidth, @popDisplayRowHeight*@(popDisplayRows_@identifier) }
+					actions: {
+						{ "context", "nop" }
+						{ "press", "nop" }
+						{ "release", "main.@(identifier)Menu.release" }
+					}
+					mousePosition: main.@(identifier)Menu.mousePosition
+				}
+				{
+		 			type: "hover"
+					bounds: { @popDisplayMenuMargin, @popDisplayMenuMargin, @popDisplayWidth, @popDisplayRowHeight*@(popDisplayRows_@identifier) }
+		 			mousePosition: main.@(identifier)Menu.mousePosition
+		 			cursor: "arrow"
+		 			hint: ""
+		 		}
+			}
+		}
+	@end
+	{
+		type: "group"
+		visibility: main.stayUpMenuHandler.isMenuOpen
+		views: {
+			{
+				type: "click"
+				action: "main.stayUpMenuHandler.close"
+			}
+			@stayUpMenu(voiceMode,,"center")
+			@stayUpMenu(wheelTarget,,"center")
+			@stayUpMenu(tempoSync,@<sync: @>,"left-center")
+		}
+	}
+	
+	// global keyModifier capture
+	{
+		type: "hover"
+		keyModifiers: main.keyModifiers
+	}
+}

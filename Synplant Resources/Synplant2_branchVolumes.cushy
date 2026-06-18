@@ -1,0 +1,59 @@
+@include common.makaron
+@include Synplant2_colorScheme.makaron
+
+@define shadowIntensity=0.20
+@define shadowX=0
+@define shadowY=2
+@define shadowBlur=12
+@define shadowExpand=4
+
+transitions: {
+	default: {
+		time: 0.1
+		opacity: 0
+        restart: false
+	}
+}
+
+bounds: { (w-230)/2-@shadowExpand, 144-@shadowExpand, 230+@shadowExpand*2, 32+@shadowExpand*2 }
+
+views: {
+    // Drop shadow
+    {
+        type: "vector"
+        file: "rectDropShadow"
+        defines: {
+            "shadowBlur": "@shadowBlur"
+            "shadowIntensity": "@shadowIntensity"
+        }
+    }
+    {
+		type: "group"
+        bounds: { @shadowExpand, @shadowExpand-@shadowY, $-@shadowExpand*2, $-@shadowExpand*2 }
+		views: {
+			{
+				type: "rectangle"
+				fill: "@BRANCH_VOLUMES_BACKGROUND_COLOR"
+                frame: "@BRANCH_VOLUMES_FRAME_COLOR"
+				rounded: { 6, 6 }
+			}
+			{
+				type: "click"
+				action: "nop"
+				cursor: "arrow"
+				hint: ""
+			}
+		}
+    }
+    {
+        type: "caption"
+        bounds: { 12, 0-@shadowY, 184, $ }
+        @edit(textBox)
+        font: { ivgfont: "NowRegular", size: 16, color: "@BRANCH_VOLUMES_TEXT_COLOR" }
+        offset: { 0, 1 }
+        align: "left"
+        text: "Editing Branch Volumes"
+    }
+
+    @closeButton(w-32, 8, 20, 12, @BRANCH_VOLUMES_CLOSE_BACKGROUND, @BRANCH_VOLUMES_CLOSE_FOREGOUND, @BRANCH_VOLUMES_CLOSE_FRAME, @<action: "closeCushy"@>)
+}

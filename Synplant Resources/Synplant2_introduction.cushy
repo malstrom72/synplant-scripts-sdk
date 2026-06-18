@@ -1,0 +1,139 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+transitions: {
+	default: {
+		restart: false,
+		time: 0.25,				// secs
+		updateRate: 50,			// fps
+		// scale: 10 %,
+		scaleCurve: 0.9,
+		offset: { 0, 0 }
+		opacity: 0.0,
+		opacityCurve: 0.75,
+		rotation: 0.0,		// degrees
+		rotationCurve: 0.5
+	}
+}
+
+autoexecs: {
+	{
+		action: "introduction.open"
+		onReload: false
+	}
+	{
+		action: "introduction.close"
+		onReload: false
+		onClose: true
+	}
+	{
+		action: "introduction.driveAutomations"
+		repeat: 1/25
+	}
+}
+
+views: {
+	// introduction bubble
+	{
+		type: "bubble"
+		fill: "@INTRODUCTION_BACKGROUND_COLOR"
+		bounds: { 16, h-60, w-32, 60 }
+		frame: { color: "@INTRODUCTION_FRAME_COLOR", stroke: 3 }
+		margins: { 10, 10, -10, -10 },
+		paddings: { 15, 7, -15, -12 },
+		minHeight: 60,
+		maxHeight: 400,
+		corners: { 15, 15 },
+		tailPosition: $ * 0.1,
+		moveResize: { fps: 30.0, time: 0.3, curve: 0.8 }
+		pageVariable: introduction.page
+		clickAction: "introduction.click"
+		fullPageAction: "introduction.endOfPage"
+		typingRateVariable: introduction.typingRate
+
+		@begin triggerAutomation(automation) <do action='introduction.triggerAutomation' params='\"@automation\"'> @end
+		@begin marker(label) <do action='introduction.mark' params='\"@label\"'> @end
+		@define dotPause=<pause delay=0.3>
+
+		pages: {
+			"<move bounds='{ $, 200, $, $ }'>Welcome to the Synplant introduction.<br><br>Synplant is a software synthesizer that lets you explore a world of organic sounds by planting seeds that grow into synth patches. @(dotPause)If you have never used Synplant before we suggest you click through this introduction to learn the basics.<pause delay=1><br><br><small>Click anywhere inside the bubbles to continue.</small>"
+			"In the center of the user interface, we find the <term>Seed</term>. @marker(seed) @(dotPause)The seed contains a particular sound.@triggerAutomation(playSomeNotes)<pause delay=2><br><br>The sound of Synplant is 100% synthetic.<br>@(dotPause) No samples."
+			"You grow branches from this seed by clicking and dragging inside the <term>Bulb</term>. @(dotPause)Each branch has a unique timbre; <pause delay=0.1>@triggerAutomation(dragBranches)<pause delay=6>the further you pull it out, the more different it will sound from the seed."
+			"Turn up <term>Atonality</term> to create wackier<br>atonal sounds.@triggerAutomation(slideAtonality)"
+			"Different midi notes will trigger different branches. @(dotPause)Normally, each branch corresponds to a specific note in an octave. @marker(keyRing)"
+			"Using the mod wheel on your midi controller, you can grow all the branches simultaneously. @(dotPause)You can also drag the <term>Mod&nbsp;Wheel&nbsp;Ring</term> to achieve the same effect.@triggerAutomation(dragModWheel)"
+			"If you find a branch you like, you can cut it off and plant it as a new seed by clicking the <term>Seed</term>. <pause delay=0.1>@triggerAutomation(plantOneBranch)<pause delay=7><br><br>Now, all keys play the same sound and you can continue growing new interesting branches."
+			"<move bounds='{ $, 96, $, $ }'>Click the <term>Patch&nbsp;Display</term> to browse<br>Synplant patches.@marker(patchDisplay)"
+			"<move bounds='{ $, 60, $, $ }'>Use this @marker(dnaEditor)button to manipulate the DNA behind the sound. @(dotPause)This gives you access to all the settings that make up the sound."
+			"<move bounds='{ $, 60, $, $ }'>Click this @marker(genopatch)button to load a sample and let our revolutionary <term>Genopatch</term> technology create patches that sound like it."
+			"<move bounds='{ $, 278, $, $ }'>This concludes the introduction to Synplant. @(dotPause)There is a lot more to learn, so please check out our videos on <u><click action='launch' params='\"https://soniccharge.com/synplant\"'>https://soniccharge.com/synplant</click></u><br><br><pause delay=1><small>You can run this introduction again from the <smallterm>Main&nbsp;Menu</smallterm>.</small>"
+		}
+		styles: {
+			@begin bubbleFontStyle(font, size, color, gamma)
+				font: { ivgfont: @font, size:@size, color: @color, gamma:@gamma }
+				lineHeight: @size*130/100, typingRate: 0.020, align:"center"
+			@end
+			@begin bubbleStyle(size)
+				@bubbleFontStyle("JostBook", @size, "@INTRODUCTION_TEXT_COLOR", 0.5)
+			@end 
+			default: { @bubbleStyle(20) }
+			u: { @bubbleStyle(20), underline: "@INTRODUCTION_TEXT_COLOR", underlineOffset: 2 }
+			small: { @bubbleStyle(14) }
+			smallu: { @bubbleStyle(14), underline: { color: "@INTRODUCTION_TEXT_COLOR", stroke: 1, dash: 4, gap: 2 }, underlineOffset: 2 }
+			term: { @bubbleFontStyle("serif", 19, "@INTRODUCTION_TERM_COLOR", 1.5) }
+			smallterm: { @bubbleFontStyle("serif", 13, "@INTRODUCTION_TERM_COLOR", 1.5) }
+		}
+		overlays: {
+			{
+				align: "top right"
+				view: {
+					type: "group"
+					visibility: introduction.closeButtonVisible
+					views: {
+						@closeButton(w - 38, h - 58, 20, 12, @INTRODUCTION_CLOSE_BACKGROUND_COLOR, @INTRODUCTION_CLOSE_ICON_COLOR, @INTRODUCTION_CLOSE_FRAME_COLOR, @<action: "introduction.userClose"@>)
+					}
+				}
+			}
+		}
+	}
+
+	{
+		type: "group"
+		views: {
+			{
+				type: "paged"
+				index: introduction.marker
+				pages: {
+					"none": { 
+
+					}
+
+					@begin ringMarker(label, x, y, w, h, rot, sweep, stroke, randomness)
+						"@label": {
+							{
+								type: "marker"
+								seedVariable: introduction.markerSeed
+								center: { @x, @y }
+								size: { @w, @h }
+								pen: { color: "@INTRODUCTION_MARKER_COLOR", stroke: @stroke }
+								rotation: 0
+								random: @randomness
+								time: 1.5
+								start: @rot
+								sweep: @sweep
+								outlineWidth: 2
+								outlineMix: 30
+							}
+						}
+					@end
+
+					@ringMarker(seed, 250, 362, 24, 24, -45, 360, 6, 1)
+					@ringMarker(keyRing, 250, 362, 166, 166, -94, 356, 16, 0)
+					@ringMarker(patchDisplay, 178, 72, 132, 20, -35, 360, 6, 2)
+					@ringMarker(dnaEditor, 130, 30, 24, 24, -150, 360, 6, 2)
+					@ringMarker(genopatch, 178, 30, 24, 24, -120, 360, 6, 2)
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,94 @@
+/**
+ * @param {color} axesColor
+ * @param {color} markersColor
+ * @param {color} color
+ * @param {number} env_time - bind to dna.grown.env_time
+ * @param {number} env_tilt - bind to dna.grown.env_tilt
+ * @param {number} env_loop - bind to dna.grown.env_loop
+ * @param {number} vol_atk - bind to dna.grown.vol_atk
+ * @param {number} vol_dcy - bind to dna.grown.vol_dcy
+ * @param {number} vol_sus - bind to dna.grown.vol_sus
+ * @param {number} vol_fade - bind to dna.grown.vol_fade
+ * @param {number} position - bind to dna.volEnvPosition
+ */
+
+format IVG-2 requires:IMPD-1
+
+include envCommon.ivg
+
+local ampEnvAttackN = {0.99999 - 0.7 * ((1 - $vol_atk) ** 3)}
+
+local ampEnvDecayN
+$scale ampEnvDecayN $vol_dcy 0 1 0.1 0.999
+
+local attackWidth = {$loopDuration * $attackDecayRatio / $x2tScale}
+local decayWidth = {$loopDuration * (1 - $attackDecayRatio) / $x2tScale}
+local attackPixels = {floor($attackWidth)}
+local decayPixels = {floor($decayWidth)}
+
+local sustainLevel
+$max sustainLevel {(0.5 * (3 * $vol_sus - 1))} 0
+sustainLevel = {$sustainLevel ** 2}
+
+local fadeK = 1
+if {$vol_fade > 0.75} [
+	$logScale fadeSecs $vol_fade 0.75 1 20 0.2
+	$scale div $vol_fade 0.75 1 0 1
+	// *2 instead of sqrt(volFade)
+	local fadePixels = {$fadeSecs * 2 / ($div * $x2tScale)}
+	$decayConstant fadeK $fadePixels 0.001
+]
+
+// volCurve x $shape
+local volCurve = call [
+	return $0 = {$2 * $1 / ($1 * (2 * $2 - 1) + 1 - $2)}
+]
+
+// toGain g $x $y $fadeIn
+local toGain = call [
+	local a = {$2 ** 4 * $decayGain}
+	return $0 = {($a + (sqrt(0.5) - $a) * $sustainLevel * $3) * ($1 < $attackWidth ? 1 : $fadeK ** ($1 - $attackWidth))}
+]
+
+local i
+local x = 0
+local baseX = 0
+local decayGain = 1
+local p = M0 $graphHeight
+for loop from:0 to:{ceil($graphWidth * $x2tScale / $loopDuration) - 1} [
+	if {$attackWidth > 0} [
+		i = 0
+		repeat 10000 while:[{$i <= $attackPixels && $x < $graphWidth}] [
+			$volCurve y {$i / $attackWidth} $ampEnvAttackN
+			x = {$baseX + $i}
+			$toGain y $x $y {$loop > 0 ? 1 : $i / $attackWidth}
+			p = $p $x {$graphHeight * (1 - $y)}
+			i = {$i + $QUALITY}
+		]
+		baseX = {$baseX + $attackWidth}
+	] else:[
+		$toGain y $baseX 0 1
+		p = $p $baseX {$graphHeight * (1 - $y)}
+	]
+
+	if {$decayWidth > 0} [
+		i = 0
+		repeat 10000 while:[{$i <= $decayPixels && $x < $graphWidth}] [
+			$volCurve y {1 - $i / $decayWidth} $ampEnvDecayN
+			x = {$baseX + $i}
+			$toGain y $x $y 1
+			p = $p $x {$graphHeight * (1 - $y)}
+			i = {$i + $QUALITY}
+		]
+		baseX = {$baseX + $decayWidth}
+	] else:[
+		$toGain y $baseX 1 1
+		p = $p $baseX {$graphHeight * (1 - $y)}
+	]
+	
+	decayGain = {$decayGain * $repeatDecay < $decayGainGate ? 0 : $decayGain * $repeatDecay}
+]
+
+$drawAxes
+penWidth = 1
+$drawEnv

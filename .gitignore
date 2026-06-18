@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+ts/out/
+
+# internal planning scratch — not for publication
+docs-outline.md
+
+# reference material (private; do not publish)
+/inspiration

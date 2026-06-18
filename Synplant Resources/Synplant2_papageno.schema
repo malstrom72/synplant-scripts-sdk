@@ -1,0 +1,26 @@
+<papagenoAction> =
+		{ action: "papagenoUI.open" }
+		| { action: "papagenoUI.close" }
+		| { action: "papagenoUI.earlyClose" }
+		| { action: "papagenoUI.chooseReference" }
+		| { action: "papagenoUI.restart" }
+		| { action: "papagenoUI.toggleSearch" }
+		| { action: "papagenoUI.togglePitchCorrect" }
+		| { action: "papagenoUI.autoStartSearch" }
+		| { action: "papagenoUI.pollResults" }
+		| { action: "papagenoUI.noteOffTick" }
+		| { action: "papagenoUI.animate" }
+		| { action: "papagenoUI.playReference" }
+		| { action: "papagenoUI.clickStalk", params: <int> }
+		| { action: "papagenoUI.regrow", params: <int>|"all" }
+		| { action: "papagenoUI.reseed", params: <int>|"all" }
+		| { action: "papagenoUI.patchUpdated" }
+		| { action: "papagenoUI.openRequestedReference" }
+		| { action: "papagenoUI.configure", params: { *:<value> } }
+		| { action: "papagenoUI.waveform.click" }
+		| { action: "papagenoUI.waveform.release" }
+		| { action: "papagenoUI.waveform.autoScroll" }
+		| { action: "papagenoUI.waveform.toggleInfo", params:"info"|"debug" }
+		| { action: "papagenoUI.toggleAutoSelect" }
+		| { action: "papagenoUI.solution.clickSeed" }
+		| { action: "reloadStuff" }

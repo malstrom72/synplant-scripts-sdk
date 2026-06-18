@@ -1,0 +1,63 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+@define PROGRAM_LIST_WIDTH = 416
+@define PROGRAM_ELEMENT_HEIGHT = 26
+@define PROGRAM_LIST_HEIGHT = (17*@PROGRAM_ELEMENT_HEIGHT)
+
+transitions: {
+	default: {
+		restart: true
+		time: 0.1
+		scale: 75
+		scaleCurve: 0.9
+		opacity: 0
+	}
+}
+
+@begin element(n)
+    {
+        type: "group"
+        bounds: { 0, (@n-1)*@PROGRAM_ELEMENT_HEIGHT, w, @PROGRAM_ELEMENT_HEIGHT }
+        views: {
+            {
+                type: "button"
+                bounds: { 0, 0, w, h }
+                checked: { fill: "@PROGRAM_LIST_CURRENT_COLOR" }
+                action: "main.changeProgramNumber"
+                mask: "press"
+                params: @n
+                vector: {
+                    code: 'offset 32,18; font sans-serif size:16 color:{ $checked ? "@PROGRAM_LIST_CURRENT_TEXT_COLOR" : "@PROGRAM_LIST_TEXT_COLOR" }; text anchor:right [$programNumber : ]; text at:4,0 [$name]'
+                    defines: {
+						"programNumber": "@n"
+                    }
+                    bindings: {
+                        "name": program.@n.name
+                    }
+                }
+            }
+        }
+    }
+@end
+
+@windowInLayer((w - @PROGRAM_LIST_WIDTH) / 2, (h - @PROGRAM_LIST_HEIGHT) / 2, @PROGRAM_LIST_WIDTH, @PROGRAM_LIST_HEIGHT
+		, "MIDI Program List", @PROGRAM_LIST_BACKGROUND_COLOR, @PROGRAM_LIST_FRAME_COLOR, @PROGRAM_LIST_TITLE_COLOR
+		, programList, modal, false, @<
+    @element(1)
+    @element(2)
+    @element(3)
+    @element(4)
+    @element(5)
+    @element(6)
+    @element(7)
+    @element(8)
+    @element(9)
+    @element(10)
+    @element(11)
+    @element(12)
+    @element(13)
+    @element(14)
+    @element(15)
+    @element(16)
+@>)

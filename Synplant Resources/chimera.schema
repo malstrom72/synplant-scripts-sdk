@@ -1,0 +1,75 @@
+<chimeraAction> = <builtInAction>
+		| {
+			action: "changeParam"
+			params: {
+				param: <string>
+				(toggle: 'true' | to: <real> | by: <real> | toVariable: <var> | byVariable: <var> )
+				[ whenEqual: "nothing" | "checked" | "disabled" ]	// default = checked
+			}
+		}
+		| { action: "initPatch" }
+		| { action: "copyPatch" }
+		| { action: "pastePatch" }
+		| { action: "exchangePatch" }
+		| { action: "randomizePatch" }
+		| { action: "openPatch" }
+		| { action: "savePatch" }
+		| { action: "choosePatch"
+			// TODO: [ topItems: { { <caption>, <action>, [<params>] } | - ... }, bottomItems: ... ]
+		 	/* maybe also:
+		 	[ includeShowFolder: <bool> ]
+		 	[ splitBrowseItems: <bool> ]	// separate menu items for Browse Factory and User Patches...
+		 	*/
+		}
+		| { action: "switchPatch", params: { step: '-1' | '1', wrap: <bool> } }
+		| { action: "chooseProgram"
+		 	// TODO: [ topItems: { { <caption>, <action>, [<params>] } | - ... }, bottomItems: ... ]
+		}
+		| { action: "switchProgram", params: { step: '-1' | '1', wrap: <bool> } }
+		| { action: "loadProgramBank", params: ?file:fxb }
+		| { action: "undo" }
+		| { action: "redo" }
+		| { action: "toggleVersionCheck" }
+		| { action: "register" }
+		| { action: "unitTest", [iterations: <int> | { [iterations: <int>], [seed: <uint>]}] }
+		| { action: "resetMidiConfig" }
+		| { action: "loadMidiConfig" }
+		| { action: "saveMidiConfig" }
+		| { action: "makeMidiConfigDefault" }
+		| { action: "sendMidi", params: { message: { <hex8>|<uint>|<var>, <hex8>|<uint>|<var>, [ <hex8>|<uint>|<var> ] } } } // TODO , toHost: <bool>
+
+<chimeraView> = <builtInView>
+		| <midiAssign>
+
+<midiAssign> = {
+	type: "midiAssign"
+	[ bounds: <rect> ]
+	variable: <var> 									// e.g. midiConfig.cc.volume, should be integer or "off" for "unassigned"
+	[ range: { <int>, <int> } ]							// default is 0 to 127
+	[ unassignable: <bool> ]							// necessary for correct mouse-tracking behaviour, default is true, unassigned value is "off"
+	[ text: {
+		[ font: <font> ]								// default = "sans-serif"
+		[ display: <metaText> ]							// for using a different human representation (default is integer number and "---" for unassigned)
+		[ offset: { <int>, <int> } ]					// default = 0.0
+		[ align: "left" | "center" | "right" ]			// default = "center"
+	} ]
+	[ backgrounds: {
+		[ rounded: <percent> | { <real>, <real> } ]		// default = 50% of height. 100 percent = full ellipse form
+		[ frame: <penStyle> ]							// default = "black"
+		[ unassigned: <color> ]							// default = "gray"
+		[ assigned: <color> ]							// default = "white"
+		[ assigning: <color> ]							// default = same as assigned
+	} ]
+	[ transmission: {
+		[ vertical: <real> ] 							// default = 200. Number of pixels for full range, 0 = vertical movement ignored.
+		[ horizontal: <real> ] 							// default = 200. Number of pixels for full range, 0 = horizontal movement ignored.
+		[ fine: <percent> ] 							// default = 10. The fine rate (in percent) for shift-key adjustements.
+	} ]
+	[ learning: {
+		assignment: <var> 								// e.g. midiLearnCC
+		[ blinkInterval: <real> ]						// in milliseconds, default = 500
+		[ image: <image> ]								// without image the text will blink
+	} ]
+	[ hint: <metaText> ]
+	[ cursor: <cursor> ]
+}

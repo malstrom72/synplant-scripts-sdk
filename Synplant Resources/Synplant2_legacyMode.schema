@@ -1,0 +1,4 @@
+<legacyModeAction> =
+		{ action: "legacyMode.userClose" }
+		| { action: "legacyMode.readMore" }
+		| { action: "legacyMode.upgradePatch" }

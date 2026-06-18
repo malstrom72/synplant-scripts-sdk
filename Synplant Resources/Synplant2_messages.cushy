@@ -1,0 +1,76 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+//bounds: { 100, 100, 300, 200 }
+
+transitions: {
+	default: {
+		restart: false,
+		time: 0.25,				// secs
+		updateRate: 50,			// fps
+		scale: 90,
+		scaleCurve: 0.9,
+		offset: { 0, 30 }
+		opacity: 0.0,
+		opacityCurve: 0.75
+	}
+}
+
+views: {
+	{
+		type: "bubble",
+		fill: "@MESSAGE_BACKGROUND_COLOR"
+		frame: { color: "@MESSAGE_FRAME_COLOR", stroke: 3 }
+		margins: { 10, 10, -10, -10 },
+		paddings: { 15, 7, -15, -12 },
+		bounds: { 16, h-60, w-32, 60 },
+		minHeight: 60,
+		maxHeight: 400,
+		corners: { 15, 15 },
+		clickAction: "closeCushy"
+		pageVariable: main.messageNumber
+		pages: {
+			/* --- 0 --- */
+			"You are running Synplant in trial mode.<br><br>You have <red>[var]trialTimeLeft[/var] </red>remaining before you need to register.<br><br><u><click action='main.register'>Click&nbsp;here</click></u> to open the registration window or anywhere else inside this box to continue."
+		
+			/* --- 1 --- */
+			"I am sorry, but your trial time is over.<br><br>You need to register Synplant to continue using it. Please, <u><click action='main.register'>click&nbsp;here</click></u> to open the registration window."
+
+			/* --- 2 --- */
+			"Synplant 2 has improvements in the audio engine that change the quality of the sound, making it sound slightly different from Synplant version 1.<br><br>Most of the time, the differences are hardly noticeable, but with certain settings, they are more pronounced.<br><br>When running in \"compatibility mode\", the Synplant engine reproduces the legacy sound of version 1 exactly without the DSP improvements of version 2.<br><br>If you choose to upgrade, you can undo the operation if you change your mind."
+		}
+		styles: {
+			@begin style(size, color)
+				font: { ivgfont: "JostBook", size:@size, color:@color, gamma: 0.7 }
+				lineHeight: 26
+				typingRate: 0.006
+			@end
+			
+			default: {
+				@style(17, "@MESSAGE_TEXT_COLOR")
+			}
+			red: {
+				@style(18, "@MESSAGE_TEXT_IMPORTANT_COLOR")
+			}
+			u: {
+				@style(18, "@MESSAGE_TEXT_LINK_COLOR")
+				underline: { color: "@MESSAGE_TEXT_LINK_UNDERLINE_COLOR", stroke: 1.0, dash: 4, gap: 2 }
+				underlineOffset: 1.5
+			}
+			small: {
+				@style(13, "@MESSAGE_TEXT_COLOR")
+			}
+		}
+		overlays: {
+			{
+				align: "top right"
+				view: {
+					type: "group"
+					views: {
+						@closeButton(w - 38, h - 58, 20, 12, @MESSAGE_CLOSE_BACKGROUND_COLOR, @MESSAGE_CLOSE_ICON_COLOR, @MESSAGE_CLOSE_FRAME_COLOR, @<action: "closeCushy"@>)
+					}
+				}
+			}
+		}
+	}
+}

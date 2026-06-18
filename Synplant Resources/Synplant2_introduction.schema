@@ -1,0 +1,9 @@
+<introductionAction> =
+		{ action: "introduction.open" }
+		| { action: "introduction.click" }
+		| { action: "introduction.driveAutomations" }
+        | { action: "introduction.triggerAutomation", params: <string> }
+		| { action: "introduction.mark" }
+		| { action: "introduction.endOfPage" }
+		| { action: "introduction.userClose" }
+		| { action: "introduction.close" }

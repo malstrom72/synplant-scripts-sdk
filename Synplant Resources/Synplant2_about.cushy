@@ -1,0 +1,94 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+@define windowWidth = 420
+@define windowHeight = 480
+@define animationFps = 60
+@define transitionTime = 0.1
+
+transitions: {
+	open: {
+		time: @transitionTime
+		scale: 90
+		opacity: 0
+	}
+	close: {
+		time: @transitionTime
+		scale: 90
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	{
+		action: "about.initGUI"
+		params: {
+			@export(animationFps)
+		}
+	}
+	{
+		action: "about.animate"
+		delay: (1 / @animationFps)
+		repeat: {
+			visible: (1 / @animationFps)
+			invisible: suspend
+		}
+	}
+}
+
+@modal((w-@windowWidth)/2, 110, @windowWidth, @windowHeight, @ABOUT_CLOSE_BACKGROUND, @ABOUT_CLOSE_FOREGOUND, @ABOUT_CLOSE_FRAME, @<
+
+	{
+		type: "click"
+		action: "closeCushy"
+		cursor: "arrow" // block underlying cursors
+		hint: "" // block underlying hints
+	}
+	/*** Background ***/
+	{
+		type: "gradient"
+		start: { 0, 0 }
+		end: { 0, 480 }
+		stops: { { 0.0, "@ABOUT_BACKGROUND_COLOR_1" }, { 1.0, "@ABOUT_BACKGROUND_COLOR_2" } }
+		frame: { color: "@ABOUT_FRAME_COLOR", stroke: 2 }
+	}
+	/*** Animating Logo ***/
+	{
+		type: "vector"
+		bounds: { (w-364)/2+17, 76, 364, 136 }
+		file: "synplant2logo"
+		bindings: {
+			"frame": about.frame
+		}
+	}
+
+	/*** Copyright and version info ***/
+	{
+		type: "vector"
+		file: "Synplant2_about"
+		defines: {
+			"fontColor": "@ABOUT_TEXT_COLOR"
+		}   
+		bindings: {
+			"copyright": BUILD.COPYRIGHT
+			"number": BUILD.NUMBER
+			"version": BUILD.VERSION
+		}
+	}
+	{
+		type: "click"
+		bounds: { 330, 425, 71, 16 }
+		cursor: "hand"		
+		action: "alert"
+		params: {
+			text: "Version: [var]BUILD.VERSION[/var] (build [var]BUILD.NUMBER[/var])\nFormat: [var]BUILD.FORMAT[/var]\nDate: [var]BUILD.DATE[/var], [var]BUILD.TIME[/var]\nTarget: [var]BUILD.TARGET[/var]\nCompiler: [var]BUILD.COMPILER[/var]\nLibs: [var]BUILD.LIBS[/var]\nPlatform: [var]PLATFORM.OS[/var].[var]PLATFORM.CPU[/var]"
+		}
+	}
+	{ 
+		type: "click"
+		bounds: { 271, 448, 150, 17 }
+		cursor: "hand"
+		action: "launch"
+		params: "https://soniccharge.com"
+	}
+@>)

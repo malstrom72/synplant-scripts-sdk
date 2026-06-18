@@ -1,0 +1,50 @@
+format IVG-2 requires:IMPD-1
+
+// $dice faces frame [eyes] [background]
+dice = call [
+    local ds = 10
+	local dh = {10.29/2}
+	local dw = {17.15/2}
+	local gs = {9/3}
+
+    outline=PATH svg:[m{-$dw},{-$dh} l{$dw},{-$dh} l{$dw},{$dh} v{$ds} l{-$dw},{$dh} l{-$dw},{-$dh} z]
+	
+    if { def(3) } [
+        fill $3
+        pen $3 width:4
+        $outline
+    ]
+
+    fill none
+    pen $1 width:0.9
+    $outline
+    context [
+        mask inverted:yes [
+            pen #ff width:3
+            fill #00
+            $outline
+        ]
+        pen opacity:0.66
+        PATH svg:[m{-$dw},{-$dh} l{$dw},{$dh} l{$dw},{-$dh} M0,0 v{$ds}]
+    ]
+
+    // Draw sides
+    pen none
+    fill { def(2) ? $2 : $1 }
+    for s from:-1 to:1 [
+        n={$0{($s+1):1}}
+        context [
+            rotate {120*$s}
+            offset 0,{-$dh}
+            scale 1,0.6
+            rotate 45
+            if {$n==4||$n==5||$n==6} [ ellipse {-$gs},{-$gs},1 ]
+            if {$n==2||$n==3||$n==4||$n==5||$n==6} [ ellipse {$gs},{-$gs},1 ]
+            if {$n==6} [ ellipse {-$gs},0,1 ]
+            if {$n==1||$n==3||$n==5} [ ellipse 0,0,1 ]
+            if {$n==6} [ ellipse {$gs},0,1 ]
+            if {$n==2||$n==3||$n==4||$n==5||$n==6} [ ellipse {-$gs},{$gs},1 ]
+            if {$n==4||$n==5||$n==6} [ ellipse {$gs},{$gs},1 ]
+        ]
+    ]
+]

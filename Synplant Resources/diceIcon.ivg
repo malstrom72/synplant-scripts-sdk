@@ -1,0 +1,16 @@
+/**
+ * @param {number} size
+ * @param {color} backgroundColor
+ * @param {color} primaryColor
+ * @param {color} secondaryColor
+ * @param {string} number - bind to main.seedDice
+ */
+
+format IVG-2 requires:IMPD-1
+
+include "dice.ivg"
+
+offset {$width/2},{$height/2}
+
+scale { $size / 26 }
+$dice $number $secondaryColor $primaryColor $backgroundColor

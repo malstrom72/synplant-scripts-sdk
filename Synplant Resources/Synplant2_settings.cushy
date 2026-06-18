@@ -1,0 +1,334 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+@define MIDI_CONFIG_WIDTH = 420
+@define MIDI_CONFIG_HEIGHT = 410
+@define MIDI_CONFIG_FONT = { ivgfont: "sans-serif", size: 15, color: "@MIDI_CONFIG_TEXT_COLOR" }
+@define MIDI_CONFIG_BUTTON_FONT = { ivgfont: "sans-serif", size: 15, color: "@MIDI_CONFIG_BUTTON_TEXT_COLOR" }
+@define MIDI_CONFIG_BUTTON_FONT_SMALL = { ivgfont: "sans-serif", size: 12, color: "@MIDI_CONFIG_BUTTON_TEXT_COLOR" }
+@define MIDI_CONFIG_BUTTON_FRAME_PEN = { color: "@MIDI_CONFIG_BUTTON_FRAME_COLOR", stroke: 1 }
+@define MIDI_CONFIG_CLICKED_TEXT_PEN = { color: "@MIDI_CONFIG_BUTTON_FRAME_COLOR", stroke: 1, dash: 2 }
+
+@begin assignItem(var, xlatePrefix, value) { "[xlate]@xlatePrefix@value[/xlate]", "set", { @var, "@value" } } @end
+
+@begin midiConfigButton(x, y, w, h, smallFont, caption, action, params)
+	{
+		@edit(caption)
+		type: "button"
+		bounds: { @x, @y, @w, @h }
+		rounded: { 4, 4 }
+		standard: {
+		@if (@smallFont == true)
+			font: @MIDI_CONFIG_BUTTON_FONT_SMALL
+		@else
+			font: @MIDI_CONFIG_BUTTON_FONT
+		@endif
+			fill: "@MIDI_CONFIG_BUTTON_BACKGROUND_COLOR"
+			frame: @MIDI_CONFIG_BUTTON_FRAME_PEN
+		}
+		down: { fill: "@MIDI_CONFIG_BUTTON_DOWN_COLOR" }
+		action: @action
+	@if (@params != @<@>)
+		params: @params
+	@endif
+		caption: @caption
+	}
+@end
+
+@begin midiConfigCheckbox(x, y, w, caption, var)
+	{
+		@edit(caption)
+		type: "group"
+		bounds: { @x, @y, @w, 28 }
+		views: {
+			{
+				type: "button"
+				bounds: { 24, 5, w-24-1, 18 }
+				down: { frame: @MIDI_CONFIG_CLICKED_TEXT_PEN }
+				checkedDown: { frame: @MIDI_CONFIG_CLICKED_TEXT_PEN }
+				action: "switch"
+				params: @toggle(@var, false, true)
+			}
+			{
+				type: "caption"
+				bounds: { 28, 4, w-28, 20 }
+				text: @caption
+				font: @MIDI_CONFIG_FONT
+				align: "middle left"
+			}
+			{
+				type: "button"
+				bounds: { 0, 4, 20, 20 }
+				rounded: { 2, 2 }
+				standard: {
+					font: @MIDI_CONFIG_BUTTON_FONT
+					fill: "@MIDI_CONFIG_BUTTON_BACKGROUND_COLOR"
+					frame: @MIDI_CONFIG_BUTTON_FRAME_PEN
+				}
+				down: { fill: "@MIDI_CONFIG_BUTTON_DOWN_COLOR" }
+				checked: { icon: { scale: 80, ivgCode: 'bounds 0,0,20,17; pen @MIDI_CONFIG_BUTTON_TEXT_COLOR width:2; path svg:M2,10L7,15L18,2' } }
+				checkedDown: { fill: "@MIDI_CONFIG_BUTTON_DOWN_COLOR" }
+				action: "switch"
+				params: @toggle(@var, false, true)
+			}
+		}
+	}
+@end
+
+@begin midiConfigPopupSelector(x, y, w, buttonWidth, caption, xlatePrefix, var, items)
+	{
+		@edit(caption)
+		type: "group"
+		bounds: { @x, @y, @w, 24 }
+		views: {
+			{
+				type: "caption"
+				bounds: { 0, 0, w-@buttonWidth-8, h }
+				text: @caption
+				font: @MIDI_CONFIG_FONT
+				align: "middle right"
+			}
+			{
+				type: "button"
+				bounds: { w-@buttonWidth, 0, @buttonWidth, 24 }
+				rounded: { 4, 4 }
+				standard: {
+					font: @MIDI_CONFIG_BUTTON_FONT
+					fill: "@MIDI_CONFIG_BUTTON_BACKGROUND_COLOR"
+					frame: @MIDI_CONFIG_BUTTON_FRAME_PEN
+				}
+				down: { fill: "@MIDI_CONFIG_BUTTON_DOWN_COLOR" }
+				caption: { text: "[xlate]@xlatePrefix[var]@var[/var][/xlate]", offset: { -4, 0 } }
+				actions: { { "press", "popup", { items: { @items } } } }
+			}
+			{
+				type: "vector"
+				bounds: { w-17, 3, 16, 16 }
+				code: 'fill @MIDI_CONFIG_BUTTON_TEXT_COLOR opacity:0.6; star 8,8,3,5 rotation:180'
+				scale: 100
+			}
+		}
+	}
+@end
+
+transitions: {
+	default: {
+		restart: true
+		time: 0.1
+		scale: 75
+		scaleCurve: 0.9
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	{
+		action: "set"
+		params: { midiLearnKey, "" }
+		onClose: true
+		onReload: false
+	}
+}
+
+translations: {
+	"midiChannel:any": "Any"
+	"midiChannel:none": "None"
+	"midiChannel:1": "1"
+	"midiChannel:2": "2"
+	"midiChannel:3": "3"
+	"midiChannel:4": "4"
+	"midiChannel:5": "5"
+	"midiChannel:6": "6"
+	"midiChannel:7": "7"
+	"midiChannel:8": "8"
+	"midiChannel:9": "9"
+	"midiChannel:10": "10"
+	"midiChannel:11": "11"
+	"midiChannel:12": "12"
+	"midiChannel:13": "13"
+	"midiChannel:14": "14"
+	"midiChannel:15": "15"
+	"midiChannel:16": "16"
+	"velocityCurve:low": "Low"
+	"velocityCurve:normal": "Normal"
+	"velocityCurve:high": "High"
+	"velocityCurve:fixed": "Fixed"
+	"pressureCurve:soft": "Soft"
+	"pressureCurve:normal": "Normal"
+	"pressureCurve:hard": "Hard"
+	"pressureCurve:off": "Off"
+}
+
+@windowInLayer((w - @MIDI_CONFIG_WIDTH) / 2, (h - @MIDI_CONFIG_HEIGHT) / 2, @MIDI_CONFIG_WIDTH, @MIDI_CONFIG_HEIGHT
+		, "MIDI Settings", @MIDI_CONFIG_BACKGROUND_COLOR, @MIDI_CONFIG_FRAME_COLOR, @MIDI_CONFIG_TITLE_COLOR
+		, settings, modal, false, @<
+
+	/*** Input Channel ***/
+	@midiConfigPopupSelector(20, 28, 172, 52, "Input channel:", midiChannel:, midiConfig.inputChannel, @<
+		@assignItem(midiConfig.inputChannel, midiChannel:, any)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 1)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 2)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 3)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 4)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 5)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 6)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 7)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 8)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 9)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 10)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 11)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 12)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 13)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 14)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 15)
+		@assignItem(midiConfig.inputChannel, midiChannel:, 16)
+	@>)
+
+	/*** Output Channel ***/
+	@midiConfigPopupSelector(208, 28, 172, 52, "Output channel:", midiChannel:, settings.midiOutputChannel, @<
+		@assignItem(settings.midiOutputChannel, midiChannel:, none)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 1)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 2)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 3)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 4)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 5)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 6)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 7)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 8)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 9)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 10)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 11)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 12)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 13)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 14)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 15)
+		@assignItem(settings.midiOutputChannel, midiChannel:, 16)
+	@>)
+
+	/*** Pitch-wheel ***/
+	@midiConfigPopupSelector(20, 124, 172, 52, "Pitch wheel:", , midiConfig.pitchBendRange, @<
+		@assignItem(midiConfig.pitchBendRange, , 0)
+		@assignItem(midiConfig.pitchBendRange, , 1)
+		@assignItem(midiConfig.pitchBendRange, , 2)
+		@assignItem(midiConfig.pitchBendRange, , 3)
+		@assignItem(midiConfig.pitchBendRange, , 4)
+		@assignItem(midiConfig.pitchBendRange, , 5)
+		@assignItem(midiConfig.pitchBendRange, , 6)
+		@assignItem(midiConfig.pitchBendRange, , 7)
+		@assignItem(midiConfig.pitchBendRange, , 8)
+		@assignItem(midiConfig.pitchBendRange, , 9)
+		@assignItem(midiConfig.pitchBendRange, , 10)
+		@assignItem(midiConfig.pitchBendRange, , 11)
+		@assignItem(midiConfig.pitchBendRange, , 12)
+		@assignItem(midiConfig.pitchBendRange, , 24)
+		@assignItem(midiConfig.pitchBendRange, , 48)
+	@>)
+
+	/*** Master Tuning ***/
+	{
+		type: "group"
+		bounds: { 44, 156, 344, 24 }
+		views: {
+			{
+				type: "caption"
+				bounds: { 0, 0, w, h }
+				text: "Master tuning:"
+				font: @MIDI_CONFIG_FONT
+				align: "middle left"
+			}
+			{
+				type: "slider"
+				bounds: { 92, 0, 244, h }
+				variable: settings.masterTuning
+				default: 440
+				range: { 340, 540 }
+				slit: {
+					start: { 22, 12 }
+					end: { 222, 12  }
+					thickness: 1
+					color: "@MIDI_CONFIG_BUTTON_FRAME_COLOR"
+				}
+				cap: {
+					size: { 40, 16 }
+				}
+				vector: {
+					code: "fill $fillColor; pen $penColor; rect -20,-8,40,16 rounded:2,2; font sans-serif size:12 color:$textColor; text at:0,4 anchor:center [{round($value)} Hz]"
+					defines: {
+						"textColor": "@MIDI_CONFIG_BUTTON_TEXT_COLOR"
+						"fillColor": "@MIDI_CONFIG_BUTTON_BACKGROUND_COLOR"
+						"penColor": "@MIDI_CONFIG_FRAME_COLOR"
+					}
+				}
+			}
+		}
+	}
+	
+	/*** Velocity Curve ***/
+	@midiConfigPopupSelector(20, 60, 172, 80, "Velocity:", velocityCurve:, settings.velocityCurve, @<
+		@assignItem(settings.velocityCurve, velocityCurve:, low)
+		@assignItem(settings.velocityCurve, velocityCurve:, normal)
+		@assignItem(settings.velocityCurve, velocityCurve:, high)
+		@assignItem(settings.velocityCurve, velocityCurve:, fixed)
+	@>)
+	
+	/*** Pressure Curve ***/
+	@midiConfigPopupSelector(208, 60, 172, 80, "Pressure:", pressureCurve:, settings.pressureCurve, @<
+		@assignItem(settings.pressureCurve, pressureCurve:, soft)
+		@assignItem(settings.pressureCurve, pressureCurve:, normal)
+		@assignItem(settings.pressureCurve, pressureCurve:, hard)
+		@assignItem(settings.pressureCurve, pressureCurve:, off)
+	@>)
+
+	/*** Min Polyphony ***/
+	@midiConfigPopupSelector(20, 92, 172, 52, "Min polyphony:", , settings.minPolyphony, @<
+		@assignItem(settings.minPolyphony, , 3)
+		@assignItem(settings.minPolyphony, , 4)
+		@assignItem(settings.minPolyphony, , 6)
+		@assignItem(settings.minPolyphony, , 12)
+		@assignItem(settings.minPolyphony, , 24)
+		@assignItem(settings.minPolyphony, , 36)
+		@assignItem(settings.minPolyphony, , 48)
+	@>)
+
+	/*** Max Polyphony ***/
+	@midiConfigPopupSelector(208, 92, 172, 52, "Max polyphony:", , settings.maxPolyphony, @<
+		@assignItem(settings.maxPolyphony, , 3)
+		@assignItem(settings.maxPolyphony, , 4)
+		@assignItem(settings.maxPolyphony, , 6)
+		@assignItem(settings.maxPolyphony, , 12)
+		@assignItem(settings.maxPolyphony, , 24)
+		@assignItem(settings.maxPolyphony, , 36)
+		@assignItem(settings.maxPolyphony, , 48)
+	@>)
+
+	/*** Switches ***/
+	@midiConfigCheckbox(32, 192, 248, "Pitch wheel affects only held notes", midiConfig.pitchBendHeldOnly)
+	@midiConfigCheckbox(32, 224, 232, "Select branches with MIDI notes", settings.notesSelectsBranch)
+	@midiConfigCheckbox(32, 256, 216, "Enable MIDI Program Change", midiConfig.programChanges)
+	@midiConfigButton(256, 262, 48, 16, true, "Edit", "toggleCushy", "Synplant2_programList")
+
+	/*** Bottom stuff ***/
+	{
+		type: "group"
+		bounds: { 20, h-74, w-40, 58 }
+		views: {
+			{
+				type: "caption"
+				bounds: { 0, 0, w, 20 }
+				text: "(There are [var]midiConfig.assignedCount[/var] mapped MIDI controls.)"
+				font: @MIDI_CONFIG_FONT
+				align: "middle center"
+			}
+			{
+				type: "group"
+				bounds: { 0, 32, w, h-32 }
+				views: {
+					@midiConfigButton(0, 0, 80, 24, false, "Reset", "resetMidiConfig", )
+					@midiConfigButton(92, 0, 80, 24, false, "Load...", "loadMidiConfig", )
+					@midiConfigButton(184, 0, 80, 24, false, "Save...", "saveMidiConfig", )
+					@midiConfigButton(276, 0, 100, 24, false, "Make Default", "makeMidiConfigDefault", )
+				}
+			}
+		}
+	}
+@>)

@@ -1,0 +1,94 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+@define centerX = 154
+@define centerY = 154
+
+@define sin_0 = 0.0
+@define sin_1 = -0.5
+@define sin_2 = -0.8660254037844385
+@define sin_3 = -1.0
+@define sin_4 = -0.866025403784439
+@define sin_5 = -0.5
+@define sin_6 = 0.0
+@define sin_7 = 0.5
+@define sin_8 = 0.8660254037844379
+@define sin_9 = 1.0
+@define sin_10 = 0.8660254037844392
+@define sin_11 = 0.5
+
+@define cos_0 = 1.0
+@define cos_1 = 0.8660254037844387
+@define cos_2 = 0.5
+@define cos_3 = 0.0
+@define cos_4 = -0.5
+@define cos_5 = -0.8660254037844385
+@define cos_6 = -1.0
+@define cos_7 = -0.866025403784439
+@define cos_8 = -0.5
+@define cos_9 = 0.0
+@define cos_10 = 0.5
+@define cos_11 = 0.8660254037844384
+
+@define faderStart = 40
+@define faderEnd = 120
+
+@begin sectorVolume(sector)
+    {
+        type: "vector"
+        file: "branchVolume"
+        defines: {
+            "sector": "@sector"
+            "faderStart": "@faderStart"
+            "faderEnd": "@faderEnd"
+        }
+        bindings: {
+            "volume": branchVolumeSliders.sectors.@sector.volume
+        }
+    }
+    {
+        type: "slider"
+        variable: branchVolumeSliders.sectors.@sector.volume
+		default: 0.5
+        cap: { size: { 13, 13 }, rounded: 100 }
+        slit: {
+            thickness: 8
+            start: { @centerX+@(sin_@sector)*@faderStart, @centerY+@(cos_@sector)*@faderStart }
+            end: { @centerX+@(sin_@sector)*@faderEnd, @centerY+@(cos_@sector)*@faderEnd }
+        }
+        hint: "Branch [var]branchVolumeSliders.sectors.@sector.branch[/var] Volume = [var]branchVolumeSliders.sectors.@sector.humanVolume[/var]"
+    }
+@end
+
+bounds: { 96, 208, 308, 308 }
+
+transitions: {
+ 	default: {
+		restart: false
+		time: 0.150
+		scale: 33
+		scaleCurve: 0.9
+		opacity: 0
+	}
+}
+
+views: {
+    // Bulb eclipse
+    {
+        type: "rectangle"
+        fill: "@MAIN_BACKGROUND_COLOR"
+        opacity: 55
+    }
+    @sectorVolume(0)
+    @sectorVolume(1)
+    @sectorVolume(2)
+    @sectorVolume(3)
+    @sectorVolume(4)
+    @sectorVolume(5)
+    @sectorVolume(6)
+    @sectorVolume(7)
+    @sectorVolume(8)
+    @sectorVolume(9)
+    @sectorVolume(10)
+    @sectorVolume(11)
+}

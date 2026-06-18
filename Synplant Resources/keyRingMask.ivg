@@ -1,0 +1,13 @@
+/**
+ * @param {number} size
+ * @param {number} margin
+ * @param {number} width
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,$size,$size
+fill white
+x={$size/2}
+mask [ ellipse $x,$x,{$x-$margin-$width} ] inverted:yes
+ellipse $x,$x,{$x-$margin}

@@ -1,0 +1,59 @@
+@include Synplant2_colorScheme.makaron
+
+@define shadowIntensity=0.20
+@define shadowBlur=12
+@define shadowExpand=5
+@define shadowX=0
+@define shadowY=2
+@define roundness=4
+@define opacity=80
+
+transitions: {
+	open: {
+		time: 0.1
+		opacity: 0
+	}
+	close: {
+		time: 0.1
+		opacity: 0
+	}
+}
+
+bounds: { (w-150-@shadowExpand*2)/2+@shadowX, 4-@shadowExpand+@shadowY, 150+@shadowExpand*2, 30+@shadowExpand*2 }
+
+autoexecs: {
+    {
+        action: "dna.maybeClosePopupBranchHint"
+        delay: 0.1
+        repeat: 0.1
+    }
+}
+
+views: {
+    {
+        type: "vector"
+        file: "rectDropShadow"
+        defines: {
+            "shadowBlur": "@shadowBlur"
+            "shadowIntensity": "@shadowIntensity"
+        }
+    }
+    {
+        type: "group"
+        bounds: { @shadowExpand-@shadowX, @shadowExpand-@shadowY, w-@shadowExpand*2, h-@shadowExpand*2 }
+        views: {
+            {
+                type: "rectangle"
+                fill: "@DNA_BRANCH_HINT_BACKGROUND_COLOR"
+                opacity: @opacity
+                rounded: { @roundness, @roundness }
+            }
+            {
+                type: "caption"
+                font: { ivgfont: "sans-serif", size: 16, color: "@DNA_BRANCH_HINT_TEXT_COLOR" }
+                align: "middle center"
+                text: "branch [var]calculated:main.selectedBranch+1[/var] \\[[var]main.selectedBranch.name[/var]\\]"
+            }
+        }
+    }
+}

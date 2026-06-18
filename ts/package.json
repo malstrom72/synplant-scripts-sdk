@@ -1,0 +1,13 @@
+{
+  "name": "synplant-scripts-ts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TypeScript declarations (COJSEngine.d.ts) and build setup for writing Synplant scripts in TypeScript.",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch --pretty"
+  },
+  "devDependencies": {
+    "typescript": "^4.4.4"
+  }
+}

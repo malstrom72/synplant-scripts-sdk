@@ -1,0 +1,54 @@
+/**
+ * @param {number} sector - @sector
+ * @param {number} volume - branchVolumes.sectors.@sector.volume
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+LIGHTS=16
+LIGHTWIDTH=10
+SPACE=1.5
+
+offset {$width/2},{$height/2}
+rotate {$sector*360/12}
+
+faderLength={$faderEnd-$faderStart}
+
+// Background
+outerWidth=17
+outerStart={$faderStart-$SPACE}
+outerLength={$faderLength+$SPACE*2}
+pen none
+fill #e0000000
+RECT {-$outerWidth/2},{$outerStart-1},$outerWidth,{$outerLength+2}
+
+// Borders
+borderX={($outerWidth/2)-1}
+pen #606040 width:1
+PATH svg:[M{-$borderX},{$outerStart}v{$outerLength}M{$borderX},{$outerStart}v{$outerLength}]
+
+// LED Mask
+pen none
+fill white
+mask [
+	mask [ RECT {$LIGHTWIDTH/-2},$faderStart,$LIGHTWIDTH,{$volume*$faderLength} ]
+	lSize={($faderLength+$SPACE)/$LIGHTS}
+	context [
+		offset {$LIGHTWIDTH/-2},$faderStart
+		for y from:0 to:$faderLength step:$lSize [
+			RECT 0,$y,$LIGHTWIDTH,{$lSize-$SPACE}
+		]
+	]
+]
+
+// LED Gradient
+wipe gradient:[
+	linear 0,$faderStart,0,$faderEnd
+	stops:[
+		0,[hsv(0.25,0.85,0.6,0.8)],
+		0.4,[hsv(0.175,0.892,0.775,0.83)]
+		0.6,[hsv(0.125,0.97,0.98,0.85)],
+		0.74,[hsv(0.1,0.96,0.9,0.86)],
+		1,[hsv(0,0.99,0.95,0.9)]
+	]
+]

@@ -1,0 +1,50 @@
+@include scriptSupport.makaron
+
+@define script=genobatch
+@define uiHue=0.45
+@define fillColor=hsv(@uiHue,0.2,0.8)
+@define downColor=hsv(@uiHue,0.4,0.5)
+@define strokeColor=hsv(@uiHue,0.5,0.4)
+@define captionFont={ ivgfont: "sans-serif", size: 14, color: "hsv(@uiHue,0.5,0.3)" }
+@define backgroundColor = #395373
+@define frameColor = #294363
+@define textColor = #e1e8f1
+
+transitions: {
+	open: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+	close: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	{
+		action: "@script.process"
+		delay: 0.05
+		repeat: 0.05
+	}
+	{
+		action: "@script.open"
+		onReload: false
+	}
+	{
+		action: "@script.close"
+		onClose: true
+		onReload: false
+	}
+}
+
+@window((w-280)/2, 105, 280, 120, "Genobatch", @backgroundColor, @frameColor, white, @script, @<
+	{
+		type: "caption"
+		font: { ivgfont: "NowRegular", size: 16, color: "@textColor" }
+		align: "middle center"
+		text: "[var]genobatch.info[/var]"
+	}
+@>)

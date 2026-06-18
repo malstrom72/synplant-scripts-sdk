@@ -1,0 +1,16 @@
+/**
+ * @param {color} color - pen color
+ * @param {number} [size=14] - bounds and path size
+ * @param {number} [thickness=1] - pen width
+ * @param {number} [shrink] - path size reduction
+ */
+
+format IVG-1 requires:IMPD-1
+
+if {def(size)} [ s=$size ] else:[ s=14 ]
+if {def(shrink)} [ a={$shrink}; b={$s-$shrink} ] else:[ a=1; b={$s-1} ]
+if {def(thickness)} [ w={$thickness} ] else:[ w=1 ]
+
+bounds 0,0,$s,$s
+pen $color width:{$w}
+path svg:M$a,{$a}L$b,{$b}M$b,{$a}L$a,$b

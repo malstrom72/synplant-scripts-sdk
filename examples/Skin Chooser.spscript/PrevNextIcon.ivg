@@ -1,0 +1,9 @@
+bounds 0,0,28,48
+if $flip [
+    offset 28,0
+    scale -1,1
+]
+pen $frame width:7 joints:curve caps:round
+path svg:M22,6L6,24L22,42
+pen $fill width:5 joints:curve caps:round
+path svg:M22,6L6,24L22,42

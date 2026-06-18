@@ -1,0 +1,13 @@
+/**
+ * @param {color} colorA
+ * @param {color} colorB
+ * @param {number} oscMixA - bind to dna.voice.carrierMix
+ * @param {number} oscMixB - bind to dna.voice.fmMix
+ */
+
+format IVG-2 requires:IMPD-1
+
+pen $colorA width:{$oscMixA * 1.5}
+PATH svg:[M5 5 l0 {5 + 30 * $oscMixA} m-4 -4 l4 4 l4 -4 ]
+pen $colorB width:{$oscMixB * 1.5}
+PATH svg:[M5 135 l0 -{5 + 30 * $oscMixB} m-4 4 l4 -4 l4 4 ]

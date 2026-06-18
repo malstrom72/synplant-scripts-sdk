@@ -1,0 +1,102 @@
+SynplantPatch: {
+	branches: {
+		{ id: 0x0321c0cd, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd59899, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd5989a, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd5989b, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd5989c, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd5989d, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd5989e, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd5989f, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd598a0, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd598a1, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd598a2, length: "0.0%", volume: "0.0 dB" },
+		{ id: 0x6bd598a3, length: "0.0%", volume: "0.0 dB" }
+	}
+	control: {
+		atonality: "0.0%"
+		bulbMode: "standard"
+		effect: "+0.0%"
+		glideTime: "0.0 s"
+		modWheel: "0.0%"
+		release: "0.223606797749979 s"
+		rotation: "0.0 degrees"
+		tempoSync: "off"
+		tuning: "0.0 sm"
+		velSens: "50.0%"
+		voiceMode: "poly"
+		volume: "0.0 dB"
+		wheelScale: "100.0%"
+		wheelTarget: "growth +"
+	}
+	format: 28
+	genome: {
+		a_color: 0.5
+		a_form: 0.5833333
+		a_freq: 0.5
+		a_mod: 0.5
+		a_noise: 0.5
+		adj_bass: 0.5
+		adj_clip: 0.5
+		adj_pan: 0.5
+		adj_treb: 0.5
+		b_form: 0.50166667
+		b_freq: 0.61563337
+		b_mod: 0.5
+		b_noise: 0.5
+		b_sh: 0.5
+		env_kf: 0.5
+		env_loop: 0.5
+		env_tilt: 0.5
+		env_time: 0.5
+		flt_freq: 1.0
+		flt_kf: 0.5
+		flt_mod: 0.5
+		flt_q: 0.5
+		flt_sep: 0.5
+		flt_type: 0.6666667
+		fm_amt: 0.5
+		fm_mod: 0.5
+		lfo_amt: 0.5
+		lfo_bal: 0.5
+		lfo_dly: 0.5
+		lfo_rate: 0.5
+		mix_mod: 0.5
+		mod_atk: 0.5
+		mod_dcy: 0.5
+		mod_sh: 0.5
+		mod_vel: 0.5
+		osc_mix: 0.7937005
+		rvb_atk: 0.5
+		rvb_chor: 0.5
+		rvb_damp: 0.5
+		rvb_len: 0.5
+		rvb_mix: 0.5
+		rvb_size: 0.5
+		saturate: 0.5
+		sub_am: 0.5
+		vol_atk: 0.5
+		vol_dcy: 0.5
+		vol_fade: 0.5
+		vol_sus: 0.5
+	}
+	implementation: 29
+	layers: {
+		{ enabled: "on" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" },
+		{ enabled: "off" }
+	}
+	legacyMode: false
+	modified: false
+	pitchAdjust: 0.0
+	seedId: 0x6bd59898
+}

@@ -1,0 +1,35 @@
+/**
+ * @param {color} enabledColor
+ * @param {color} disabledColor
+ * @param {color} downColor
+ * @param {color} checkedColor
+ * @param {color} scarletColor
+ * @param {"yes"|"no"} down - bound automatically by <button>
+ * @param {"yes"|"no"} disabled - bound automatically by <button>
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,36,36
+offset {$width/2},{$height/2}
+
+scale {36 / 1024}
+offset -512,-512
+
+c = {$down ? $downColor : $disabled ? $disabledColor : $checked ? $checkedColor : $enabledColor}
+d = {$down || $disabled}
+pen {$down ? $c : none} width:8
+fill $c
+
+// ear
+path svg:[M583 837c-52 1-102-41-102-95 1-18 26-18 27 0 0 61 82 89 124 50 10-10 15-21 21-34 52-97 160-178 165-294 24-153-88-309-251-224-80 50-94 139-44 214 5 6 3 15-3 19s-14 3-19-3c-31-48-50-116-18-176 36-73 109-110 188-104 140 12 190 165 174 275-4 121-107 203-164 299-9 17-15 32-30 47-18 17-43 26-68 26zm-43-158c-45-4-48-65-34-96a14 14 0 0 1 25 11c-7 15-11 52 10 57 14 0 26-19 38-36 21-37 48-51 82-52 28-1 51-25 56-40 31-67-44-128-102-94-15 9-18 28-39 27-11-2-20-12-29-29-19-40-16-83 6-118 48-73 166-75 206 9 3 6 0 14-6 18-7 3-15 0-18-6-51-94-191-42-171 63 0 7 9 27 15 34 6-7 10-14 22-21 50-30 115-8 141 44 27 51-7 127-67 138-22 3-36 1-56 18-23 24-39 72-79 73z]
+
+if [$checked] [
+  // sound
+  fill {$down ? $downColor : $disabled ? $disabledColor : $enabledColor} opacity:0.8
+  path svg:[M321 789c-12 0-19-15-10-23a343 343 0 0 0 0-483c-5-5-5-14 0-19 5-6 14-6 19 0a370 370 0 0 1 79 404c-14 34-55 107-88 121zM259 727c-12 0-19-15-10-23 98-95 98-265 0-359-5-5-5-14 0-19s14-5 19 0a282 282 0 0 1 0 397c-3 3-6 4-9 4zM191 659c-4 0-7-1-10-4-5-5-5-14 0-19a157 157 0 0 0 0-223c-5-6-5-14 0-20 6-5 14-5 19 0a184 184 0 0 1 1 262c-3 3-7 4-10 4z]
+] else:[
+  // no-sound
+  fill {$down ? $downColor : $disabled ? $disabledColor : $scarletColor} opacity:{$down ? 0.8 : 0.6}
+  path svg:[m331 524 105-105c6-6 6-17 0-23s-17-6-23 0L308 501 203 396c-7-6-17-6-24 0-6 6-6 17 0 23l105 105-105 106c-6 6-6 16 0 23 3 3 8 5 12 5s8-2 12-5l105-105 105 105c3 3 7 5 11 5s9-2 12-5c7-7 7-17 0-24L331 525z]
+]

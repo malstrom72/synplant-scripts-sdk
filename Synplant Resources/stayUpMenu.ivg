@@ -1,0 +1,106 @@
+/**
+ * @param {number} margin - margin around the menu list frame
+ * @param {number} rowheight - height of each menu item row
+ * @param {string} prefix - item entry visual prefix
+ * @param {left|right|center|center-left|center-right} align - text alignment
+ * @param {color} frameColor
+ * @param {color} backgroundColor
+ * @param {color} backgroundSelectedColor
+ * @param {color} textColor
+ * @param {color} textSelectedColor
+ *
+ * @param {number} selected - bind to main.@(identifier)Menu.selectedIndex
+ * @param {string[]} list - bind to main.@(identifier)Menu.list
+ */				
+
+format IVG-2 requires:IMPD-1
+
+// Make sure dropshadow + dropoffset is not larger than $margin
+local DROPSHADOW = 5
+local FONTSIZE = 12
+
+offset $margin,$margin
+
+local w = {$width-$margin*2}
+local h = {$height-$margin*2}
+
+// Drop shadow
+context [
+	local blur = { $DROPSHADOW * 1.5 }
+	offset 0,{ $DROPSHADOW / 2.5 }
+	g=call [ mask [ WIPE gradient:[linear $0 from:0.0 to:1.0] ] ]
+	$g {-$DROPSHADOW},0,$blur,0
+	$g 0,{-$DROPSHADOW},0,$blur
+	$g {$w+$DROPSHADOW},0,{$w-$blur},0
+	$g 0,{$h+$DROPSHADOW},0,{$h-$blur}
+	WIPE rgb(0,0,0,0.26)
+]
+
+// Bake prefix into a new itemlist
+local items=
+for item in:$list [
+	str=$prefix
+	for s in:$item [ str = { $str ($str != "" ? " " : "") $s } ]
+	items = { $items "[" $str "] " }
+]
+items = { "[ " $items "]" }
+
+// Menu content
+context [
+	pen none
+	mask [ RECT 0,0,$w,$h ]
+	WIPE $backgroundColor
+
+	font "JostBook" size:{$FONTSIZE}
+	local ix = { $w/2 }
+
+	/** Text alignment logic start **/
+		local offset = 4
+		if { $align == "left-center" || $align == "right-center" } [
+			local sum = 0
+			local count = 0
+			local textwidth
+			context [
+				font color:none outline:none
+				for item in:$items [
+					TEXT at:0,0 $item caret:textwidth
+					sum = { $sum + $textwidth }
+					count = { $count + 1 }
+				]
+			]
+			offset = { ($w - $sum / $count) / 2 }
+			align = { $align == "left-center" ? "left" : "right" }
+		]
+
+		if { $align == "left" } [
+			ix = { $offset }
+			align = "left"
+		]
+		if { $align == "right" } [
+			ix = { $w - $offset }
+			align = "right"
+		]
+	/** Text alignment logic end **/
+
+	local iy = $FONTSIZE
+	local i = 0
+	
+	for item in:$items [
+		if { $selected == $i } [
+			font color:$textSelectedColor
+			fill $backgroundSelectedColor
+			RECT 0,{$iy-$FONTSIZE},$w,$rowheight
+		] else:[
+			font color:$textColor
+		]
+
+		TEXT at:$ix,{$iy+1} anchor:$align $item
+		iy = {$iy + $rowheight}
+		i = {$i + 1}
+	]
+]
+
+// Menu frame
+pen $frameColor
+fill none
+RECT 0,0,$w,$h

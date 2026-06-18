@@ -1,0 +1,102 @@
+// inputs: axesColor, markersColor, env_time, env_tilt, env_loop, position
+// globals: graphHeight, graphWidth, loopDuration, attackDecayRatio, repeatDecay, decayGainGate, x2tScale
+// funcs: drawAxes, drawEnv
+
+format IVG-2 requires:IMPD-1
+
+include support.ivg
+
+offset 1.5,5.5
+
+graphHeight = {$height - 11}
+graphWidth = {$width - 1.5}
+
+if {!def(QUALITY)} [ QUALITY = 1 ]
+
+// --- constants ---
+MIN_TIME = 0.05
+MAX_TIME = 5
+MIN_ENV_TIME = 0.02
+MAX_ENV_TIME = 20
+INFINITE_ENV_TIME = {0.9 - 0.9 / 20000}
+REPEAT_DECAY_THRESHOLD = 0.0001
+
+local a
+local b
+
+// totalDuration
+if {$env_time < $INFINITE_ENV_TIME} [
+	$logScale a $env_time 0 0.9 $MIN_TIME $MAX_TIME
+	$min totalDuration {$a / (1 - $env_time / 0.9)} 100000
+] else:[
+	totalDuration = 100000
+]
+
+// loopDuration
+$logScale a $env_loop 0 0.8 $MIN_ENV_TIME $MAX_ENV_TIME
+$min b $MAX_ENV_TIME $totalDuration
+$min loopDuration $a $b
+
+attackDecayRatio = {$env_tilt ** 4}
+
+// repeatDecay
+if {$env_time < $INFINITE_ENV_TIME} [
+	// *2 instead of sqrt($decayGain)
+	$decayConstant repeatDecay {$totalDuration / $loopDuration * 2} {$REPEAT_DECAY_THRESHOLD - $REPEAT_DECAY_THRESHOLD * 0.001}
+] else:[
+	repeatDecay = 1
+]
+decayGainGate = {sqrt($REPEAT_DECAY_THRESHOLD)}
+
+x2tScale = {(($loopDuration * 5) ** (2 / 3)) / $graphWidth}
+
+drawAxes = call [
+	context [
+		pen $axesColor width:1
+		PATH svg:[M0 0 v$graphHeight h$graphWidth]
+
+		local t = 0.25
+		local p =
+		repeat 10000 while:[{$t / $x2tScale < $graphWidth}] [
+			p = $p M{$t / $x2tScale} $graphHeight v{$t % 1 ? 3 : 5}
+			t = {$t + 0.25}
+		]
+		pen $markersColor width:1
+		PATH svg:[$p]
+	]
+]
+
+// globals: $p and $penWidth
+drawEnv = call [
+	context [
+		local contents = [$p V$graphHeight H0 z]
+		local x = {$position != 0 ? ($loopDuration * $position / $x2tScale) : ""}
+		fill none
+		pen caps:round
+		if {$x != ""} [
+			maskRect = RECT -1.5,-5.5,{$x+1.5},{$height+5.5}
+			context [
+				mask [ $maskRect ]
+				pen none
+				fill $color opacity:0.1
+				PATH svg:$contents
+				pen $color width:{$penWidth * 2}
+				fill none
+				PATH svg:[$p]
+			]
+			context [
+				mask inverted:yes [ $maskRect ]
+				pen $color width:$penWidth opacity:0.75 dash:3
+				fill none
+				PATH svg:[$p]
+			]
+		] else: [
+			pen none
+			fill $color opacity:0.1
+			PATH svg:$contents
+			pen $color width:{$penWidth * 2}
+			fill none
+			PATH svg:[$p]
+		]
+	]
+]

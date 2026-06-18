@@ -1,0 +1,192 @@
+@include scriptSupport.makaron
+@define script=skinChooser
+@define cols=2
+@define rows=2
+// Screenshots are 1000x1400, which gives 125x175 at 1:8 scale
+@define imageScale=12.5
+@define thumbnailWidth=125
+@define thumbnailHeight=175
+@define cellWidth=185
+@define cellHeight=255
+@define cellXSpace=8
+@define cellYSpace=8
+@define scrollButtonWidth=36
+@define scrollSpeed=50
+// (@scrollButtonWidth*2+@cellXSpace+@cols*(@cellWidth+@cellXSpace)+4)
+@define windowWidth=470
+// (@cellYSpace+@rows*(@cellHeight+@cellYSpace)+24+2)
+@define windowHeight=576
+
+// ===================================
+// === SCRIPT SPECIFIC BEGINS HERE ===
+// ===================================
+
+@define uiHue=0.60
+@define uiSat=0.08
+@define backgroundColor=hsv(@uiHue,@uiSat,0.8)
+@define frameColor=hsv(@uiHue,@uiSat,0.25)
+@define titleColor=white
+@define selectedColor=hsv(@uiHue,0.08,1.0)
+@define infoColor=hsv(@uiHue,0.70,0.55)
+@define buttonFrameColor=hsv(@uiHue,0.08,0.9)
+@define buttonFillColor=hsv(@uiHue,0.08,0.3)
+@define captionColor=hsv(@uiHue,@uiSat,0.2)
+@define selectedBackgroundColor=hsv(@uiHue,0.08,0.7)
+@define selectedFrameColor=hsv(@uiHue,0.08,0.9)
+@define buttonDownFillColor=hsv(@uiHue,0.08,0.65)
+
+transitions: {
+	open: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+	close: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	@bringWindowToFront(@script)
+	{
+		action: "@script.initGUI"
+		params: {
+			'cols': @cols
+			'rows': @rows
+			'cellWidth': @cellWidth
+			'cellHeight': @cellHeight
+			'cellXSpace': @cellXSpace
+			'cellYSpace': @cellYSpace
+			'scrollSpeed': @scrollSpeed
+		}
+		onReload: true
+	}
+	{
+		action: "@script.animate"
+		delay: 1/80
+		repeat: 1/80
+	}
+}
+
+@begin skinChooser(x, y, name, version, by, url, thumbnail, skinName, incompatible)
+	{
+		type: "group"
+		bounds: { @x, @y, @cellWidth, @cellHeight }
+		views: {
+			{
+				type: "button"
+				bounds: { 0, 0, $, $ }
+				action: "batch"
+				params: {
+				@if (@incompatible == yes)
+					{ "nop", { enabled: false } }
+				@else
+					{ "set", { "preferences.skinName", "@skinName" } }
+					{ "reload", { }, { ignoreChecked: true } }
+				@endif
+				}
+				rounded: 10
+				standard: { icon: { name: "@thumbnail", scale: @imageScale, offset: { 0, -24 } } }
+				checked: { frame: "@selectedFrameColor", fill: "@selectedBackgroundColor" }
+			}
+			{
+				type: "hover"
+				bounds: { 0, 0, $, 180 }
+				hint: @if (@incompatible == yes) "This skin is incompatible with your version of Microtonic"
+				@else "Version @version"
+				@endif
+			}
+		@if (@incompatible == yes)
+			{
+				type: "vector"
+				bounds: { 0, 0, $, (@thumbnailHeight+40) }
+				code: "pen red width:8 opacity:0.5; path svg:M8,8L{$width-8},{$height-8}M8,{$height-8}L{$width-8},8"
+			}
+		@endif
+			{
+				type: "group"
+				bounds: { 4, (@thumbnailHeight+26), $-8, $ }
+				views: {
+					{
+						type: "caption"
+						bounds: { 0, 0, $, 28 }
+						font: { ivgfont: "sans-serif", size: 19, color: "@captionColor" }
+						align: "center"
+						text: "@name"
+					}
+				@if (@url == @<@>)
+					{
+						type: "caption"
+						bounds: { 0, 26, $, 20 }
+						font: { ivgfont: "sans-serif", size: 14, color: "@captionColor" }
+						align: "center"
+						text: "by @by"
+					}
+				@else
+					{
+						type: "caption"
+						bounds: { 0, 26, $, 20 }
+						font: { ivgfont: "sans-serif", size: 14, color: "@infoColor" }
+						align: "center"
+						text: "by @by"
+					}
+					{
+						type: "click"
+						bounds: { 0, 26, $, 20 }
+						action: "launch"
+						params: "@url"
+						cursor: hand
+					}
+				@endif
+				}
+			}
+		}
+	}
+@end
+
+@window((w-(@windowWidth))/2, (h-(@windowHeight))/2, @windowWidth, @windowHeight, "Skin Chooser", @backgroundColor, @frameColor, @titleColor, @script, @<
+	{
+		type: "group"
+		varExpansion: true
+		bounds: { @scrollButtonWidth, 8, $-(@scrollButtonWidth*2), $ }
+		views: {
+			{
+				type: "group"
+				bounds: { 0, 0, [var]@script.width[/var], $ }
+				offset: { @script.scroll, @cellYSpace }
+				views: {
+					[var]@script.contents[/var]
+				}
+			}
+		}
+	}
+	{
+		type: "button"
+		bounds: { -1, -1, @scrollButtonWidth+1, $+2 }
+		standard: { icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "no", 'frame': "@buttonFrameColor", 'fill': "@buttonFillColor" } } }
+		down: { fill: "@buttonDownFillColor", icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "no", 'frame': "@buttonFillColor", 'fill': "@buttonFrameColor" } } }
+		disabled: { icon: { ivgCode: "bounds 0,0,1,1" } }
+		action: "@script.flipPage"
+		params: "left"
+	}
+	{
+		type: "button"
+		bounds: { w-@scrollButtonWidth, -1, @scrollButtonWidth+1, $+2 }
+		standard: { icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "yes", 'frame': "@buttonFrameColor", 'fill': "@buttonFillColor" } } }
+		down: { fill: "@buttonDownFillColor", icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "yes", 'frame': "@buttonFillColor", 'fill': "@buttonFrameColor" } } }
+		disabled: { icon: { ivgCode: "bounds 0,0,1,1" } }
+		action: "@script.flipPage"
+		params: "right"
+	}
+	{
+		type: "click"
+		mask: "context"
+		action: "popup"
+		params: { items: {
+			{ "Refresh", "batch", { { "@script.rescan" }, { "reload" } } }
+			{ "Open Skins Folder", "launch", "file://[var]@script.folder[/var]" }
+		} }
+	}
+@>)

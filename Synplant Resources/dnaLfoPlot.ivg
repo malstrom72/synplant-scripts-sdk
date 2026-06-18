@@ -1,0 +1,175 @@
+/**
+ * @param {color} axesColor
+ * @param {color} markersColor
+ * @param {color} color
+ * @param {number} graphHeight
+ * @param {number} vibratoY
+ * @param {number} tremoloY
+ * @param {number} lfo_rate - bind to dna.grown.lfo_rate
+ * @param {number} lfo_dly - bind to dna.grown.lfo_dly
+ * @param {number} lfo_amt - bind to dna.grown.lfo_amt
+ * @param {number} lfo_bal - bind to dna.grown.lfo_bal
+ * @param {number} position - bind to dna.lfoPosition
+ * @param {number} envelope - bind to dna.lfoEnvelope
+ */
+
+format IVG-2 requires:IMPD-1
+
+include support.ivg
+offset 0.5,0.5
+
+local H = $graphHeight
+local W = $width
+
+local xInc
+local hz
+local cycles
+$logScale hz $lfo_rate 0 1 0.5 5
+if {yes || $envelope == 0} [
+	xInc = {$W / $hz / 4}
+] else: [
+	cycles = {round($hz * 2)}
+	xInc = {$W / $cycles / 2}
+]
+
+
+local lfoEnv
+local g
+if {$envelope == 0} [
+	lfoEnv = {($lfo_dly - 0.5) * 2}
+	$max lfoEnv $lfoEnv 0
+	lfoEnv = {$lfoEnv * $lfoEnv}
+	g = 1
+] else: [
+	lfoEnv = 0
+	g = $envelope
+]
+
+local lfoAmount = {abs($lfo_amt - 0.5) * 4 - 1}
+$max lfoAmount $lfoAmount 0
+lfoAmount = {$lfoAmount * $lfoAmount * 4}
+
+local vibratoWeight = {3 - $lfo_bal * 4}
+$clamp vibratoWeight $vibratoWeight 0 1
+vibratoWeight = {$vibratoWeight * (0.5 + 0.5 * $lfo_rate)}
+local vibratoAmount = {$lfoAmount * $vibratoWeight}
+
+local tremoloWeight = {$lfo_bal * 4 - 1}
+$clamp tremoloWeight $tremoloWeight 0 1
+local tremoloAmount = {$lfoAmount * $tremoloWeight}
+
+local x = {-$xInc * 3 / 2}
+local vpA =
+local vpB =
+local tpA =
+local tpB =
+local wT
+local wB
+local ek = {$lfoEnv > 0 ? 1 / ($W * $lfoEnv) : 0}
+local va = {$g * sqrt($vibratoAmount) / 2}
+local ta = {$g * $tremoloAmount}
+local c1 = {1 - 1 / sqrt(2)}
+local c2 = {sqrt(2) - 1}
+local m = {$H / 2}
+local e
+repeat 10000 while:[{$x < $W}] [
+	x = {$x + $xInc}
+	if {$ek > 0} [
+		e = {abs($x) * $ek};
+		e = {$e > 1 ? $g : $g * ($e ** 3)};
+		ta = {$tremoloAmount * $e}
+		va = {sqrt($vibratoAmount * $e) / 2}
+	]
+	if {$ta >= 1} [
+		wB = {$xInc * ($ta - 1) / ($ta * sqrt(2))}
+		wT = {$wB * $c2}
+		tpA = $tpA {$x - $wB} $H {$x + $wB} $H
+		tpB = $tpB {$x - $wT} 0 {$x + $wT} 0
+	] else: [
+		tpA = $tpA $x {$H * ($ta + (1 - $ta) * $c1)}
+		tpB = $tpB $x {$H * (1 - $ta) * $c1}
+	]
+	vpA = $vpA $x {$m * (1 + $va)}
+	vpB = $vpB $x {$m * (1 - $va)}
+
+	x = {$x + $xInc}
+	if {$ek > 0} [
+		e = {abs($x) * $ek};
+		e = {$e > 1 ? 1 : $e ** 3};
+		ta = {$tremoloAmount * $e}
+		va = {sqrt($vibratoAmount * $e) / 2}
+	]
+	if {$ta >= 1} [
+		wB = {$xInc * ($ta - 1) / ($ta * sqrt(2))}
+		wT = {$wB * $c2}
+		tpA = $tpA {$x - $wT} 0 {$x + $wT} 0
+		tpB = $tpB {$x - $wB} $H {$x + $wB} $H
+	] else: [
+		tpA = $tpA $x {$H * (1 - $ta) * $c1}
+		tpB = $tpB $x {$H * ($ta + (1 - $ta) * $c1)}
+	]
+	vpA = $vpA $x {$m * (1 - $va)}
+	vpB = $vpB $x {$m * (1 + $va)}
+]
+
+local double = {$lfo_amt < 0.5}
+
+context [
+	offset 0,$vibratoY
+	pen $axesColor width:1
+	PATH svg:[M0 0v$H M0 {$H / 2}h$W]
+]
+
+context [
+	offset 0,$tremoloY
+	pen $axesColor width:1
+	PATH svg:[M0 0 v$H h$W]
+]
+
+local draw = call [
+	context [
+		offset 0,$vibratoY
+		pen $color
+		if $double [
+			pen opacity:{$0 * 0.5}
+			PATH svg:[M $vpB]
+		]
+		pen opacity:$0
+		PATH svg:[M $vpA]
+	]
+
+	context [
+		offset 0,$tremoloY
+		if $double [
+			pen $color opacity:{$0 * 0.5}
+			PATH svg:[M $tpB]
+		]
+		if $1 [
+			fill $color opacity:0.1
+			pen none
+			PATH svg:[M0 $H L $tpA L $W $H]
+		]
+		fill none
+		pen $color opacity:$0
+		PATH svg:[M $tpA]
+	]
+]
+
+if {$position != 0} [
+	x = {($position - 0.75) * $xInc * 2}
+	x = {$x < 0 ? 0 : $x}
+	maskRect = RECT -0.5,-0.5,{$x+0.5},{$height+0.5}
+	context [
+		mask [ $maskRect ]
+		pen width:2
+		$draw 1 yes
+	]
+	context [
+		mask inverted:yes [ $maskRect ]
+		pen width:1 dash:3
+		$draw 0.5 no
+	]
+] else: [
+	pen width:2
+	$draw 1 yes
+]

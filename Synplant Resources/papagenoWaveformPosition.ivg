@@ -1,0 +1,12 @@
+/**
+ * @param {color} color
+ * @param {number} position - bind to papagenoUI.waveform.playPosition
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+if {$position != ""} [
+    fill none
+    pen $color width:1
+    path svg:[M$position,0 v$height]
+]

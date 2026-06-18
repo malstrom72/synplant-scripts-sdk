@@ -1,0 +1,111 @@
+/**
+ * @param {color} axesColor
+ * @param {color} markersColor
+ * @param {color} color
+ * @param {number} env_time - bind to dna.grown.env_time
+ * @param {number} env_tilt - bind to dna.grown.env_tilt
+ * @param {number} env_loop - bind to dna.grown.env_loop
+ * @param {number} mod_atk - bind to dna.grown.mod_atk
+ * @param {number} mod_dcy - bind to dna.grown.mod_dcy
+ * @param {number} mod_sh - bind to dna.grown.mod_sh
+ * @param {number} position - bind to dna.modEnvPosition
+ */
+
+format IVG-2 requires:IMPD-1
+
+include envCommon.ivg
+
+local modEnvAttackN = {(1 - $mod_atk) * 0.98 + 0.01}
+local modEnvDecayN = {(1 - $mod_dcy) * 0.98 + 0.01}
+local modSHRateMin = {2 / $totalDuration < 1 ? 1 : 2 / $totalDuration}
+local modSH
+$logScale modSH $mod_sh 0.5 1 50000 1
+modSH = {$modSH < $modSHRateMin ? $modSHRateMin : $modSH}
+
+// modCurve(x, shape)
+local modCurve = call [
+	local a = {$1 - 2 * $2 * $1}
+	return $0 = {($a + $2 * $2 * $1) / ($a + $2 * $2)}
+]
+
+local p = M0 $graphHeight
+local x = 0
+
+local timeStep = {1 / $modSH}
+local shStep = {$timeStep / $x2tScale}
+if {$shStep >= 1} [
+	// $1 can be 1 because rounding errors
+	local trapezoid = call [
+		local c = 0
+		if {$1 != 0 && $1 != 1} [
+			if {$1 < $attackDecayRatio} [
+				$modCurve c {$1 / $attackDecayRatio} $2
+			] else:[
+				$modCurve c {1 - ($1 - $attackDecayRatio) / (1 - $attackDecayRatio)} $3
+			]
+		]
+		return $0 = $c
+	]
+	local toGain = call [
+		local decayGain = {$repeatDecay ** floor($2 / $loopDuration)}
+		return $0 = {$1 * ($decayGain < $decayGainGate ? 0 : $decayGain)}
+	]
+	
+	local t = 0
+	repeat 10000 while:[{$x < $graphWidth}] [
+		$trapezoid y {($t / $loopDuration) % 1} $modEnvAttackN $modEnvDecayN
+		$toGain y $y $t
+		y = {$graphHeight * (1 - $y)}
+		p = $p $x $y
+		t = {$t + $timeStep}
+		x = {$t / $x2tScale}
+		p = $p $x $y
+	]
+] else:[
+	local attackWidth = {$loopDuration * $attackDecayRatio / $x2tScale}
+	local decayWidth = {$loopDuration * (1 - $attackDecayRatio) / $x2tScale}
+	local attackPixels = {floor($attackWidth)}
+	local decayPixels = {floor($decayWidth)}
+
+	local baseX = 0
+	local lastX = 0
+	local decayGain = 1
+	local toGain = call [ return $0 = {$1 * $decayGain} ]
+
+	for loop from:0 to:{ceil($graphWidth * $x2tScale / $loopDuration) - 1} [
+		if {$attackWidth > 0} [
+			x = 0
+			repeat 10000 while:[{$x <= $attackPixels && $lastX < $graphWidth}] [
+				$modCurve y {$x / $attackWidth} $modEnvAttackN
+				$toGain y $y
+				lastX = {$baseX + $x}
+				p = $p $lastX {$graphHeight * (1 - $y)}
+				x = {$x + $QUALITY}
+			]
+			baseX = {$baseX + $attackWidth}
+		] else:[
+			p = $p $baseX $graphHeight
+		]
+
+		if {$decayWidth > 0} [
+			x = 0
+			repeat 10000 while:[{$x <= $decayPixels && $lastX < $graphWidth}] [
+				$modCurve y {1 - $x / $decayWidth} $modEnvDecayN
+				$toGain y $y
+				lastX = {$baseX + $x}
+				p = $p $lastX {$graphHeight * (1 - $y)}
+				x = {$x + $QUALITY}
+			]
+			baseX = {$baseX + $decayWidth}
+		] else:[
+			$toGain y 1
+			p = $p $baseX {$graphHeight * (1 - $y)}
+		]
+
+		decayGain = {$decayGain * $repeatDecay < $decayGainGate ? 0 : $decayGain * $repeatDecay}
+	]
+]
+
+$drawAxes
+penWidth = {$shStep >= 1 && $shStep < 1.5 ? 0.25 + $shStep * 0.5 : 1}
+$drawEnv

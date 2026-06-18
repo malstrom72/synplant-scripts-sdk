@@ -1,0 +1,131 @@
+include: chimera.schema
+
+<cushyLayer> = "modal" | "script" | "dev"
+
+<synplant2Action> = <builtInAction>
+		| <chimeraAction>
+		| { action: "openCushy", params: <cushyFile> | { cushy: <cushyFile>, layer: <cushyLayer> } }
+		| { action: "toggleCushy", params: <cushyFile> | { cushy: <cushyFile>, layer: <cushyLayer> } }
+		| { action: "closeCushy", [ params: <cushyLayer> | { cushy: <cushyFile>, layer: <cushyLayer> } ] }
+
+<plantHints> = {
+	[ hover: <metaText> ]
+	[ tracking: <metaText> ]
+	[ fineTracking: <metaText> ]
+}
+
+<view> = <builtInView>
+		| <chimeraView>
+		| {
+			type: "plant"
+			basePen: <penStyle>
+			coreSize: <pixels>
+			updateRates: {
+				focused: <fps>
+				standard: <fps>
+				invisible: <fps>
+			}
+			slowDown: {
+				focused: <real>
+				standard: <real>
+				invisible: <real>
+			}
+			animateTime: <secs> // secs
+			gamma: <real>
+			hueVariation: <real>
+			alphaDrop: <real>
+			mutedAlpha: <real>
+			branchLengthRange: { <real>, <real> }
+			rootAlphaRange: { <real>, <real> }	// from shortest to highest, affects to branch lengths too
+			segmentSize: <real>					// will affect total size and also a greater initial segment size will make longer "broccoli stems"
+			segmentThreshold: <real>			// stop at this segment length
+			alphaThreshold: <real>				// stop when dropped alpha <= this
+			plantZoom: <real>
+			twistMask: <int>					// twists at (segmentNumber & twistMask == 0) (notice that fewer twists = more curvy apparence)
+			swayAmountRange: { <real>, <real> }
+			swayRateRange: { <real>, <real> }
+			rootTwistRange: { <real>, <real> }	// related to "curlyness", i.e. atonality
+			twigTwistRange: { <real>, <real> }	// related to "curlyness", i.e. atonality
+			flareSizeRange: { <pixels>, <pixels> }
+			twirlAmount: <real>
+			twirlLimit: <real>
+			lineAccuracy: <pixels>				// higher = more errors, but less lines
+			basePen: <penStyle>
+			
+			twig: {
+				maxGenerations: <int>
+				mask: <int>						// generate twig at (segmentNumber & mask == 0)
+				lengthScale: <real>
+				alphaScale: <real>
+				strokeScale: <real>
+				nonlinearity: <real>
+				randomLength: <real>
+			}
+
+			planting: {
+				[ plantingVariable: <var> ]		// will start animation when false -> true, will set back to false when done
+				deteriorateTime: <secs>
+				dropSpeed: <pixels> 			// pixels per sec
+				dropAcceleration: <pixels> 		// pixels per sec
+			}
+
+			decaying: {
+				maxDecay: <real>
+				decayTime: <secs>
+				reviveTime: <secs>
+				saturation: <real>
+				alphaDrop: <real>
+			}
+
+			selector: {
+				[ branchVariable: <var> ]
+				[ inset: { <pixels>, <pixels> } ]		// { min, max } from center and outer edge
+				[ selectedImage: <image> | selectedFilm: <image> /* 12 frames */ ]
+				[ cloningImage: <image> | cloningFilm: <image> /* 12 frames */ ]
+				[ hoverImage: <image> | hoverFilm: <image> /* 12 frames */ ]
+				[ hoverGuidesPen: <penStyle> ]
+				[ fineTranslation: <real> ]				// per px
+				[ cursor: <cursor> ]
+				[ hints: <plantHints> ]
+			}
+
+			modWheel: {
+				adjust: <pixels>
+				pen: <penStyle>
+				hoverPen: <penStyle>					// defaults inherit from `pen`
+				clickSpan: <pixels>
+				[ cursor: <cursor> ]
+				[ hints: <plantHints> ]
+				[
+					contextClickAction: <action>
+					[ contextClickParams: <params> ]
+				]
+		    }
+
+			rotationHandle: {
+				size: <pixels>
+				pen: <penStyle>
+				hoverPen: <penStyle>					// defaults inherit from `pen`
+				[ alwaysVisible: <var> ]
+				[ position: { <pixels>, <pixels> } ]	// "unrotated" at 3 o clock, i.e. x is distance from seed, y = 0 is in line with branch
+				[ cursor: <cursor> ]
+				[ hints: <plantHints> ]					// fineTracking is not actually used here
+				[
+					contextClickAction: <action>
+					[ contextClickParams: <params> ]
+				]
+			}
+			
+			mwtHues: {
+				<real> 	// growth+
+				<real> 	// growth-
+				<real> 	// filter+
+				<real> 	// filter-
+				<real> 	// env time+
+				<real> 	// env time-
+				<real> 	// fm
+				<real> 	// lfo amount
+				<real> 	// effect
+				<real> 	// volume
+			}
+		}

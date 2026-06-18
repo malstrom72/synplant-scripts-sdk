@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es3",
+    "module": "none",
+    "lib": ["es5"],
+    "types": [],
+    "strict": true,
+    "noImplicitUseStrict": true,
+    "alwaysStrict": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "outDir": "./out",
+    "newLine": "lf"
+  },
+  "include": ["*.ts"]
+}

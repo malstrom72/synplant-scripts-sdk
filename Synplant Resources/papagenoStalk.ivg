@@ -1,0 +1,80 @@
+/**
+ *
+ * @param {color} backgroundTangleColor
+ * @param {color} foregroundTangleColor
+ * @param {color} backgroundBallsColor
+ * @param {color} foregroundBallsColor
+ * @param {color} seededBackgroundBallsColor
+ * @param {color} seededForegroundBallsColor
+ * @param {color} linesColor
+ * @param {[x,y,z,age][]} backgroundBalls - bind to papagenoUI.stalks.@number.backgroundBalls
+ * @param {[x,y,z,age][]} foregroundBalls - bind to papagenoUI.stalks.@number.foregroundBalls
+ * @param {path} backgroundTangle - bind to papagenoUI.stalks.@number.backgroundTangle
+ * @param {path} foregroundTangle - bind to papagenoUI.stalks.@number.foregroundTangle
+ * @param {[budX,budY,rootX,rootY,age][]} budLines - bind to papagenoUI.stalks.@number.budLines
+ * @param {"yes"|"no"} isSeeded - bind to papagenoUI.stalks.@number.isSeeded
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+include "support.ivg"
+
+BACKGROUND_TANGLE_WIDTH=1.5
+FOREGROUND_TANGLE_WIDTH=1.7
+BACKGROUND_BALLS_SIZE=2.0
+FOREGROUND_BALLS_SIZE=2.5
+
+options curve-quality:0.5
+pen joints:bevel caps:square
+
+// background balls
+context [
+    fill {$isSeeded ? $seededBackgroundBallsColor : $backgroundBallsColor}
+    for e in:$backgroundBalls [
+        $split $e into:x,y,z,age
+        size={$BACKGROUND_BALLS_SIZE + 10 * (1 - $age)}
+		fill opacity:$age
+        ELLIPSE $x,$y,$size
+    ]
+    for e in:$foregroundBalls [
+        $split $e into:x,y,z,age
+        size={$BACKGROUND_BALLS_SIZE + 10 * (1 - $age)}
+		fill opacity:$age
+        ELLIPSE $x,$y,$size
+    ]
+]
+
+// background tangle
+context [
+    pen $backgroundTangleColor width:$BACKGROUND_TANGLE_WIDTH
+    PATH svg:$backgroundTangle
+]
+
+// lines
+context [
+    pen $linesColor width:1.0
+    for e in:$budLines [
+        $split $e into:budX,budY,rootX,rootY,age
+        pen opacity:$age
+        path svg:M{$rootX},{$rootY}L{$budX},{$budY}
+    ]
+]
+
+// foreground tangle
+context [
+    pen $foregroundTangleColor width:$FOREGROUND_TANGLE_WIDTH
+    PATH svg:$foregroundTangle
+]
+
+// foreground balls
+context [
+    fill {$isSeeded ? $seededForegroundBallsColor : $foregroundBallsColor}
+    for e in:$foregroundBalls [
+        $split $e into:x,y,z,age
+        size={$FOREGROUND_BALLS_SIZE + 10 * (1 - $age)}
+        o = { 0.1 - $z/15 }
+        o = { ($o > 1 ? 1 : $o) * $age }
+		fill opacity:$o
+        ELLIPSE $x,$y,$size
+    ]
+]

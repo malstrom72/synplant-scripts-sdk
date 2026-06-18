@@ -1,0 +1,3 @@
+<aboutAction> =
+		{ action: "about.initGUI", params: { *:<value> } }
+		| { action: "about.animate" }

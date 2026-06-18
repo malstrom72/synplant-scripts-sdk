@@ -1,0 +1,49 @@
+/**
+ * @param {string} gene - used together with dnahover and hintgene
+ * @param {string} dnahover - name of gene hovered in DNA view
+ * @param {string} hintgene - name of gene showing hint
+ * @param {number} center - knob center value
+ * @param {number} ring - arc fill position
+ * @param {number} position - knob line position
+ * @param {color} slitColor - ()
+ * @param {color} hintColor - *
+ * @param {color} ringColor - o
+ * @param {color} lineColor - -
+ * @param {color} highlightColor - O
+ */
+
+format IVG-2 requires:IMPD-1
+
+// Draw outline
+if [{$gene == $dnahover}] [
+	PEN dash:2,1 width:0.5 $ringColor
+	FILL $highlightColor
+	RECT 6,4,48,50 rounded:5
+]
+
+// Draw footnote marker
+if [{$gene == $hintgene}] [
+	FONT "sans-serif" size:18 color:[$hintColor opacity:0.7]
+	TEXT at:44,20 *
+]
+
+// Draw knob
+reset
+offset 30,26
+scale 0.9
+
+sweep = CALL [
+	local a = {($3 - 90) / 180 * pi}
+	local b = {($4 - 90) / 180 * pi}
+	if {$a > $b} [ local c = $a; a = $b; b = $c ]
+	PATH svg:[M{$0 + cos($a) * $2} {$1 + sin($a) * $2} A $2 $2 0 {abs($4 - $3) <= 180 ? 0 : 1} 1 {$0 + cos($b) * $2} {$1 + sin($b) * $2}]
+]
+
+pen width:8 $slitColor
+$sweep 0 0 14 -135 135
+
+pen width:2 $ringColor
+$sweep 0 0 14 {262 * $center - 135} {270 * $ring - 135}
+
+pen width:8 $lineColor
+$sweep 0 0 14 {262 * $position - 135} {262 * $position - 128}

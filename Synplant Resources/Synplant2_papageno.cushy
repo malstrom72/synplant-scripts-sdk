@@ -1,0 +1,601 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+@define windowWidth = 460
+@define windowHeight = 570
+@define stalkCount = 4
+
+@define greenhouseHeight = 415
+@define greenhouseWidth = 115
+@define greenhouseButtonOffset = 35
+@define flaresExpand = 20
+@define horizontalMargin = 15
+@define topMargin = 20
+@define bottomMargin = 46
+
+@define tanglePoints = 256
+@define tangleWidth = 50
+@define tangleXScale = 13
+@define tangleYScale = 13
+@define tangleXSmoothing = 0.9
+@define tangleYSmoothing = 0.9
+@define perspectiveDepth = 100
+@define minBudSize = 7
+@define maxBudSize = 11
+@define minBudError = -20
+@define maxBudError = -40
+@define maxRotationSpeed = 0.005
+@define minRotationSpeed = 0.001
+@define rotationAcceleration = 0.2
+@define rotationDeacceleration = 0.02
+@define transitionTime = 0.1
+
+@define waveformDisplayWidth = 252
+@define waveformDisplayHeight = 128
+@define waveformMaxZoom = 0.1 /* s for full display */
+@define selectionHandleWidth = 8
+@define selectionHandleHeight = 15
+@define autoScrollSpeed = 8
+@define seedNameGlyphWidth = 7.5
+
+@define animationFps = 50
+
+transitions: {
+	open: {
+		time: @transitionTime
+		scale: 90
+		opacity: 0
+	}
+	close: {
+		time: @transitionTime
+		scale: 90
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	{
+		action: "papagenoUI.configure"
+		params: {
+			@export(greenhouseHeight)
+			@export(greenhouseWidth)
+			@export(tanglePoints)
+			@export(tangleWidth)
+			@export(tangleXScale)
+			@export(tangleYScale)
+			@export(tangleXSmoothing)
+			@export(tangleYSmoothing)
+			@export(perspectiveDepth)
+			@export(minBudSize)
+			@export(maxBudSize)
+			@export(minBudError)
+			@export(maxBudError)
+			@export(horizontalMargin)
+			@export(topMargin)
+			@export(bottomMargin)
+			@export(maxRotationSpeed)
+			@export(minRotationSpeed)
+			@export(rotationAcceleration)
+			@export(rotationDeacceleration)
+			@export(waveformDisplayWidth)
+			@export(waveformDisplayHeight)
+			@export(waveformMaxZoom)
+			@export(selectionHandleWidth)
+			@export(selectionHandleHeight)
+			@export(autoScrollSpeed)
+			@export(animationFps)
+			@export(seedNameGlyphWidth)
+			"budBaseColor": '@PAPAGENO_BUD_COLOR'
+			"budSelectedColor": '@PAPAGENO_BUD_SELECTED_COLOR'
+			"budHueSpread": @PAPAGENO_BUD_HUE_SPREAD
+		}
+		onReload: true
+	}
+	{
+		action: "papagenoUI.open"
+		onReload: false
+	}
+	{
+		delay: (@transitionTime+0.1)
+		action: "papagenoUI.autoStartSearch"
+	}
+	{
+		action: "papagenoUI.pollResults"
+		delay: 1/20
+		repeat: 1/20
+	}
+	{
+		action: "papagenoUI.noteOffTick"
+		delay: 1/100
+		repeat: 1/100
+	}
+	{
+		action: "papagenoUI.animate"
+		repeat: {
+			visible: (1 / @animationFps)
+			invisible: 0.2
+		}
+	}
+	{
+		action: "papagenoUI.waveform.autoScroll"
+		delay: 1/50
+		repeat: 1/50
+	}
+	{
+		action: "papagenoUI.patchUpdated"
+		onChanged: patch.identity
+	}
+	{
+		action: "papagenoUI.openRequestedReference"
+		onChanged: main.openPapagenoReferenceRequest
+	}
+	{
+		action: "papagenoUI.close"
+		onClose: true
+		onReload: false
+	}
+	{
+		action: "papagenoUI.earlyClose"
+		onChanged: modalLayout
+		onInit: false
+	}
+	// <<< injection point for additional autoexecs
+}
+
+translations: {
+	"<papageno.regrowHint:false>": "Restart (ALT: Evolve From Patch)"
+	"<papageno.regrowHint:true>": "Evolve From Current Patch"
+	// <<< injection point for additional translations
+}
+
+@begin stalk(number)
+	{
+		type: "group"
+		@edit(greenhouse)
+		bounds: { @greenhouseWidth*@number, 0, @greenhouseWidth, @greenhouseHeight-@bottomMargin }
+		views: {
+			{
+				type: "vector"
+				file: "papagenoStalk"
+				defines: {
+					"backgroundTangleColor": "@PAPAGENO_BACKGROUND_TANGLE_COLOR"
+					"foregroundTangleColor": "@PAPAGENO_FOREGROUND_TANGLE_COLOR"
+					"backgroundBallsColor": "@PAPAGENO_BACKGROUND_BALLS_COLOR"
+					"foregroundBallsColor": "@PAPAGENO_FOREGROUND_BALLS_COLOR"
+					"seededBackgroundBallsColor": "@PAPAGENO_SEEDED_BACKGROUND_BALLS_COLOR"
+					"seededForegroundBallsColor": "@PAPAGENO_SEEDED_FOREGROUND_BALLS_COLOR"
+					"linesColor": "@PAPAGENO_LINES_COLOR"
+				}
+				bindings: {
+					"backgroundBalls": papagenoUI.stalks.@number.backgroundBalls
+					"foregroundBalls": papagenoUI.stalks.@number.foregroundBalls
+					"backgroundTangle": papagenoUI.stalks.@number.backgroundTangle
+					"foregroundTangle": papagenoUI.stalks.@number.foregroundTangle
+					"budLines": papagenoUI.stalks.@number.budLines
+					"isSeeded": papagenoUI.stalks.@number.isSeeded
+				}
+			}
+			{
+				type: "vector"
+				file: "papagenoBuds"
+				defines: {
+					"budBackgroundColor": "@PAPAGENO_BUD_BACKGROUND_COLOR"
+				}
+				bindings: {
+					"buds": papagenoUI.stalks.@number.buds
+				}
+			}
+			{
+				type: "click"
+				actions: {
+					{ "press", "papagenoUI.clickStalk", @number }
+				}
+				mousePosition: papagenoUI.clickPosition
+				keyModifiers: papagenoUI.keyModifiers
+			}
+		}
+	}
+	{
+		type: "button"
+		@edit(regrow)
+		bounds: { @greenhouseWidth*@number+@greenhouseWidth/2-12, @greenhouseHeight-@greenhouseButtonOffset, 24, 24 }
+		rounded: 20
+		standard: { frame: "@PAPAGENO_GREENHOUSE_BUTTON_FRAME_COLOR", fill: "@PAPAGENO_GREENHOUSE_BUTTON_COLOR" }
+		disabled: { frame: "@PAPAGENO_GREENHOUSE_BUTTON_DISABLED_FRAME_COLOR", fill: "@PAPAGENO_GREENHOUSE_BUTTON_DISABLED_COLOR" }
+		checked: { frame: "@PAPAGENO_GREENHOUSE_BUTTON_CHECKED_FRAME_COLOR", fill: "@PAPAGENO_GREENHOUSE_BUTTON_CHECKED_COLOR" }
+		down: { frame: "@PAPAGENO_GREENHOUSE_BUTTON_DOWN_FRAME_COLOR", fill: "@PAPAGENO_GREENHOUSE_BUTTON_DOWN_COLOR" }
+		actions: {
+			{ "click", "papagenoUI.regrow", @number }
+			{ "click+alt", "papagenoUI.reseed", @number }
+		}
+		hint: "[xlate]<papageno.regrowHint:[var]main.modifiers.alt[/var]>[/xlate]"
+		vector: {
+			file: "papagenoRegrow"
+			defines: {
+				enabledColor: "@PAPAGENO_GREENHOUSE_ICON_COLOR" 
+				downColor: "@PAPAGENO_GREENHOUSE_ICON_DOWN_COLOR"
+				disabledColor: "@PAPAGENO_GREENHOUSE_ICON_DISABLED_COLOR"
+			}
+			bindings: {
+				reseed: @boolVarToYesNo(main.modifiers.alt)
+			}
+		}
+	}
+	// <<< injection point for additional stalk views
+@end
+
+@begin flares(number)
+	{
+		type: "vector"
+		@edit(flares@number)
+		bounds: { @greenhouseWidth*@number, 0, @greenhouseWidth+@flaresExpand*2, @greenhouseHeight-@bottomMargin+@flaresExpand*2 }
+		file: "papagenoFlares"
+		guiVariables: true
+		defines: {
+			"stalkNumber": "@number"
+			"flaresExpand": "@flaresExpand"
+			"flaresColor": "@PAPAGENO_FLARES_COLOR"
+		}
+	}
+@end
+
+views: {
+	{
+		type: "group"
+		@modal((w-@windowWidth)/2, 110, @windowWidth, @windowHeight, @PAPAGENO_CLOSE_BACKGROUND, @PAPAGENO_CLOSE_FOREGOUND, @PAPAGENO_CLOSE_FRAME, @<
+
+			/*** No click-through or hints ***/
+			{
+				type: "click"
+				action: "nop"
+				hint: "" // empty hint removes hints by underlying views from popuping up
+				cursor: "arrow"
+			}
+
+			/*** Background ***/
+			{
+				type: "gradient"
+				start: { 0, 0 }
+				end: { 0, @greenhouseHeight }
+				stops: { { 0, "@PAPAGENO_GREENHOUSE_COLOR_1" }, { 1, "@PAPAGENO_GREENHOUSE_COLOR_2" } }
+				frame: { color: "transparent", stroke: 2.0 }
+			}
+
+			{
+				type: "rectangle"
+				bounds: { 0, @greenhouseHeight, w, h-@greenhouseHeight }
+				fill: "@PAPAGENO_BACKGROUND_COLOR"
+				frame: { color: "transparent", stroke: 2.0 }
+			}
+
+			// Section divider
+			{
+				type: "gradient"
+				bounds: { 0, @greenhouseHeight, w, 2 }
+				start: { 0, 0 }
+				end: { 0, 2 }
+				stops: { { 0, "@PAPAGENO_GREENHOUSE_COLOR_2" }, { 1, "black" } }
+				opacity: 10
+			}
+
+			// Window frame
+			{
+				type: "rectangle"
+				frame: { color: '@PAPAGENO_FRAME_COLOR', stroke: 2.0 }
+			}
+
+			{
+				type: "paged"
+				index: papagenoUI.waveform.hasReference
+				pages: {
+					"false": {
+						{
+							type: "vector"
+							bounds: { 0, 0, @windowWidth, @greenhouseHeight }
+							file: "papagenoSplash"
+							opacity: 70
+							bindings: {
+								"animationProps": papagenoUI.splash.animationProps
+							}
+							defines: {
+								"textColor" : "@PAPAGENO_LOGO_TEXT_COLOR"
+								"pinColor" : "@PAPAGENO_LOGO_PIN_COLOR"
+							}
+						}
+					}
+					"true": {
+						{
+							type: "vector"
+							bounds: { 0, 0, @windowWidth, @greenhouseHeight }
+							file: "papagenoBackground"
+							defines: {
+								"greenhouseWidth": "@greenhouseWidth"
+								"dividerColor": "@PAPAGENO_FRAME_COLOR"
+							}
+						}
+						@stalk(0)
+						@stalk(1)
+						@stalk(2)
+						@stalk(3)
+					}
+				}
+			}
+
+			{
+				// Waveform group
+				bounds: { (w-@waveformDisplayWidth)/2, 429, @waveformDisplayWidth, @waveformDisplayHeight }
+				@edit(waveform)
+				type: "group"
+				views: {
+					{
+						type: "gradient"
+						start: { 0, 0 }
+						end: { 0, @waveformDisplayHeight }
+						stops: { { 0, "@PAPAGENO_WAVEFORM_BACKGROUND_COLOR_1" }, { 1, "@PAPAGENO_WAVEFORM_BACKGROUND_COLOR_2" } }
+					}
+					{
+						type: "paged"
+						index: papagenoUI.waveform.hasReference
+						pages: {
+							"false": {
+								{
+									type: "vector"
+									file: "papagenoNoReference"
+									defines: { "color": "@PAPAGENO_WAVEFORM_HELP_COLOR" }
+									bindings: {
+										"animationProps": papagenoUI.waveform.noRefAnimation
+									}
+								}
+							}
+							"true": {
+								{
+									type: "paged"
+									index: papagenoUI.waveform.page
+									pages: {
+										"waveform": {
+											{
+												type: "vector"
+												file: "papagenoWaveformDisplay"
+												defines: {
+													"xStep": "1"
+													"yScale": "0.8"
+													"handleHeight": "@selectionHandleHeight"
+													"handleWidth": "@selectionHandleWidth"
+													"outlineColor": "@PAPAGENO_WAVEFORM_OUTLINE_COLOR"
+													"fillColor": "@PAPAGENO_WAVEFORM_FILL_COLOR"
+													"handleFillColor": "@PAPAGENO_WAVEFORM_HANDLE_COLOR"
+													"handleDragColor": "@PAPAGENO_WAVEFORM_HANDLE_DRAG_COLOR"
+													"handleOutlineColor": "@PAPAGENO_WAVEFORM_HANDLE_FRAME_COLOR"
+													"selectionColor": "@PAPAGENO_WAVEFORM_SELECTION_COLOR"
+													"dragSelectionColor": "@PAPAGENO_WAVEFORM_SELECTION_DRAG_COLOR"
+												}
+												bindings: {
+													"upper": papagenoUI.waveform.displayLow
+													"lower": papagenoUI.waveform.displayHigh
+													"start": papagenoUI.waveform.selectionStart
+													"end": papagenoUI.waveform.selectionEnd
+													"canSelect": papagenoUI.waveform.canSelect
+													"dragPart": papagenoUI.waveform.dragPart
+													"handlesVisible": papagenoUI.waveform.handlesVisible
+												}	
+											}
+											{
+												type: "vector"
+												file: "papagenoWaveformPosition"
+												defines: {
+													"color": "@PAPAGENO_WAVEFORM_POSITION_COLOR"
+												}
+												bindings: {
+													"position": papagenoUI.waveform.playPosition
+												}
+											}
+											{
+												type: "hover"
+												mousePosition: papagenoUI.waveform.hoverPosition
+											}
+											{
+												type: "click"
+												actions: {
+													{ "press", "papagenoUI.waveform.click" }
+													{ "release", "papagenoUI.waveform.release" }
+												}
+												cursor: papagenoUI.waveform.cursor
+												mousePosition: papagenoUI.waveform.clickPosition
+												keyModifiers: papagenoUI.keyModifiers
+											}
+										}
+										@begin infoLine(row, text)
+											{
+												type: "caption"
+												bounds: { 8, 22+@row*20, $-16, 16 }
+												font: { ivgfont: "monospace", size: 12, color: "@PAPAGENO_WAVEFORM_INFO_COLOR", gamma: 1.3 }
+												text: @text
+											}
+										@end
+										"info": {
+											@infoLine(0, "Detected pitch: [var]papagenoUI.detectedPitch[/var]")
+											@infoLine(1, "Tests: [var]papagenoUI.totalIterations[/var] ([var]papagenoUI.tps[/var]/s)")
+											{
+												type: "paged"
+												index: papagenoUI.solution.clicked
+												pages: {
+													"false": {
+													}
+													"true": {
+														@infoLine(2, "Solution error: [var]papagenoUI.solution.error[/var]")
+														@infoLine(3, "Solution span: [var]papagenoUI.solution.start[/var] -> [var]papagenoUI.solution.end[/var]")
+														@infoLine(4, "Origin:")
+														{
+															type: "paged"
+															bounds: { 64, 22+4*20, $-76, 16 }
+															index: papagenoUI.solution.isSeeded
+															pages: {
+																"false": {
+																	{
+																		type: "caption"
+																		bounds: { 0, 0, $, 16 }
+																		font: { ivgfont: "monospace", size: 12, color: "@PAPAGENO_WAVEFORM_INFO_COLOR", gamma: 1.3 }
+																		text: "Random"
+																		ellipsis: "middle"
+																	}
+																}
+																"true": {
+																	{
+																		type: "caption"
+																		bounds: { 0, 0, $, 16 }
+																		font: { ivgfont: "monospace", size: 12, color: "@PAPAGENO_WAVEFORM_INFO_COLOR", gamma: 1.3, underline: "@PAPAGENO_WAVEFORM_INFO_COLOR", underlineOffset: 3 }
+																		text: "[var]papagenoUI.solution.seedName[/var]"
+																		ellipsis: "middle"
+																	}
+																	{
+																		type: "group"
+																		varExpansion: true
+																		views: { {
+																			type: "click"
+																			bounds: { 0, 0, [var]papagenoUI.solution.seedNameWidth[/var], 16 }
+																			action: "papagenoUI.solution.clickSeed"
+																			cursor: "hand"
+																			hint: "[var]papagenoUI.solution.seedName[/var]"
+																		} }
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+										"debug": {
+											@infoLine(0, "Net name: [var]papagenoUI.netName[/var]")
+											@infoLine(1, "Net date: [var]papagenoUI.netDate[/var]")
+											@infoLine(2, "Code size: [var]papagenoUI.codeSize[/var] / PD res: [var]papagenoUI.pdResolution[/var]")
+											@infoLine(3, "Cross/net: [var]papagenoUI.crossOrNetTactics[/var]")
+											@infoLine(4, "Revise: [var]papagenoUI.reviseCountsTactics[/var]")
+										}
+										// <<< injection point for additional waveform pages
+									}
+								}
+								{
+									type: "rectangle"
+									bounds: { 0, 0, w, 16 }
+									fill: "@PAPAGENO_WAVEFORM_CAPTION_BACKGROUND_COLOR"
+									opacity: 95
+								}
+								{
+									type: "caption"
+									@edit(refName)
+									bounds: { 4, 0, 230, 16 }
+									font: { ivgfont: "monospace", size: 10, color: "@PAPAGENO_WAVEFORM_CAPTION_COLOR", gamma: 1.3 }
+									align: "left"
+									ellipsis: "middle"
+									offset: { 0, 0 }
+									text: "[var]papagenoUI.referenceName[/var]"
+								}
+								{
+									type: "button"
+									@edit(infoButton)
+									bounds: { 234, 2, 13, 13 }
+									actions: {
+										{ "click", "papagenoUI.waveform.toggleInfo", "info" }
+										{ "click+alt", "papagenoUI.waveform.toggleInfo", "debug" }
+									}
+									rounded: 100
+									caption: "i"
+									standard: {
+										font: { ivgfont: "serif", size: 9, color: "@PAPAGENO_WAVEFORM_CAPTION_COLOR", gamma: 1.3 }
+										frame: "@PAPAGENO_WAVEFORM_CAPTION_COLOR"
+									}
+									down: {
+										font: { ivgfont: "serif", size: 7, color: "@PAPAGENO_WAVEFORM_CAPTION_COLOR", gamma: 1.3 }
+										rect: { $+1, $+1, $-2, $-2 }
+									}
+									checked: {
+										font: { ivgfont: "serif", size: 9, color: "@PAPAGENO_WAVEFORM_CAPTION_BACKGROUND_COLOR", gamma: 1.3 }
+										fill: "@PAPAGENO_WAVEFORM_CAPTION_COLOR"
+									}
+									checkedDown: {
+										font: { ivgfont: "serif", size: 7, color: "@PAPAGENO_WAVEFORM_CAPTION_BACKGROUND_COLOR", gamma: 1.3 }
+										rect: { $+1, $+1, $-2, $-2 }
+									}
+									cursor: "hand"
+								}
+								// <<< injection point for additional waveform views
+							}
+						}
+					}
+					{
+						type: "rectangle"
+						frame: "@PAPAGENO_WAVEFORM_BORDER_COLOR"
+					}
+				}
+			}
+
+			@begin customButton(x, y, name, icon, hint, customFields)
+			{
+				type: "button"
+				@edit(@name)
+				bounds: { @x, @y, 36, 36 }
+				rounded: 20
+				standard: { frame: { color: "@PAPAGENO_BUTTON_FRAME_COLOR", stroke:1 }, fill: "@PAPAGENO_BUTTON_COLOR" }
+				down: { frame: { color: "@PAPAGENO_BUTTON_DOWN_FRAME_COLOR" }, fill: "@PAPAGENO_BUTTON_DOWN_COLOR" }
+				checked: { frame: { color: "@PAPAGENO_BUTTON_CHECKED_FRAME_COLOR", stroke:1.4 }, fill: "@PAPAGENO_BUTTON_CHECKED_COLOR" }				
+				checkedDown: { frame: { color: "@PAPAGENO_BUTTON_DOWN_FRAME_COLOR" }, fill: "@PAPAGENO_BUTTON_DOWN_COLOR" }
+				disabled: { frame: "@PAPAGENO_BUTTON_DISABLED_FRAME_COLOR", fill: "@PAPAGENO_BUTTON_DISABLED_COLOR"  }
+				vector: {
+					file: "@icon"
+					defines: {
+						"enabledColor": "@PAPAGENO_ICON_COLOR"
+						"disabledColor": "@PAPAGENO_ICON_DISABLED_COLOR"
+						"downColor": "@PAPAGENO_ICON_DOWN_COLOR"
+						"checkedColor": "@PAPAGENO_ICON_CHECKED_COLOR"
+						"redColor": "@PAPAGENO_ICON_RED_COLOR"
+						"scarletColor": "@PAPAGENO_ICON_SCARLET_COLOR"
+						"cyanColor": "@PAPAGENO_ICON_CYAN_COLOR"
+					}
+					bindings: {
+						"rotation": papagenoUI.cogRotation
+					}
+				}
+				hint: "@hint"
+				@customFields
+			}
+			@end
+
+			@begin onOffButton(x, y, name, icon, action, description)
+				@define hint=@description = @boolToOnOff(checked:@action)
+				@customButton(@x, @y, @name, @icon, @hint, @<
+					action: "batch"
+					params: {
+						{ "@action" }
+						{ "hint", { text: "@hint", extent: @hintExtent }, { ignoreChecked: true } }
+					}
+				@>)
+			@end
+
+			@begin standardButton(x, y, name, icon, action, hint)
+				@customButton(@x, @y, @name, @icon, @hint, @<action: "@action"@>)
+			@end
+
+			@standardButton(52, 429, open, papagenoOpen, papagenoUI.chooseReference, Load Reference Sound)
+			@standardButton(52, 475, play, papagenoPlay, papagenoUI.playReference, Play Reference Sound)
+			@onOffButton(52, 521, tune, papagenoTune, papagenoUI.togglePitchCorrect, Correct Tuning)
+			@standardButton(372, 429, run, papagenoRun, papagenoUI.toggleSearch, Generate Patches)
+			@standardButton(372, 475, restart, papagenoRestart, papagenoUI.restart, Reset)
+			@onOffButton(372, 521, preview, papagenoPreview, papagenoUI.toggleAutoSelect, Auto Preview)
+		
+			// <<< injection point for additional papageno views
+		@>)
+	}
+
+	{
+		type: "group"
+		bounds: { (w-@windowWidth)/2-@flaresExpand, 110-@flaresExpand, @windowWidth+(@flaresExpand*2), @windowHeight+@flaresExpand }
+		views: {
+			@flares(0)
+			@flares(1)
+			@flares(2)
+			@flares(3)
+		}
+	}
+}
+

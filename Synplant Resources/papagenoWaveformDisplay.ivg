@@ -1,0 +1,84 @@
+/**
+ * @param {number} xStep
+ * @param {number} yScale
+ * @param {number} handleHeight
+ * @param {number} handleWidth
+ * @param {color} outlineColor
+ * @param {color} fillColor
+ * @param {color} handleFillColor
+ * @param {color} handleDragColor
+ * @param {color} handleOutlineColor
+ * @param {color} selectionColor
+ * @param {color} dragSelectionColor
+ * @param {number[]} upper - bind to papagenoUI.waveform.displayLow
+ * @param {number[]} lower - bind to papagenoUI.waveform.displayHigh
+ * @param {number} start - bind to papagenoUI.waveform.selectionStart
+ * @param {number} end - bind to papagenoUI.waveform.selectionEnd
+ * @param {"yes"|"no"} canSelect - bind to papagenoUI.waveform.canSelect
+ * @param {"selection"|"start"|"stop"} dragPart - bind to papagenoUI.waveform.dragPart
+ * @param {"yes"|"no"} handlesVisible - bind to papagenoUI.waveform.handlesVisible
+ */
+
+format IVG-2 requires:IMPD-1
+
+local ym = {$yScale * $height}
+
+local makePath = call [
+	local s =
+	for y in:$1 reverse:$2 [
+		s = $s $x {$y * $ym}
+		x = {$x + $3}
+	]
+	return $0 = $s
+]
+
+local u
+local x = 0
+$makePath u $upper no $xStep
+if {$u != []} [
+	local l
+	x = {$x - $xStep}
+	$makePath l $lower yes {-$xStep}
+
+	context [
+		if {!$canSelect} [
+			mask [
+				wipe 0.25
+            	rect $start,0,{$end-$start},$height
+			]
+		]
+		pen $outlineColor
+		offset 0,{$height / 2}
+		scale 1,-1
+		fill $fillColor;
+		PATH svg:[M $u L $l Z]
+	]
+]
+
+if {$start != ""} [
+	if {$canSelect} [
+		pen $selectionColor opacity:0.75
+		fill $selectionColor opacity:0.3
+		rect 0,{$height-$handleHeight},{$width},$handleHeight
+		pen none
+		fill {$dragPart=="selection"?$dragSelectionColor:$selectionColor} opacity:1.0
+		rect $start,{$height-$handleHeight},{$end-$start},$handleHeight
+
+		pen $handleOutlineColor
+		fill {$dragPart=="start"?$handleDragColor:$handleFillColor}
+		if {$handlesVisible} [
+			path svg:[M$start,$height v{-$handleHeight} l$handleWidth,{$handleHeight/2} Z]
+		] else:[
+			path svg:[M{$start-1},$height v{-$handleHeight} h2 v{$handleHeight} Z]
+		]
+		fill {$dragPart=="stop"?$handleDragColor:$handleFillColor}
+		if {$handlesVisible} [
+			path svg:[M$end,$height v{-$handleHeight} l{-$handleWidth},{$handleHeight/2} Z]
+		] else:[
+			path svg:[M{$end-1},$height v{-$handleHeight} h2 v{$handleHeight} Z]
+		]
+	]
+	pen black width:0.8 opacity:0.4
+	fill none
+	path svg:[M$start,0 v$height M$end,0 v$height]
+]

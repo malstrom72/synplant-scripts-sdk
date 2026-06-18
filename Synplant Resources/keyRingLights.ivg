@@ -1,0 +1,16 @@
+/**
+ * @param {("yes"|"no")[]} enabledLayers - main.keyRing.enabledLayers 
+ * @param {number} intensity - opacity
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+local o = {$intensity/100}
+
+local i = 0;
+for f in:$enabledLayers [
+	if {$f} [
+		IMAGE 0,0 {"{name:layerlights, slices:12, trim: true, index:" $i "}"} opacity:$o
+	]
+	i={$i+1}
+]

@@ -1,0 +1,125 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+
+translations: {
+	"midiMap.clickToLearn:false": "reset, learn not supported by host"
+	"midiMap.clickToLearn:true": "reset and learn"
+}
+
+@define MIDI_EDIT_FONT = { ivgfont: "sans-serif", size: 15, color: "@MIDI_MAP_CAPTION_COLOR" }
+
+@begin customMidiCC(x, y, width, var, name, textDisplay)
+	{
+		type: "group"
+        bounds: { @x-@width/2, @y, @width, 16 }
+		views: {
+			{
+				type: "midiAssign"
+				variable: @var
+				learning: {
+					assignment: midiLearnCC
+					image: {
+						ivgFile: "midiIcon_male"
+						defines: {
+							'color': '@MIDI_MAP_TEXT_COLOR'
+							'width': "36"
+							'height': "36"
+						}
+						scale: 38
+					}
+					blinkInterval: 500
+				}
+				text: {
+					font: { ivgfont: "sans-serif", size: 13, color: "@MIDI_MAP_TEXT_COLOR" }
+				@if (@textDisplay != @<@>)
+					display: @textDisplay
+				@endif
+				}
+				backgrounds: {
+					frame: "@MIDI_MAP_FRAME_COLOR"
+					unassigned: "@MIDI_MAP_UNASSIGNED_COLOR"
+					assigned: "@MIDI_MAP_ASSIGNED_COLOR"
+					assigning: "@MIDI_MAP_ASSIGNING_COLOR"
+				}
+				hint: "MIDI CC (drag to change, click to [xlate]midiMap.clickToLearn:[var]modifiable:midiLearnCC[/var][/xlate])"
+				cursor: "sizeNS"
+			}
+			{
+				type: "click"
+				mask: "context"
+				action: "popup"
+				params: { items: {
+					{ "Enter MIDI CC Number...", "edit", { text: "Enter MIDI CC number for @name", variable: @var } }
+					{ "No MIDI CC", "set", { @var, "off" } }
+					{ "Edit MIDI Controllers", "toggleCushy", "Synplant2_midiEdit" }
+				} }
+			}
+		}
+	}
+@end
+
+@begin centeredMidiCC(y, label, labelWidth, buttonWidth, identifier, var, name, textDisplay)
+	{
+		type: "caption"
+		@edit(@(identifier)Caption)
+		bounds: { (500-@labelWidth-@buttonWidth-4)/2, @y, @labelWidth, 16 }
+		text: @label
+		font: @MIDI_EDIT_FONT
+		align: "middle right"
+	}
+	@customMidiCC((500-@labelWidth-@buttonWidth-4)/2+4+@labelWidth+(@buttonWidth/2), @y, @buttonWidth, @var, @name, @textDisplay)
+@end
+
+@begin midiCC(x, y, identifier) @customMidiCC(@x, @y, 32, midiConfig.cc.@identifier, [var]params.@identifier.name[/var],) @end
+
+transitions: {
+	default: {
+		time: 0.1
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	{
+		action: "set"
+		params: { midiLearnCC, "" }
+		onClose: true
+		onReload: false
+	}
+}
+
+
+views: {
+	/*** No click-through or hints ***/
+	{
+		type: "click"
+		action: "set"
+		params: { midiLearnCC, "" }
+        thru: true
+	}
+
+	{
+		type: "rectangle"
+		bounds: { 0, 103, w, h }
+		fill: "@MIDI_MAP_BACKGROUND_COLOR"
+	}
+
+    @midiCC(250, 145, tuning)
+    @midiCC(250-186, 258, atonality)
+    @midiCC(250+186, 258, effect)
+    @midiCC(250-166, 482, release)
+    @midiCC(250+166, 482, volume)
+    @midiCC(250-156, 633, glideTime)
+    @midiCC(250, 633, wheelScale)
+    @midiCC(250+156, 633, velSens)
+    @midiCC(250-156, 593, voiceMode)
+    @midiCC(250, 593, wheelTarget)
+    @midiCC(250+156, 593, tempoSync)
+    @midiCC(250, 544, bulbMode)
+
+	@centeredMidiCC(424, "Branches: ", 60, 56, Branches, midiEdit.branchesCC, Branch Lengths, "[var]midiEdit.branchesCCDisplay[/var]")
+	@centeredMidiCC(448, "Mod Wheel: ", 72, 32, modWheel, midiConfig.cc.modWheel, [var]params.modWheel.name[/var],)
+	@centeredMidiCC(472, "Rotation: ", 56, 32, rotation, midiConfig.cc.rotation, [var]params.rotation.name[/var],)
+
+	@closeButton(w - 36, 111, 26, 16, @MIDI_MAP_CLOSE_BACKGROUND, @MIDI_MAP_CLOSE_FOREGOUND, @MIDI_MAP_CLOSE_FRAME, @<action: "closeCushy"@>)
+}

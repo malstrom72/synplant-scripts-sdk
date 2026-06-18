@@ -1,0 +1,28 @@
+format IVG-2 requires:IMPD-1
+
+// $min y $a $b
+min = call [ return $0 = {$1 < $2 ? $1 : $2} ]
+
+// $max y $a $b
+max = call [ return $0 = {$1 > $2 ? $1 : $2} ]
+
+// $sign y $x
+sign = call [ return $0 = {$1 < 0 ? -1 : ($1 > 0 ? 1 : 0)} ]
+
+// $scale y $x $inFrom $inTo $outFrom $outTo
+scale = call [ return $0 = {$4 + ($5 - $4) * ($1 - $2) / ($3 - $2)} ]
+
+// $logScale y $x $inFrom $inTo $outFrom $outTo
+logScale = call [ return $0 = {$4 * (($5 / $4) ** (($1 - $2) / ($3 - $2)))} ]
+
+// $signedPower y $x $p
+signedPower = call [ local s; $sign s $1; return $0 = {$s * abs($1) ** $2} ]
+
+// $clamp y $x $min $max
+clamp = call [ return $0 = {$1 < $2 ? $2 : ($1 > $3 ? $3 : $1)} ]
+
+// $split $list into:vars
+split = call [ local e; local i=0; for e in:$into [ local into.$i=$e; i={$i+1} ]; i=0; for e in:$0 [ return {$into.$i}=$e; i={$i+1} ] ] 
+
+// $decayConstant k $time $reach
+decayConstant = call [ return $0 = {exp(1 / $1 * log($2))} ]

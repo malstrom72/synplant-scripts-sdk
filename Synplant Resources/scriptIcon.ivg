@@ -1,0 +1,19 @@
+/**
+ * @param {color} background
+ * @param {color} color
+ * @param {"yes"|"no"} down - bound automatically by <button>
+ * @param {"yes"|"no"} disabled - bound automatically by <button>
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,20,20
+offset {$width/2},{$height/2}
+
+scale {20 / 1024}
+if {$down} [ scale 0.94 ]
+offset -512,-512
+
+fill $background
+pen $color width:30
+path svg:[M692 777c13 0 24-11 24-24V623c8-70 39-50 75-28 88 53 146-85 75-128-55-33-79 24-120 18-16-2-27-19-30-44v-94c0-13-11-24-24-24H579c-92-11-10-61-10-107 0-38-35-68-77-68s-82 30-82 68c0 43 85 96-9 107H261c-14 0-25 11-25 24v94c7 40 35 49 71 23 12-9 32-20 47-20 38 0 69 34 69 76s-31 84-69 84c-14 0-27-4-37-12 0 3-67-58-81 17v144c0 13 11 24 25 24h225c3-14-7-30-16-43-71-108 206-118 135 3l-10 18c-3 7-5 15-5 22h102Z]

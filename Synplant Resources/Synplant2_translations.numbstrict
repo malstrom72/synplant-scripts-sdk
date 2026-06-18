@@ -1,0 +1,98 @@
+/* --- errors & warnings --- */
+
+"Unexpected error": "Unknown / unexpected error"
+"Already registered. Unregister first?": "This product is already registered. Before it can be registered again it has to be unregistered.\n\nDo you wish to proceed with the unregistration?"
+"Script time out. Continue?": "The running script is taking a very long time to finish. Do you wish to continue running?"
+"Too many modal windows. Continue?": "The running script is displaying a lot of modal windows. Do you wish to continue running?"
+"Grant permission to ^T: ^R": "The running script is requesting permission to ^T:\n^R\n\nDo you wish to grant this permission?"
+
+// "An update of this product is available."
+// "Do you wish to view the information page?"
+// "There is information concerning your license."
+// "Your license needs to be renewed but an error occured when communicating with the license server."
+// "You need to close and reopen the window to resize."
+// "days"
+// "day"
+// "weeks"
+// "week"
+// "Open Sonic Charge MIDI Config"
+// "Save Sonic Charge MIDI Config"
+// "Loaded MIDI configuration."
+// "Saved MIDI configuration."
+"Made MIDI configuration default.": "The current MIDI configuration has been made default."
+"Reset MIDI configuration.": "The MIDI configuration has been reset."
+
+/* --- undo strings --- */
+
+// "Initialize Patch"
+// "Exchange Patch"
+// "Randomize Patch"
+// "Paste Patch"
+// "Open Patch"
+// "Change ^P"
+"Change Patch Name": "Rename Patch"
+// "Open Synplant Patch"
+// "Save Synplant Patch"
+
+/* --- names and paths --- */
+
+// "Synplant"
+// "Synplant Patch"
+// "Synplant Patches/"          <- Mac
+// "Synplant User Patches/"     <- Mac
+// "Synplant Patches\\"         <- Windows
+// "Synplant User Patches\\"    <- Windows
+// "Init Patch"
+// "Untitled Synplant Patch"
+// "All Files"
+// "Supported Files"
+// "Go to Factory Patches"
+// "Go to User Patches"
+// "Browse Patches..."
+// "Show Current Folder (^N)"
+// "Sonic Charge MIDI Config"
+
+"No patches found": 'No patches in current folder, select "Browse Patches..."'
+"Too many patches...": "List is too long. Browse remaining files..."
+"Erase .synp file with the same name?": "A file with the same name and a \".synp\" extension (version 1) also exists in this folder.\n\nWould you like to erase it?"
+
+/* --- Synplant specific --- */
+
+// "Change Branch ^N"
+// "Change Branch ^N (fine)"
+// "Change Branch Volume ^N"
+// "Change Branches"
+// "Change ModWheel"
+"Pick Papageno Patch": "Pick Patch From Genopatch"
+// "Clone Branch"
+// "Plant"
+// "layer"
+"Auto Level Branches": "Normalize Branch Volumes"
+// "Flip Value"
+// "Disable Layers"
+// "Enable Layers"
+// "Grow New Random Branch"
+// "New Random Seed"
+// "Turn Off Legacy Mode"
+"Auto Tune": "Correct Tuning"
+"Auto Level": "Normalize Volume"
+// "Batch processing ^I/^N"
+// "Finished processing ^I/^N"
+"You are about to close the introduction.": "Would you like to skip the introduction?\n\nIf you are unfamiliar with Synplant, we recommend you continue or run it later from the \"Main Menu\"."
+// "Please register Synplant to use this feature."
+// "Error loading required resources. Please reinstall Synplant."
+// "Required resources are missing. Please reinstall Synplant."
+
+/* --- Sample preview --- */
+
+// "Play"
+// "Stop"
+// "Auto Play"
+// "Error previewing sample file:\n\n^E"
+
+/* --- Tables --- */
+
+"<boolToOnOff:false>": "Off"
+"<boolToOnOff:true>": "On"
+"<boolToYesNo:false>": "no"
+"<boolToYesNo:true>": "yes"

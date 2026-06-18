@@ -1,0 +1,60 @@
+/**
+ * @param {color} axesColor
+ * @param {color} markersColor
+ * @param {color} color
+ * @param {number} adj_bass - bind to dna.grown.adj_bass
+ * @param {number} adj_treb - bind to dna.grown.adj_treb
+ */
+
+format IVG-2 requires:IMPD-1
+
+include support.ivg
+offset 0.5,0.5
+
+context [
+	pen $axesColor width:1 joints:bevel
+	PATH svg:[M0 0v$height M0 {$height / 2}h$width]
+]
+
+local LOW = 20
+local HIGH = 24000
+local BASS = 100
+local TREBLE = 6000
+local BASS_RQ = 2
+local TREBLE_RQ = 2
+
+local o2x = {$width / (log($HIGH / $LOW) / log(2))}
+
+// $rqToOcts octs $rq
+local rqToOcts = call [ return $0 = {2 * log($1 + sqrt(4 + $1 * $1)) / log(2) - 2} ]
+
+local lbw
+local hbw
+$rqToOcts lbw $BASS_RQ
+$rqToOcts hbw $TREBLE_RQ
+
+local lx = {$o2x * log($BASS / $LOW) / log(2)}
+local hx = {$o2x * log($TREBLE / $LOW) / log(2)}
+
+local lw = {$o2x * $lbw / 2 * 2}	// *2 for the spline slope to match a line
+local hw = {$o2x * $hbw / 2 * 2}	// *2 for the spline slope to match a line
+
+local H = {$height * 0.8}
+local adj = {$H / 48
+		* (($adj_bass * 2 - 1) * 24 / ($adj_bass < 0.5 ? -12 : -6)
+		+ ($adj_treb * 2 - 1) * 24 / ($adj_treb < 0.5 ? -12 : -6))}
+local ly = {$H * ($adj_bass - 0.5)}
+local hy = {$H * ($adj_treb - 0.5)}
+
+offset 0,{$height / 2 - $adj}
+scale 1,-1
+// PATH svg:[M0 $ly H$lx0 L$lx1 0 H$hx0 L$hx1 $hy H{$width}]
+local p = M0 $ly H{$lx - $lw} C$lx $ly $lx 0 {$lx + $lw} 0 H{$hx - $hw} C$hx 0 $hx $hy {$hx + $hw} $hy H{$width}
+
+pen none
+fill $color opacity:0.1
+PATH svg:[$p V{-$height / 2} H0 z]
+
+pen $color width:2 joints:bevel
+fill none
+PATH svg:[$p]

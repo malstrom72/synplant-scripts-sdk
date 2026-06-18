@@ -1,0 +1,27 @@
+/**
+ * @param {color} enabledColor
+ * @param {color} disabledColor
+ * @param {color} downColor
+ * @param {"yes"|"no"} down - bound automatically by <button>
+ * @param {"yes"|"no"} disabled - bound automatically by <button>
+ * @param {"yes"|"no"} reseed - reseed icon instead of recycle
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,20,20
+offset {$width/2},{$height/2}
+
+c = {$down ? $downColor : $disabled ? $disabledColor : $enabledColor}
+fill $c
+
+if {$reseed} [
+	scale 0.026
+	offset -512,-512
+	path svg:"M512 206.6c-6.6 0-13 2.6-17.6 7.4l-96.1 95.4a24.8 24.8 0 1 0 35.3 34.9l53.6-52.5v208a24.8 24.8 0 1 0 49.6 0v-208l53.6 52.5a24.9 24.9 0 0 0 35.1.2c9.7-9.6 9.8-25.4.2-35.1L529.6 214a25 25 0 0 0-17.6-7.4zm0 375.9A117.7 117.7 0 0 0 394.6 700c0 64.7 52.7 117.4 117.4 117.4s117.4-52.8 117.4-117.5S576.7 582.5 512 582.5zm0 17.8a99.8 99.8 0 1 1-.2 199.6 99.8 99.8 0 0 1 .2-199.6zm0 19.5a80.1 80.1 0 0 0-80.1 80.1A80.1 80.1 0 0 0 512 780a80.1 80.1 0 0 0 80.1-80.1 80.1 80.1 0 0 0-80.1-80.1z"
+] else: [
+	scale 0.022
+	offset -512,-512
+	pen width:20 $c
+	path svg:"M365 594c-16-2-31 10-32 26l-10 94s-7-5-34-44c-129-203 28-461 261-474-78-14-163 8-228 55a334 334 0 0 0-96 420c19 37 45 74 45 74l-82-8a30 30 0 1 0-6 59l160 16h3c15 0 27-11 29-26l17-160c1-16-11-30-27-32zm292-160c17 2 31-10 33-26l10-93s7 4 34 43c129 203-29 461-261 475 78 13 163-9 228-56a335 335 0 0 0 96-420c-20-37-46-74-46-74l82 9a30 30 0 1 0 6-59l-159-17h-3c-15 0-28 12-30 27l-16 159c-2 16 10 31 26 32z"
+]

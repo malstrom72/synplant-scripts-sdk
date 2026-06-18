@@ -1,0 +1,100 @@
+@include scriptSupport.makaron
+
+@define PRERELEASE = false
+@define DEVELOP = false
+@define SIDEBAR = false
+@define ENABLE_EDITS = false
+
+@define GUI_WIDTH = 500
+@define GUI_HEIGHT = 700
+
+@begin edit(label)
+	@if (@ENABLE_EDITS == true)
+		edit: { label: "@label", color: "green", selectedColor: "fuchsia", grid: 4 },
+	@endif
+@end
+
+@begin closeButton(left, top, closeSize, closeCrossSize, buttonBackground, buttonForeground, buttonFrame, additionalFields)
+	{
+		bounds: { @left, @top, @closeSize, @closeSize }
+		type: "button"
+		rounded: 100,
+		standard: {
+			fill: "@buttonBackground", frame: { color: "@buttonFrame", stroke: 1 }
+			icon: { ivgFile: 'closeCross', defines: { color: "@buttonForeground", size:"@closeCrossSize", thickness: "1.25" } } 
+		}
+		down: {
+			fill: "@buttonBackground", frame: { color: "@buttonFrame", stroke: 1.5 }
+			icon: { ivgFile: 'closeCross', defines: { color: "@buttonForeground", size:"@closeCrossSize", thickness: "1.5", shrink: "1.5" } }
+		}
+		@additionalFields
+	}
+@end
+
+// closeMargin is used for expanding the view -y and +x, it must fit half the closeButton and it's shadow
+@define closeMargin=17
+@begin shadowedCloseButton(left, top, buttonBackground, buttonForeground, buttonFrame, action)
+	@define closeSize=23
+	@define closeCrossSize=13
+
+	@define shadowIntensity=0.1
+	@define shadowBlur=14
+	@define shadowExpand=6
+	@define shadowX=0
+	@define shadowY=4
+
+	// Close button shadow
+	{
+		type: "vector"
+		bounds: { @left-@closeSize/2-@shadowExpand+@shadowX, @top-@closeSize/2-@shadowExpand+@shadowY, @closeSize+@shadowExpand*2, @closeSize+@shadowExpand*2 }
+		code: "mask [ wipe gradient:[radial {$width/2},{$width/2},{$width/2} stops:[{(@closeSize+@shadowExpand*2-@shadowBlur*2)/$width},1,1,0] ] ]; wipe rgb(0,0,0,@shadowIntensity)"
+	}
+
+	@closeButton(@left-@closeSize/2, @top-@closeSize/2, @closeSize, @closeCrossSize, @buttonBackground, @buttonForeground, @buttonFrame, @<action: @action@>)
+@end
+
+@begin modal(left, top, width, height, buttonBackground, buttonForeground, buttonFrame, contents)
+	// Will clip content if not  -shadowExpand <= shadow[XY] <= shadowExpand
+	@define shadowIntensity=0.20
+	@define shadowBlur=12
+	@define shadowExpand=5
+	@define shadowX=0
+	@define shadowY=2
+
+	bounds: { @left-@shadowExpand+@shadowX, @top-@shadowExpand+@shadowY-@closeMargin, @width+@shadowExpand*2+@closeMargin, @height+@shadowExpand*2+@closeMargin }
+	
+	views: {
+		// Window outer bounds
+		{
+			type: "group"
+			bounds: { 0, @closeMargin, w-@closeMargin, h-@closeMargin }
+			views: {
+				// Drop shadow
+				{
+					type: "vector"
+					file: "rectDropShadow"
+					defines: {
+						"shadowBlur": "@shadowBlur"
+						"shadowIntensity": "@shadowIntensity"
+					}
+				}
+
+				// Inner bounds
+				{
+					type: "group"
+					bounds: { @shadowExpand-@shadowX, @shadowExpand-@shadowY, @width, @height }
+					views: {
+						{
+							type: "click"
+							action: "closeCushy"
+							cursor: "arrow" // block underlying cursors
+							hint: "" // block underlying hints
+						}
+						@contents	
+					}
+				}
+			}
+		}
+		@shadowedCloseButton(@shadowExpand-@shadowX+@width, @shadowExpand-@shadowY+@closeMargin-1, @buttonBackground, @buttonForeground, @buttonFrame, "closeCushy")
+	}
+@end

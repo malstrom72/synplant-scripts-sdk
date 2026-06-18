@@ -1,0 +1,35 @@
+/**
+ * @param {color} axesColor
+ * @param {color} markersColor
+ * @param {color} color
+ * @param {number} zoom
+ * @param {string} path
+ * @param {string} thinness
+ */
+
+format IVG-2 requires:IMPD-1
+
+context [
+    pen $axesColor width:1
+    PATH svg:[M{$width / 2} 0v$height M0 {$height / 2}h$width]
+    local c2x = {$zoom * ($width - 1)}
+    local p =
+	local minDistance = 10
+	local subSteps = 1
+	local bigSteps = 4
+	local mi = {$subSteps * 2 ** ceil(log($minDistance / ($subSteps * $c2x)) / log(2))}
+    local c = $mi
+    local y = {$height / 2}
+	local v
+    repeat 10000 while:[{$width / 2 + $c * $c2x < $width}] [
+		v = {$y - ($c % $bigSteps ? 1.5 : 3)} v{$c % $bigSteps ? 3 : 5}
+        p = $p M{$width / 2 + $c * $c2x} $v
+        p = $p M{$width / 2 - $c * $c2x} $v
+        c = {$c + $mi}
+    ]
+]
+pen $markersColor width:1 joints:bevel
+PATH svg:[$p]
+offset 0.5,0
+pen $color width:{$thinness > 0.5 ? 2 - ($thinness - 0.5) : 2}
+PATH svg:[$path]

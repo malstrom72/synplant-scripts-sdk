@@ -1,0 +1,16 @@
+{
+  "name": "synplant-jsconsole-bridge-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP server that drives the Synplant JS Console file bridge (sp_eval / sp_status).",
+  "type": "commonjs",
+  "bin": {
+    "synplant-jsconsole-bridge-mcp": "./server.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

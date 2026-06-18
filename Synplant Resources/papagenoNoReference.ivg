@@ -1,0 +1,55 @@
+/**
+ * @param {color} color
+ * @param {number} [animationProps] - bind to papagenoUI.waveform.noRefAnimation
+ */
+
+format IVG-2 requires:IMPD-1
+
+include "support.ivg"
+
+font "sans-serif" size:18
+
+fill $color
+pen none
+
+offset {$width/2},23
+
+$split $animationProps into:o1,s1,s2
+
+fill opacity:$o1
+
+context [
+  offset -45,8
+	scale $s1
+	MASK inverted:yes [ TEXT at:0,5.9 anchor:center "1" ]
+	ELLIPSE 0,0,11
+]
+context [
+	offset 45,8
+	scale $s2
+	MASK inverted:yes [ TEXT at:0,5.9 anchor:center "2" ]
+	ELLIPSE 0,0,11
+]
+
+pen $color opacity:$o1
+
+context [
+ offset -120,0
+ rotate 6
+ scale 0.55
+ pen width:{$s1<1?0:($s1-1)*10}
+ path svg:[m23,-10 l-3,7 85,2 v2 L20,3 l3,7 L0,0 Z]
+]
+
+context [
+ offset 120,0
+ rotate {180-6}
+ scale 0.55
+ pen width:{$s2<1?0:($s2-1)*10}
+ path svg:[m23,-10 l-3,7 85,2 v2 L20,3 l3,7 L0,0 Z]
+]
+
+font size:16 color:$color
+font color:[ opacity:$o1 ]
+TEXT at:0,44 anchor:center "Load a reference sound"
+TEXT at:0,69 anchor:center "and generate patches"

@@ -1,0 +1,19 @@
+<dnaAction> =
+		{ action: "dna.configure", params: {
+			geneColors: { *: <string> }
+			*:<value>
+		} }
+		| { action: "dna.open" }
+		| { action: "dna.regrow" }
+		| { action: "dna.animate" }
+		| { action: "dna.switchPage", params: <int> }
+		| { action: "dna.knobEnterAction", params: <string> }
+		| { action: "dna.knobLeaveAction", params: <string> }
+		| { action: "dna.helix.click" }
+		| { action: "dna.helix.release" }
+		| { action: "dna.helix.enter" }
+		| { action: "dna.helix.leave" }
+		| { action: "dna.popupBranchHint" }
+		| { action: "dna.maybeClosePopupBranchHint" }
+		| { action: "dna.tick" }
+		| { action: "dna.flipParam", params: <string> }

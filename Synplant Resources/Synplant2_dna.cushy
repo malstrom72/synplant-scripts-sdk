@@ -1,0 +1,880 @@
+@include Synplant2_colorScheme.makaron
+@include common.makaron
+@include geneColors.makaron
+
+@define windowWidth = 460
+@define windowHeight = 570
+@define editPage = none
+@define transitionTime = 0.1
+@define animationFps = 25
+@define oscPlotWidth = 185
+@define oscPlotHeight = 128
+
+@begin dnaKnobX(page, x, y, param, bipolar, defaultVariable, transmissionSettings)
+{
+	type: "group"
+	bounds: { @x, @y, 60, 60 }
+@if (@page == @editPage)
+	edit: "@param"
+@endif
+	views: {
+		{
+			type: "vector"
+			file: "dnaKnob"
+			defines: {
+				'gene': '@param'
+			@if (@bipolar != yes)
+				'center': '0'
+			@endif
+				'highlightColor' : "@DNA_KNOB_HIGHLIGHT_COLOR"
+				'slitColor': "@DNA_KNOB_SLIT_COLOR"
+				'hintColor': "@DNA_HINT_COLOR"
+				'ringColor': "@(DNA_PALETTE_@(GENE_COLOR_@param)_LIGHT)"
+				'lineColor': "@(DNA_PALETTE_@(GENE_COLOR_@param)_DARK)"
+			}
+			bindings: {
+			@if (@bipolar == yes)
+				"center": params.@param.default
+			@endif
+				"dnahover": dna.helix.hoverGene
+				"hintgene": dna.hintGene
+				"ring": dna.grown.@param
+				"position": params.@param
+			}
+		}
+		{
+			type: "knob"
+			bounds: { 12, 8, 36, 36 }
+			variable: params.@param
+			hint: "@param = [var]params.@param.human[/var]"
+			defaultVariable: @defaultVariable
+			clickActions: {
+				{ "context", "popup", { 
+					storeAction: lastContextMenuAction
+					storeParams: lastContextMenuParams
+					items: {
+						{ "Flip Value", "dna.flipParam", "@param" }
+						{ "Enter Exact Value...", "edit", { text: "Enter exact value for @param", variable: params.@param.human } }
+						{ "Reset to Default", "changeParam", { param: "@param", toVariable: params.@param.default, whenEqual: "nothing" } }
+						{ "Edit MIDI Controllers", "batch", {
+							{ "set", { midiLearnCC, "" }, { ignoreChecked: true } }
+							{ "switch", @toggle(dna.editMidiControllers, "false", "true") }
+						} }
+						// <<< injection point for additional dna knob context menu items
+					}
+				} }
+			}
+			transmission: {
+				fine: 2
+				@transmissionSettings
+			}
+		}
+		{
+			type: "hover"
+			bounds: { 7, 4, w-14, h-10 }
+			enterAction: "dna.knobEnterAction", enterParams: "@param"
+			leaveAction: "dna.knobLeaveAction", leaveParams: "@param"
+		}
+		{
+			type: "caption"
+			bounds: { 0, 38, 60, 14 }
+			text: "@param"
+			font: { ivgfont: "sans-serif", size: 10.5, color:"@DNA_TEXT_COLOR" }
+			align: "center"
+		}
+		{
+			type: "group"
+			bounds: { (w-26)/2, (h-14)/2-5, 26, 14 }
+			visibility: dna.editMidiControllers
+			views: {
+				{
+					type: "midiAssign"
+					variable: midiConfig.cc.@param
+					learning: {
+						assignment: midiLearnCC
+						image: {
+							ivgFile: "midiIcon_female"
+							defines: {
+								'color': '@DNA_MIDI_ICON_COLOR'
+								'width': "36"
+								'height': "36"
+							}
+							scale: 38
+						}
+						blinkInterval: 500
+					}
+					text: {
+						font: { ivgfont: "sans-serif", size: 11, color: "@DNA_MIDI_TEXT_COLOR" }
+					}
+					backgrounds: {
+						frame: "@DNA_MIDI_FRAME_COLOR"
+						unassigned: "@DNA_MIDI_UNASSIGNED_COLOR"
+						assigned: "@DNA_MIDI_ASSIGNED_COLOR"
+						assigning: "@DNA_MIDI_ASSIGNING_COLOR"
+					}
+					hint: "MIDI CC (drag to change, click to [xlate]dna.clickToLearn:[var]modifiable:midiLearnCC[/var][/xlate])"
+					cursor: "sizeNS"
+				}
+				{
+					type: "click"
+					mask: "context"
+					action: "popup"
+					params: { items: {
+						{ "Enter MIDI CC Number...", "edit", { text: "Enter MIDI CC number for @param", variable: midiConfig.cc.@param } }
+						{ "No MIDI CC", "set", { midiConfig.cc.@param, "off" } }
+						{ "Edit MIDI Controllers", "batch", {
+							{ "set", { midiLearnCC, "" }, { ignoreChecked: true } }
+							{ "switch", @toggle(dna.editMidiControllers, "false", "true") }
+						} }
+					} }
+				}
+			}
+		}
+		// <<< injection point for additional dna knob views
+	}
+}
+@end
+
+@begin dnaKnob(page, x, y, param, bipolar) @dnaKnobX(@page, @x, @y, @param, @bipolar, params.@param.default,) @end
+
+@begin pageCaption(text)
+	{
+		type: "caption"
+		bounds: { 19, 0, 303, 21 }
+		text: @text
+		font: { ivgfont: "serif", size: 15, color:"@DNA_TEXT_COLOR" }
+		align: "center"
+	}
+@end
+
+@begin figureCaption(x, y, id, text)
+	{
+		type: "caption"
+		bounds: { @x, @y-1, 43, 14 }
+		text: "figure @id"
+		font: { ivgfont: "serif", size: 10, color:"@DNA_FIGURE_NUMBER_COLOR" }
+	}
+	{
+		type: "caption"
+		bounds: { @x+46, @y-1, 200, 14 }
+		text: @text
+		font: { ivgfont: "serif", size: 10, color:"@DNA_FIGURE_TEXT_COLOR" }
+	}
+@end
+
+@begin sectionFrame(section)
+	@begin sectionRect(number, title, y, height)
+		{
+			type: "rectangle"
+			bounds: { 1, @y, 136, @height }
+			@if (@section == 0)
+				frame: { color: "@DNA_SELECTED_SECTION_FRAME", stroke: 0.5, dash: 3.11 }
+			@else
+				@if (@section == @number)
+					frame: { color: "@DNA_SELECTED_SECTION_FRAME", stroke: 1, dash: 3.1 }
+				@else
+					frame: { color: "@DNA_SECTION_FRAME", stroke: 0.5, dash: 3.125 }
+				@endif
+			@endif
+		}
+		{
+			type: "caption"
+			bounds: { 5, @y, 40, 16 }
+			text: @title
+			font: {
+				ivgfont: "serif"
+				size: 12
+				@if (@section == @number)
+					color: "@DNA_SELECTED_SECTION_TITLE_COLOR"
+				@else
+					color: "@DNA_SECTION_TITLE_COLOR"
+				@endif
+			}
+			align: "bottom left", offset: { 0, 2 }
+		}
+	@end
+	"@section": {
+		@sectionRect(1, "I.", 0, 175)
+		@sectionRect(2, "II.", 174, 144)
+		@sectionRect(3, "III.", 317, 175)
+	}
+@end
+
+transitions: {
+	open: {
+		time: @transitionTime
+		scale: 90
+		opacity: 0
+	}
+	close: {
+		time: @transitionTime
+		scale: 90
+		opacity: 0
+	}
+}
+
+translations: {
+	"dna.clickToLearn:false": "reset, learn not supported by host"
+	"dna.clickToLearn:true": "reset and learn"
+	// <<< injection point for additional translations
+}
+
+@begin exportColor(gene) @gene: "@(GENE_COLOR_@gene)" @end
+
+autoexecs: {
+	{
+		action: "dna.configure"
+		params: {
+			@export(animationFps)
+			@export(oscPlotWidth)
+			@export(oscPlotHeight)
+			geneColors: {
+				@exportColor(env_time)
+				@exportColor(env_loop)
+				@exportColor(env_tilt)
+				@exportColor(env_kf)
+				@exportColor(vol_atk)
+				@exportColor(vol_dcy)
+				@exportColor(vol_sus)
+				@exportColor(vol_fade)
+				@exportColor(mod_atk)
+				@exportColor(mod_dcy)
+				@exportColor(mod_sh)
+				@exportColor(mod_vel)
+				@exportColor(lfo_rate)
+				@exportColor(lfo_amt)
+				@exportColor(lfo_bal)
+				@exportColor(lfo_dly)
+				@exportColor(a_form)
+				@exportColor(a_noise)
+				@exportColor(a_mod)
+				@exportColor(a_color)
+				@exportColor(a_freq)
+				@exportColor(fm_mod)
+				@exportColor(fm_amt)
+				@exportColor(mix_mod)
+				@exportColor(osc_mix)
+				@exportColor(b_form)
+				@exportColor(b_noise)
+				@exportColor(b_mod)
+				@exportColor(sub_am)
+				@exportColor(b_freq)
+				@exportColor(b_sh)
+				@exportColor(flt_type)
+				@exportColor(flt_q)
+				@exportColor(flt_mod)
+				@exportColor(flt_sep)
+				@exportColor(flt_freq)
+				@exportColor(flt_kf)
+				@exportColor(saturate)
+				@exportColor(rvb_mix)
+				@exportColor(rvb_atk)
+				@exportColor(rvb_len)
+				@exportColor(rvb_damp)
+				@exportColor(rvb_chor)
+				@exportColor(rvb_size)
+				@exportColor(adj_bass)
+				@exportColor(adj_treb)
+				@exportColor(adj_pan)
+				@exportColor(adj_clip)
+			}
+		}
+		onReload: true
+	}
+	{
+		action: "dna.open"
+		onReload: false
+	}
+	{
+		action: "dna.regrow"
+		onChanged: { patch.identity, main.selectedBranch }
+	}
+	{
+		action: "dna.animate"
+		delay: (1 / @animationFps)
+		repeat: {
+			visible: (1 / @animationFps)
+			invisible: suspend
+		}
+	}
+	{
+		action: "dna.popupBranchHint"
+		onChanged: { main.selectedBranchIndex }
+		onInit: false
+	}
+	{
+		action: "set"
+		params: { midiLearnCC, "" }
+		onClose: true
+		onReload: false
+	}
+	// <<< injection point for additional autoexecs
+}
+
+views: {
+	{
+		type: "group"
+
+@modal((w-@windowWidth)/2, 110, @windowWidth, @windowHeight, @DNA_CLOSE_BACKGROUND, @DNA_CLOSE_FOREGOUND, @DNA_CLOSE_FRAME, @<
+
+	/*** No click-through or hints ***/
+	{
+		type: "click"
+		action: "nop" // block underlying actions
+		cursor: "arrow" // block underlying cursors
+		hint: "" // block underlying hints
+	}
+
+	/*** Background ***/
+	{
+		type: "gradient"
+		start: { 0, 0 }
+		end: { 0, @windowHeight }
+		stops: { { 0.08, '@DNA_BACKGROUND_COLOR_1' }, { 1.0, '@DNA_BACKGROUND_COLOR_2' } }
+		frame: { color: '@DNA_FRAME_COLOR', stroke: 2.0 }
+		blend: "normal"
+	}
+
+	/*** DNA & Sections ***/
+
+	{
+		type: "group"
+		bounds: { 5, 7, 138, 504 }
+		views: {
+			{
+				type: "vector"
+				variable: dna.helix.ivg
+				defines: {
+					"left_rail_dark": '@DNA_LEFT_RAIL_DARK_COLOR'
+					"left_rail_light": '@DNA_LEFT_RAIL_LIGHT_COLOR'
+					"left_rung": '@DNA_LEFT_RUNG_COLOR'
+					"right_rail_dark": '@DNA_RIGHT_RAIL_DARK_COLOR'
+					"right_rail_light": '@DNA_RIGHT_RAIL_LIGHT_COLOR'
+					"right_rung": '@DNA_RIGHT_RUNG_COLOR'
+					"gene_background": '@DNA_GENE_BACKGROUND_COLOR'
+					"gene_highlight": '@DNA_GENE_HIGHLIGHT_COLOR'
+					"amber_light": '@DNA_PALETTE_AMBER_LIGHT'
+					"amber_dark": '@DNA_PALETTE_AMBER_DARK'
+					"navy_light": '@DNA_PALETTE_NAVY_LIGHT'
+					"navy_dark": '@DNA_PALETTE_NAVY_DARK'
+					"army_light": '@DNA_PALETTE_ARMY_LIGHT'
+					"army_dark": '@DNA_PALETTE_ARMY_DARK'
+					"fire_light": '@DNA_PALETTE_FIRE_LIGHT'
+					"fire_dark": '@DNA_PALETTE_FIRE_DARK'
+					"royal_light": '@DNA_PALETTE_ROYAL_LIGHT'
+					"royal_dark": '@DNA_PALETTE_ROYAL_DARK'
+				}
+			}
+			{ 
+				type: "hover"
+				enterAction: "dna.helix.enter"
+				leaveAction: "dna.helix.leave"
+				mousePosition: {
+					xy: dna.helix.hoverPosition
+					integer: false
+				}
+			}
+			{
+				type: "click"
+				actions: {
+					{ "press", "dna.helix.click" }
+					{ "release", "dna.helix.release" }
+				}
+				mousePosition: {
+					xy: dna.helix.clickPosition
+					integer: false
+				}
+				keyModifiers: dna.helix.keyModifiers
+			}
+			{
+				type: "paged"
+				index: dna.page
+				pages: {
+					@sectionFrame(0)
+					@sectionFrame(1)
+					@sectionFrame(2)
+					@sectionFrame(3)
+				}
+			}
+			{
+				type: "caption"
+				bounds: { 100, 480, 35, 12 }
+				@edit(seedV)
+				font: { ivgfont: "sans-serif", size: 8, color:"@DNA_SEED_VERSION_COLOR" }
+				align: "right"
+				text: "seed v[var]dna.patchImplementation[/var]"
+			}
+			// <<< injection point for additional helix views
+		}
+	}
+
+	/*** Dividers ***/
+	
+	{
+		type: "vector"
+		bounds: { 2, 2, w-4, h-4 }
+		code: "pen @DNA_DIVIDER_COLOR width:1; PATH svg:[M135 505m-135 0h550]"
+	}
+
+	/*** Pages ***/
+	{
+		type: "paged"
+		bounds: { 135, 5, w-5, h-40 }
+		index: dna.page
+		pages: {
+			"0": { // INTRO PAGE
+				{
+					type: "vector"
+					bounds: { 0, 2, w-135, h-30 }
+					file: "dnaSplash"
+					opacity: 100
+					bindings: {
+						"animationProps": dna.splash.animationProps
+					}
+					defines: {
+						"color": "@DNA_SPLASH_TEXT_COLOR"
+					}
+				}
+			}
+			"1": { // ENVELOPE PAGE
+				@pageCaption("I.   Envelope and LFO")
+
+				/*** ENV_* KNOBS ***/
+				{
+					type: "group"
+					bounds: { 115, 20, 205, 64 }
+					views: {
+						@dnaKnob(0, 0, 0, env_time, no)
+						@dnaKnob(0, 47, 0, env_loop, no)
+						@dnaKnob(0, 94, 0, env_tilt, no)
+						@dnaKnob(0, 141, 0, env_kf, no)
+					}
+				}	
+
+				/*** VOL_* KNOBS ***/
+				{ 
+					type: "group"
+					bounds: { 10, 80, 110, 112 }
+					views: {
+						@dnaKnob(0, 0, 0, vol_atk, no)
+						@dnaKnob(0, 48, 0, vol_dcy, no)
+						@dnaKnob(0, 0, 50, vol_sus, no)
+						@dnaKnob(0, 48, 50, vol_fade, no)
+					}
+				}
+				{
+					type: "vector"
+					bounds: { 124, 81, 185, 104 }
+					file: "dnaVolPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_AMBER_LIGHT'
+					}
+					bindings: {
+						"env_time": dna.grown.env_time
+						"env_tilt": dna.grown.env_tilt
+						"env_loop": dna.grown.env_loop
+						"vol_atk": dna.grown.vol_atk
+						"vol_dcy": dna.grown.vol_dcy
+						"vol_sus": dna.grown.vol_sus
+						"vol_fade": dna.grown.vol_fade
+						"position": dna.voice.volEnvPosition
+					}
+				}
+				@figureCaption(126, 186, 1a, "Volume envelope")
+
+				/*** MOD_* KNOBS ***/
+				{
+					type: "group"
+					bounds: { 10, 219, 110, 112 }
+					views: {
+						@dnaKnob(0, 0, 0, mod_atk, no)
+						@dnaKnob(0, 48, 0, mod_dcy, no)
+						@dnaKnob(0, 0, 50, mod_sh, no)
+						@dnaKnob(0, 48, 50, mod_vel, no)
+					}
+				}
+				{
+					type: "vector"
+					bounds: { 124, 220, 185, 104 }
+					file: "dnaModPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_FIRE_LIGHT'
+					}
+					bindings: {
+						"env_time": dna.grown.env_time
+						"env_tilt": dna.grown.env_tilt
+						"env_loop": dna.grown.env_loop
+						"mod_atk": dna.grown.mod_atk
+						"mod_dcy": dna.grown.mod_dcy
+						"mod_sh": dna.grown.mod_sh
+						"position": dna.voice.modEnvPosition
+					}
+				}
+				@figureCaption(126, 325, 1b, "Modulation envelope")
+
+				/*** LFO_* KNOBS ***/
+				{
+					type: "group"
+					bounds: { 10, 367, 110, 112 }
+					views: {
+						@dnaKnob(0, 0, 0, lfo_rate, no)
+						@dnaKnob(0, 48, 0, lfo_amt, yes)
+						@dnaKnob(0, 0, 50, lfo_bal, yes)
+						@dnaKnob(0, 48, 50, lfo_dly, no)
+					}
+				}
+				{
+					type: "vector"
+					bounds: { 125, 358, 184, 136 }
+					file: "dnaLfoPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_NAVY_LIGHT'
+						'graphHeight': '48'
+						'vibratoY': '1'
+						'tremoloY': '74'
+					},
+					bindings: {
+						"lfo_rate": dna.grown.lfo_rate
+						"lfo_dly": dna.grown.lfo_dly
+						"lfo_amt": dna.grown.lfo_amt
+						"lfo_bal": dna.grown.lfo_bal
+						"position": dna.voice.lfoPosition
+						"envelope": dna.voice.lfoEnvelope
+					}
+				}
+				@figureCaption(126, 410, 1c, "Pitch oscillation (vibrato)")
+				@figureCaption(126, 484, 1d, "Volume oscillation (tremolo)")
+				// <<< injection point for additional envelope views
+			}
+			"2": { // OSCILLATOR PAGE
+				@pageCaption("II.   Oscillators")
+
+				/*** A_* KNOBS ***/
+				{
+					type: "group"
+					bounds: { 10, 31, 115, 171 }
+					views: {
+						@dnaKnob(1, 0, 0, a_form, no)
+						@dnaKnob(1, 48, 0, a_noise, no)
+						@dnaKnob(1, 0, 50, a_mod, yes)
+						@dnaKnob(1, 48, 50, a_color, no)
+						@dnaKnobX(1, 24, 110, a_freq, no, dna.defaultFreqA, @<
+							resolution: 30
+							fineResolution: 1
+							vertical: 180
+							horizontal: 180
+						@>)
+					}
+				}	
+				{
+					type: "vector"
+					bounds: { 125, 44, @oscPlotWidth, @oscPlotHeight }
+					file: "dnaOscPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_ARMY_LIGHT'
+					},
+					bindings: {
+						"zoom": dna.waveformA.zoom
+						"path": dna.waveformA.path
+						"thinness": dna.waveformA.thinness
+					}
+				}
+				@figureCaption(126, 174, 2a, "Oscillator A")
+
+				/*** FM_* KNOBS ***/
+				{ 
+					type: "group"
+					bounds: { 10, 232, 116, 64 }
+					views: {
+						@dnaKnob(1, 0, 0, fm_mod, yes)
+						@dnaKnob(1, 48, 0, fm_amt, yes)
+					}
+				}
+
+				/*** MIX_* KNOBS ***/
+				{ 
+					type: "group"
+					@edit(mix)
+					bounds: { 188, 232, 116, 64 }
+					views: {
+						@dnaKnob(1, 0, 0, mix_mod, yes)
+						@dnaKnob(1, 48, 0, osc_mix, yes)
+					}
+				}
+				{
+					type: "vector"
+					@edit(fmAmount)
+					bounds: { 59, 191, 200, 150 }
+					file: "dnaFmAmount"
+					defines: {
+						'colorA': '@DNA_PALETTE_ARMY_LIGHT'
+						'colorB': '@DNA_PALETTE_NAVY_LIGHT'
+					},
+					bindings: {
+						"fmAmount": dna.voice.fmAmount
+					}
+				}
+				{
+					type: "vector"
+					@edit(oscMix)
+					bounds: { 237, 191, 14, 150 }
+					file: "dnaOscMix"
+					defines: {
+						'colorA': '@DNA_PALETTE_ARMY_LIGHT'
+						'colorB': '@DNA_PALETTE_NAVY_LIGHT'
+					},
+					bindings: {
+						"oscMixA": dna.voice.carrierMix
+						"oscMixB": dna.voice.fmMix
+					}
+				}
+
+				/*** B_* KNOBS ***/
+				{
+					type: "group"
+					bounds: { 10, 323, 115, 172 }
+					views: {
+						@dnaKnob(1, 0, 0, b_form, no)
+						@dnaKnob(1, 48, 0, b_noise, no)
+						@dnaKnob(1, 0, 50, b_mod, yes)
+						@dnaKnob(1, 48, 50, sub_am, no)
+						@dnaKnob(1, 0, 100, b_freq, yes)
+						@dnaKnob(1, 48, 100, b_sh, yes)
+					}
+				}	
+				{
+					type: "vector"
+					bounds: { 125, 336, @oscPlotWidth, @oscPlotHeight }
+					file: "dnaOscPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_NAVY_LIGHT'
+					},
+					bindings: {
+						"path": dna.waveformB.path
+						"zoom": dna.waveformB.zoom
+						"thinness": dna.waveformB.thinness
+					}
+				}
+				@figureCaption(126, 466, 2b, "Oscillator B")
+				// <<< injection point for additional oscillator views
+			}
+			"3": { // FILTER / FX PAGE
+				@pageCaption("III.   Filter and effects")
+
+				/*** FLT_* KNOBS ***/
+				{
+					type: "group"
+					bounds: { 10, 20, 115, 163 }
+					views: {
+						@dnaKnob(2, 0, 0, flt_type, no)
+						@dnaKnob(2, 48, 0, flt_q, no)
+						@dnaKnob(2, 0, 50, flt_mod, yes)
+						@dnaKnob(2, 48, 50, flt_sep, yes)
+						@dnaKnob(2, 0, 100, flt_freq, no)
+						@dnaKnob(2, 48, 100, flt_kf, no)
+					}
+				}
+				{
+					type: "vector"
+					bounds: { 125, 32, 184, 124 }
+					file: "dnaFilterPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_ARMY_LIGHT'
+					}
+					bindings: {
+						"filterCoeffs": dna.filterCoeffs
+					}
+				}
+				@figureCaption(126, 160, 3a, "Filter response curve")
+
+				@dnaKnob(2, 58, 188, saturate, no)
+				{
+					type: "vector"
+					@edit(saturatePlot)
+					bounds: { 124, 191, 89, 56 }
+					file: "dnaSaturatePlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'color': '@DNA_PALETTE_AMBER_LIGHT'
+					}
+					bindings: {
+						"saturate": dna.grown.saturate
+					}
+				}
+
+				/*** RVB_* KNOBS ***/
+				{
+					type: "group"
+					bounds: { 10, 255, 115, 163 }
+					views: {
+						@dnaKnob(2, 0, 0, rvb_mix, no)
+						@dnaKnob(2, 48, 0, rvb_atk, no)
+						@dnaKnob(2, 0, 50, rvb_len, no)
+						@dnaKnob(2, 48, 50, rvb_damp, no)
+						@dnaKnob(2, 0, 100, rvb_chor, no)
+						@dnaKnob(2, 48, 100, rvb_size, no)
+					}
+				}
+				{
+					type: "vector"
+					bounds: { 124, 270, 185, 124 }
+					file: "dnaReverbPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_NAVY_LIGHT'
+					}
+					bindings: {
+						"rvb_len": dna.grown.rvb_len
+						"rvb_atk": dna.grown.rvb_atk
+						"rvb_damp": dna.grown.rvb_damp
+						"rvb_size": dna.grown.rvb_size
+						"rvb_chor": dna.grown.rvb_chor
+						"voiceAge": dna.voice.voiceAge
+					}
+				}
+				@figureCaption(126, 394, 3b, "Artificial reverberation")
+
+				/*** EQ, CLIP & PAN ***/
+				{
+					type: "group"
+					bounds: { 10, 430, 310, 56 }
+					views: {
+						@dnaKnob(2, 0, 0, adj_bass, yes)
+						@dnaKnob(2, 48, 0, adj_treb, yes)
+						@dnaKnob(2, 204, 0, adj_pan, yes)
+						@dnaKnob(2, 252, 0, adj_clip, yes)
+					}
+				}	
+			
+				{
+					type: "vector"
+					bounds: { 125, 431, 85, 56 }
+					file: "dnaEqPlot"
+					defines: {
+						'axesColor': '@DNA_PLOT_AXES_COLOR'
+						'markersColor': '@DNA_PLOT_MARKERS_COLOR'
+						'color': '@DNA_PALETTE_ROYAL_LIGHT'
+					}
+					bindings: {
+						"adj_bass": dna.grown.adj_bass
+						"adj_treb": dna.grown.adj_treb
+					}
+				}
+				// <<< injection point for additional filter views
+			}
+		}
+	}
+	
+	{
+		type: "paged"
+		index: dna.showHint
+		pages: {
+			"true": {
+				{
+					type: "caption"
+					bounds: { 9, 513, 16, 16 }
+					font: { ivgfont: "sans-serif", gamma:2, color: '@DNA_HINT_COLOR', size: 18 }
+					text: "*"
+				}
+				{
+					type: "bubble"
+					fill: "transparent"
+					frame: "transparent"
+					paddings: { 20, -3, -10, 0 }
+					bounds: { $, h - 10, $, 10 }
+					minHeight: 64
+					maxHeight: 64
+					corners: { 0, 0 }
+					pageVariable: dna.hintPage
+					pages: {
+                        "<g>env_time </g> controls the total duration of the sound. Above 0.9, the <t>Envelope</t> will have infinite duration, stopped only by releasing the key or <r>vol_fade</r> fades out."
+                        "<g>env_loop </g> controls the looping time of the <t>Envelope</t>. A longer loop time than <r>env_time</r> means no looping will occur."
+                        "<g>env_tilt </g> determines the tilt of the <t>Envelope</t>. Smaller values mean quicker attack and longer decay, while higher values mean slower attack and faster decay.."
+                        "<g>env_kf </g> controls the key follow of the <t>Envelope</t>. Settings above 0.5 make the <t>Envelope</t> shorter with high keys and longer with low keys."
+                        "<g>vol_atk </g> shapes the attack phase of the <t>Volume Envelope</t>. A value of 0.5 gives a linear attack. Smaller values give a slower buildup, while higher values are quicker."
+                        "<g>vol_dcy </g> shapes the decay phase of the <t>Volume Envelope</t>. A value of 0.5 gives a linear decay. Smaller values give a quicker drop, while higher values are slower."
+                        "<g>vol_sus </g> sets the sustain level of the sound. A value under 0.5 means no sustain. Higher values equate to greater sustain levels. (At 1.0, you will not hear the decay phase of the <t>Volume Envelope</t> at all.)."
+                        "<g>vol_fade </g> introduces an additional volume fade that begins after the initial attack phase. Settings above 0.75 activate the fade."
+                        "<g>mod_atk </g> shapes the attack phase of the <t>Modulation Envelope</t>. A value of 0.5 gives a linear attack. Smaller values give a slower buildup, whereas higher values are quicker."
+                        "<g>mod_dcy </g> shapes the decay phase of the <t>Modulation Envelope</t>. A value of 0.5 gives a linear decay. Smaller values give a quicker drop; as expected, higher values are slower."
+                        "<g>mod_sh </g> sets the sample-and-hold frequency of the <t>Modulation Envelope</t>. Only very high values will activate the effect, and the higher the value, the slower the sample-and-hold rate."
+                        "<g>mod_vel </g> determines how velocity affects the <t>Modulation Envelope</t>. Lower settings lower the sensitivity; below 0.1, velocity will not affect modulation at all."
+                        "<g>lfo_rate </g> controls the <t>LFO</t> frequency. The <t>LFO</t> creates vibrato and tremolo effects."
+                        "<g>lfo_amt </g> adjusts the vibrato/tremolo effect. Above 0.5, <t>LFO</t> modulates pitch and/or amplitude, depending on the <r>lfo_bal</r> setting. Below 0.5, <t>Oscillator A</t> and <t>B</t> are modulated in opposite directions."
+                        "<g>lfo_bal </g> decides the balance between vibrato (pitch modulation) and tremolo (amplitude modulation). 0.0 = vibrato, 0.5 = both vibrato and tremolo, 1.0 = tremolo only."
+                        "<g>lfo_dly </g> sets the delay time before the <t>LFO</t> starts modulating the sound. Values less than 0.5 means no delay."
+                        "<g>a_form </g> controls the waveform shape and timbre of <t>Oscillator A</t>. The waveform morphs gradually from sine (0.0) to sawtooth (0.57) to square (0.81) to pulse (1.0)."
+                        "<g>a_noise </g> adjusts the mix of noise in <t>Oscillator A</t>. Higher settings will introduce noise; at 1.0, the noise will obscure the oscillator entirely."
+                        "<g>a_mod </g> is bipolar and determines the pitch modulation amount from the <t>Modulation Envelope</t>. 0.5 means no pitch modulation. 0.0 is the maximum negative, and 1.0 is the maximum positive modulation."
+                        "<g>a_color </g> changes the character of the noise in <t>Oscillator A</t> from a brown (muddy) noise to a white (sharp) noise."
+                        "<g>a_freq </g> controls the pitch of <t>Oscillator A</t>. In practice, since <t>Oscillator B</t> and the filter cutoff frequencies are linked to this setting, it determines the overall pitch of the sound."
+                        "<g>fm_mod </g> affects how the <t>Modulation Envelope</t> modulates the FM amount. Settings above 0.5 increase the FM amount as the <t>Modulation Envelope</t> increases, while settings below 0.5 do the opposite."
+                        "<g>fm_amt </g> controls the frequency modulation amount of <t>Oscillator A</t> by<br><t>Oscillator B</t>. The setting is bipolar with 0.5 meaning no frequency modulation."
+                        "<g>mix_mod </g> determines how the <t>Modulation Envelope</t> modulates the mix between <t>Oscillator A</t> and <t>B</t>. Values higher than 0.5 mean that as the <t>Modulation Envelope</t> rises, the mix goes from <t>Oscillator A</t> to <t>B</t>, and below 0.5, the opposite happens."
+                        "<g>osc_mix </g> changes the mix between <t>Oscillator A</t> and <t>B</t>. At 0.0, you will only hear <t>Oscillator A</t>, and at 1.0, only <t>Oscillator B</t>. At approximately 0.79, the mix will be 50/50."
+                        "<g>b_form </g> controls the waveform shape and timbre of <t>Oscillator B</t>. The waveform morphs gradually from sine (0.0) to sawtooth (0.57) to square (0.81) to pulse (1.0)."
+                        "<g>b_noise </g> adjusts the mix of noise in <t>Oscillator B</t>. Higher settings will introduce noise; at 1.0, the noise obscures the oscillator entirely."
+                        "<g>b_mod </g> is bipolar and determines the pitch modulation amount from the <t>Modulation Envelope</t>. 0.5 means no pitch modulation. 0.0 is the maximum negative, and 1.0 is the maximum positive modulation."
+                        "<g>sub_am </g> adjusts the <t>Sub-Oscillator</t> mix. The <t>Sub-Oscillator</t> amplitude modulates <t>Oscillator B</t> with a sine wave that is one octave lower."
+                        "<g>b_freq </g> controls the pitch of <t>Oscillator B</t> relative to the pitch of <t>Oscillator A</t>."
+                        "<g>b_sh </g> sets the sample-and-hold rate of <t>Oscillator B</t>. Values above 0.5 introduce the effect at a fixed rate, while values below 0.5 sync the effect to <t>Oscillator B</t>'s frequency for a consistent timbre across pitches."
+                        "<g>flt_type </g> morphs the filter type between bandpass (0.0), dual serial low-pass (0.33), dual parallel low-pass (0.66), and notch (1.0)."
+                        "<g>flt_q </g> controls the &quot;q value&quot; (or &quot;resonance&quot;) of the filters."
+                        "<g>flt_mod </g> is bipolar and determines the cutoff modulation amount from the <t>Modulation Envelope</t>. 0.5 means no modulation. 0.0 is the maximum negative, and 1.0 is the maximum positive modulation."
+                        "<g>flt_sep </g> sets the separation between the cutoff frequencies of the two internal filter stages, with the exact effect depending on the current <t>flt_type</t> setting. 0.5 means no separation, and the filter stages act in unity as a single filter."
+                        "<g>flt_freq </g> controls the cutoff frequency relative to the frequency of <t>Oscillator A</t>."
+                        "<g>flt_kf </g> (\"key follow\") determines how filter cutoff changes over the keyboard. Below 0.25, there will be no change at all, and the cutoff stays fixed. Above 0.75, the cutoff frequency will follow the keyboard exactly."
+                        "<g>saturate </g> adjusts the level of saturation on the voice, with higher settings introducing warm distortion. Unlike <r>adj_clip</r>, this effect is applied individually to each voice and not to the overall mix."
+                        "<g>rvb_mix </g> sets the dry/wet mix of the built-in effect (a chorusing reverb). You can also adjust the mix with the <t>Effect</t> slider on the main page."
+                        "<g>rvb_atk </g> applies an envelope to the reverb amount when set above 0.66. This gradually increases the reverb level after note-on, with higher values resulting in a slower fade-in."
+                        "<g>rvb_len </g> changes the length of the reverberation."
+                        "<g>rvb_damp </g> controls how the reverb dampens higher frequencies when it decays. Higher settings mean more dampening."
+                        "<g>rvb_chor </g> adjusts the chorus amount. Higher settings introduce a chorus/unison effect to the sound."
+                        "<g>rvb_size </g> changes the size of the perceived reverberation space. Note that this gene does not change when growing branches because it would disrupt the audio."
+                        "<g>adj_bass </g> controls the output low-shelf filter that adjusts the bass frequency content of the sound. It has a range of -24 to 24 dB and a fixed shelf frequency of 100 Hz. This gene does not change when branches grow."
+                        "<g>adj_treb </g> controls the output high-shelf filter that adjusts the treble frequency content of the sound, with a range of -24 to 24 dB and a fixed shelf frequency of 6000 Hz. This gene does not change when branches grow."
+                        "<g>adj_pan </g> adjusts the panning of the branches around the center seed. Settings lower than 0.5 reduce the panning effect, while higher settings increase it. This gene does not change when branches grow."
+                        "<g>adj_clip </g> adjusts the gain of the &quot;soft clipper&quot;, which is applied after the master volume. Increasing the value results in more distortion. At low settings, the signal remains clean. This gene does not change when branches grow."
+					},
+					styles: {
+						default: { font: { ivgfont: "serif", color: '@DNA_HINT_COLOR', size: 12 } }
+						t: { font: { ivgfont: "serif", gamma:2, color: '@DNA_HINT_COLOR', size: 11 } }
+						g: { font: { ivgfont: "sans-serif", gamma:2, color: '@DNA_HINT_COLOR', size: 14 } }
+						r: { font: { ivgfont: "sans-serif", gamma:2, color: '@DNA_HINT_COLOR', size: 12 } }
+					}
+				}
+			}
+		}
+	}
+
+	// <<< injection point for additional dna views
+
+	{
+		type: "click"
+		action: "set"
+		params: { midiLearnCC, "" }
+        thru: true
+	}
+
+@>)
+	}
+	/*** branch hint popup ***/
+	{
+		type: "cushy"
+		bounds: { 0, 110-26, w, h }
+		layoutVariable: dna.branchHintLayout
+	}
+}

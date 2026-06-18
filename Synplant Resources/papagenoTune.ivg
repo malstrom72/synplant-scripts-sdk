@@ -1,0 +1,32 @@
+/**
+ * @param {color} enabledColor
+ * @param {color} disabledColor
+ * @param {color} downColor
+ * @param {color} checkedColor
+ * @param {color} scarletColor
+ * @param {"yes"|"no"} down - bound automatically by <button>
+ * @param {"yes"|"no"} disabled - bound automatically by <button>
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,36,36
+offset {$width/2},{$height/2}
+
+scale {36 / 1024}
+offset -512,-512
+
+c = {$down ? $downColor : $disabled ? $disabledColor : $checked ? $checkedColor : $enabledColor}
+d = {$down || $disabled}
+pen {$down ? $c : none} width:8
+fill $c
+
+path svg:[M593 171c-14-7-27-7-41 0l-1 2c0 21 2 363 0 391 0 23-26 40-39 40-13 1-39-16-39-40-2-28 0-370 0-391l-1-2c-13-7-27-7-40 0l-1 2v391c0 13 5 32 24 53l34 38 2 7v156c-7 6-11 14-11 24a33 33 0 1 0 54-24V662c0-3 0-5 2-7l33-38c19-21 25-40 25-53V173l-1-2z]
+
+if [$checked] [
+	fill {$down ? $downColor : $disabled ? $disabledColor : $enabledColor} opacity:0.8
+	path svg:[M268 622c-5 0-9-3-11-8-22-56-35-137-35-221 0-86 13-168 37-224a11 11 0 1 1 21 9c-23 53-35 132-35 215 0 82 12 159 34 213 2 5-1 12-7 15h-4zm87 0c-4 0-9-3-10-8-23-56-36-137-36-221 0-86 14-168 37-224a11 11 0 1 1 21 9c-22 53-35 132-35 215 0 82 12 159 34 213a12 12 0 0 1-11 15zm400 0-4-1c-6-3-9-10-7-15 23-54 36-133 36-216 0-81-13-159-34-212a12 12 0 1 1 21-9c23 56 36 137 36 221 0 86-14 168-37 225-2 4-7 7-11 7zm-88 0-4-1c-6-3-9-10-6-15 22-54 35-133 35-216 0-81-12-159-34-212a12 12 0 1 1 21-9c23 56 36 137 36 221 0 86-13 168-37 225-2 4-6 7-11 7z]
+] else:[
+	fill {$down ? $downColor : $disabled ? $disabledColor : $scarletColor} opacity:0.8
+	path svg:[m540 512 238-238c7-8 7-20 0-28-8-7-20-7-28 0L512 485 274 246c-8-7-20-7-28 0-7 8-7 20 0 28l239 238-239 238c-7 8-7 20 0 28a19 19 0 0 0 28 0l238-238 238 238a19 19 0 0 0 28 0c7-8 7-20 0-28z]
+]

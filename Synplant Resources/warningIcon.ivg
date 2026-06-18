@@ -1,0 +1,33 @@
+/**
+ * @param {number} width
+ * @param {number} height
+ * @param {number} [shakeX]
+ * @param {number} [shakeY]
+ * @param {number} [size]
+ * @param {color} backgroundColor
+ * @param {color} color
+ */
+
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,42,42
+offset {$width/2},{$height/2};
+if {def(shakeX) && def(shakeY)} [
+    offset $shakeX,$shakeY
+]
+
+if {def(size)} [
+    scale { $size / 1024 }
+] else:[
+    scale {42 / 1024}
+]
+offset -512,-512
+
+fill $backgroundColor
+pen $color width:42
+path svg:[M848 867H176c-49 0-80-53-55-96l335-582c25-43 87-43 112 0l335 582c25 43-6 96-55 96Z]
+
+pen none
+fill $color
+path svg:[M512 391c26 0 29 20 29 31 0 29-20 214-20 214h-18s-20-182-20-214c0-11 3-31 29-31Zm33 329a33 33 0 1 1-66 0 33 33 0 0 1 66 0Z]
+						

@@ -1,0 +1,19 @@
+/**
+ * @param {color} dividerColor
+ * @param {number} greenhouseWidth
+ */
+
+format IVG-2 requires:IMPD-1
+
+include "support.ivg"
+
+bounds 0,0,460,460
+
+// Draw background dividers
+context [
+	offset {$width/2},10
+	h = {$height - 20}
+	w = {$greenhouseWidth}
+	pen $dividerColor width:0.5 opacity:0.25
+	path svg:[M-$w,0 V$h M0,0 V$h M$w,0 V$h]
+]

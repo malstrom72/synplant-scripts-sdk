@@ -1,0 +1,88 @@
+@include scriptSupport.makaron
+@define script=fourKnobs
+@define windowWidth=220
+@define windowHeight=124
+
+// ===================================
+// === SCRIPT SPECIFIC BEGINS HERE ===
+// ===================================
+
+@define uiHue=0.30
+@define uiSat=0.20
+@define backgroundColor=hsv(@uiHue,@uiSat,0.8)
+@define frameColor=hsv(@uiHue,@uiSat,0.25)
+@define titleColor=white
+@define captionColor=hsv(@uiHue,@uiSat,0.2)
+@define knobFrameColor=hsv(@uiHue,0.08,0.3)
+@define knobFillColor=hsv(@uiHue,0.08,0.9)
+@define buttonFrameColor=hsv(@uiHue,0.08,0.3)
+@define buttonFillColor=hsv(@uiHue,0.08,0.9)
+@define buttonDownFillColor=hsv(@uiHue,0.08,0.65)
+
+transitions: {
+	open: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+	close: {
+		time: 0.1
+		scale: 90
+		opacity: 0
+	}
+}
+
+autoexecs: {
+	@bringWindowToFront(@script)
+	{
+		action: "@script.initGUI"
+		params: {
+			:
+		}
+		onReload: true
+	}
+	{
+		action: "@script.loadGenome"
+		onChanged: patch.identity
+	}
+}
+
+@begin knob(left, top, number)
+	{
+		type: "group"
+		bounds: { @left, @top, 40, 80 }
+		views: {
+			{
+				type: "knob"
+				bounds: { 0, 0, 40, 40 }
+				variable: @script.knobs.@number
+				sweep: { -135, 270 }
+				default: 0.0
+				range: { -1.0, 1.0 }
+				hint: "Knob #@number = [var]@script.knobs.@number[/var]"
+				cap: {
+					color: "@knobFillColor"
+					frame: { color: "@knobFrameColor", stroke: 1.5 }
+					dial: { color: "@knobFrameColor", stroke: 1.5, caps: "round" }
+				}
+			}
+			{
+				type: "button"
+				bounds: { 10, 50, 20, 20 }
+				action: "@script.newVector"
+				params: @number 
+				hint: "New vector for #@number"
+				mask: "click"
+				standard: { frame: "@buttonFrameColor", fill: "@buttonFillColor" }
+				down: { fill: "@buttonDownFillColor" }
+			}
+		}
+	}
+@end
+
+@window((w-(@windowWidth))/2, (h-(@windowHeight))/2, @windowWidth, @windowHeight, "Four Knobs", @backgroundColor, @frameColor, @titleColor, @script, @<
+	@knob(10, 10, 0)
+	@knob(60, 10, 1)
+	@knob(110, 10, 2)
+	@knob(160, 10, 3)
+@>)

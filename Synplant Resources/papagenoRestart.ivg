@@ -1,0 +1,23 @@
+/**
+ * @param {color} enabledColor
+ * @param {color} disabledColor
+ * @param {color} downColor
+ * @param {"yes"|"no"} down - bound automatically by <button>
+ * @param {"yes"|"no"} disabled - bound automatically by <button>
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,36,36
+offset {$width/2},{$height/2}
+
+scale {36 / 1024}
+offset -512,-512
+
+c = {$down ? $downColor : $disabled ? $disabledColor : $enabledColor}
+pen {$down ? $c : none} width:8
+fill $c
+
+path svg:[M403 177c-9 0-16 7-16 16v46H229c-9 0-16 8-16 16v51c0 9 7 16 16 16h33l53 526c1 9 8 15 16 15h362c8 0 15-6 16-15l53-526h33c9 0 17-7 17-16v-51c0-8-8-16-16-16H637v-46c0-9-7-16-16-16zm14 30h190v32H417Zm-174 63h538v22H243Zm49 52h440l-52 511H344Z]
+fill opacity:0.75
+path svg:[M391 388c-7 0-11 6-11 12l25 357c0 5 5 10 11 10h1c6 0 10-6 10-12l-24-357c-1-6-6-11-13-10zm121 3c-6 0-11 5-11 11v357a11 11 0 1 0 22 0V402c0-6-5-11-11-11zm122 0c-7 0-12 4-13 11l-24 356c-1 6 4 12 10 12h1c6 0 11-4 11-10l25-357c0-6-4-12-10-12z]

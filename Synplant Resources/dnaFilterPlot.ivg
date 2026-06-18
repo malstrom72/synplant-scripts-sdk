@@ -1,0 +1,59 @@
+/**
+ * @param {color} axesColor
+ * @param {color} markersColor
+ * @param {color} color
+ * @param {number[]] filterCoeffs - bind to dna.filterCoeffs 
+ */
+
+format IVG-2 requires:IMPD-1
+
+include support.ivg
+offset 0.5,2.5
+
+local i = 0;
+for y in:$filterCoeffs [ local c$i = $y; i={$i+1} ]
+
+local xA = {log($c12 / 0.001) / log(500) * $width}
+local xB = {log($c13 / 0.001) / log(500) * $width}
+
+local pA = M
+local pB = M
+
+// plot(x)
+local plot = call [
+	local xx = {(0.001 * 500 ** ($0 / $width)) ** 2}
+	local yA = {sqrt(($c0 + $xx * ($c1 + $xx * $c2)) / ($c3 + $xx * ($c4 + $xx)))}
+	local yB = {sqrt(($c5 + $xx * ($c6 + $xx * $c7)) / ($c8 + $xx * ($c9 + $xx)))}
+	yB = {($c10 + $yA * $c11) * $yB}
+	pA = $pA $0 {$height * (0.5 - 0.25 * log10($yA))}
+	pB = $pB $0 {$height * (0.5 - 0.25 * log10($yB))}
+]
+
+for x from:0 to:{$width + 1} [
+	if {$x > $xA} [
+		$plot $xA
+		xA = $xB
+		xB = 100000
+	]
+	$plot $x
+]
+
+context [
+	pen $axesColor width:1 joints:bevel
+	PATH svg:[M0 0v$height M0 {$height / 2}h$width]
+]
+
+context [
+	mask [
+		PATH svg:[$pB V{$height * 2} H0 z]
+		fill opacity:$c10
+		PATH svg:[$pA V{$height * 2} H0 z]
+	]
+	wipe $color opacity:0.1
+]
+
+pen $color width:2 joints:bevel
+fill none
+PATH svg:[$pB]
+pen opacity:$c10
+PATH svg:[$pA]

@@ -1,0 +1,26 @@
+/**
+ * @param {"yes"|"no"} bi - slider is bidirectional
+ * @param {number} value - bound automatically to <slider> value
+ */
+
+format IVG-2 requires:IMPD-1
+
+local v = 0
+local r = 0
+
+if {$bi} [
+	v = {$value == 0.5 ? 0 : 2 + abs($value * 2 - 1) * 5}
+] else:[
+	v = {$value * 7}
+] 
+
+r = {$v - floor($v)}
+local i = {floor($v)}
+
+IMAGE 0,1 "arcslider" align:"middle center" clip:[0,{$i*48},44,48]
+
+local n = {$i+1}
+if {$n < 8 && $r > 0} [
+	// just the LED x14,y16,w16,h16
+	IMAGE 0,1 "arcslider" align:"middle center" clip:[14,{$n*48+16},16,16] opacity:$r
+]

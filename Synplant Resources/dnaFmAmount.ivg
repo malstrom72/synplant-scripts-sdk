@@ -1,0 +1,13 @@
+/**
+ * @param {color} colorA
+ * @param {color} colorB
+ * @param {number} fmAmount - bind to dna.voice.fmAmount
+ */
+
+format IVG-2 requires:IMPD-1
+
+y={sqrt(abs($fmAmount / 64))}
+pen $colorA width:{$y * 1.5}
+PATH svg:[M5 45 l0 {-(5 + 30 * $y)} m-4 4 l4 -4 l4 4 ]
+pen $colorB width:1
+PATH svg:[M133 135 v-17.5 h-128 v-17.5 m-4 4 l4 -4 l4 4 ]

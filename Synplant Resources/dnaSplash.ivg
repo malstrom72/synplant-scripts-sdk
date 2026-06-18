@@ -1,0 +1,55 @@
+/**
+ * @author Fredrik Lidström
+ * @copyright Fredrik Lidström 2022-07-25
+ *
+ * @param {number} [animationProps] - bind to dna.splash.animationProps
+ * @param {color} color - text color
+ */
+
+format IVG-2 requires:IMPD-1
+
+include "support.ivg"
+
+font "serif" size:18 color:$color
+
+$split $animationProps into:o1,o2,o3,s1,s2,s3
+
+offset 50,0
+
+fill none
+pen $color width:0.7 caps:square
+
+local curly = context [
+	offset -40,0
+	path svg:[M0,-$h l5,0 c10,0 10,0 10,10 L15,-10 c0,5 0,8 8,10 M0,$h l5,0 c10,0 10,0 10,-10 L15,10 c0,-5 0,-8 8,-10 ]
+]
+
+context [
+	offset 10,{0+175/2}
+	h={175/2-6}
+	pen opacity:$o1
+	$curly
+	scale $s1
+	font color:[opacity:$s1]
+	TEXT at:0,5 "I.   Envelope and LFO"
+]
+
+context [
+	offset 10,{174+144/2}
+	h={144/2-6}
+	pen opacity:$o2
+	$curly
+	scale $s2
+	font color:[opacity:$s2]
+	TEXT at:0,5 "II.   Oscillators"
+]
+
+context [
+	offset 10,{317+175/2}
+	h={175/2-6}
+	pen opacity:$o3
+	$curly
+	scale $s3
+	font color:[opacity:$s3]
+	TEXT at:0,5 "III.   Filter and effects"
+]

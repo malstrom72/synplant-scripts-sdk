@@ -1,0 +1,49 @@
+resources: ./
+
+<actions> = <synplant2Action>
+		| <aboutAction>
+		| <dnaAction>
+		| <papagenoAction>
+		| <introductionAction>
+		| <legacyModeAction>
+		| { action: "main.initGUI", params: { *:<value> } }
+		| { action: "main.openGUI" }
+		| { action: "main.closeGUI" }
+		| { action: "main.plant" }
+		| { action: "main.plant.down" }
+		| { action: "main.plant.up" }
+		| { action: "main.randomize" }
+		| { action: "main.randomize.down" }
+		| { action: "main.randomize.up" }
+		| { action: "main.randomize.release" }
+		| { action: "main.randomize.click" }
+		| { action: "main.saveButton" }		
+		| { action: "main.keyRing.click" }
+		| { action: "main.keyRing.release" }
+		| { action: "main.cloneBranch" }
+		| { action: "main.regrowBranch" }
+		| { action: "main.stopPapagenoAutoSelect" }
+		| { action: "main.animate" }
+		| { action: "main.leaveAction" }
+		| { action: "main.autoTune" }
+		| { action: "main.autoLevel" }
+		| { action: "main.autoLevelBranches" }
+		| { action: "main.showPendingModals" }
+		| { action: "main.runIntroduction" }
+		| { action: "main.stayUpMenuHandler.close" }
+		| { action: "main.voiceModeMenu.press" }
+		| { action: "main.voiceModeMenu.release" }
+		| { action: "main.wheelTargetMenu.press" }
+		| { action: "main.wheelTargetMenu.release" }
+		| { action: "main.tempoSyncMenu.press" }
+		| { action: "main.tempoSyncMenu.release" }
+		| { action: "main.checkLegacyMode" }
+		| { action: "main.showHideLegacyModeInfo" }
+		| { action: "main.openPapageno" }
+		| { action: "main.displayMessage", params: ('' | 'runningTrial' | 'trialExpired' | 'legacyModeInfo') }
+		| { action: "main.loadRandomPatch.press" }
+		| { action: "main.loadRandomPatch.release" }
+		| { action: "main.flushDirCache" }
+		| { action: "main.changeProgramNumber", params: <int> }
+		| { action: "main.copyPatch" }
+		| { action: "main.register" }

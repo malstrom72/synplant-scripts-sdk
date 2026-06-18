@@ -1,0 +1,22 @@
+/**
+ * @requires {object} papagenoUI.stalks
+ * @param {number} stalkNumber
+ * @param {number} flaresExpand
+ * @param {color} flaresColor
+ */
+
+format IVG-2 requires:IMPD-1
+
+include "support.ivg"
+
+stalk=papagenoUI.stalks.$stalkNumber
+
+options curve-quality:0.5
+offset $flaresExpand,$flaresExpand
+pen $flaresColor joints:bevel caps:square
+flares={$(($stalk).flares)}
+for e in:$flares [
+    $split $e into:x,y,size
+    pen width:{3.001-$size*3}
+    ELLIPSE $x,$y,{4+$size*30}
+]

@@ -1,0 +1,39 @@
+/**
+ * @param {color} background
+ * @param {color} color
+ */
+ 
+format IVG-2 requires:IMPD-1
+
+bounds 0,0,64,{64*12}
+
+pen none // is none default?
+
+local mask=path svg:[M806 293h-75v-66c0-53-39-96-87-96H218c-48 0-87 43-87 96v408c0 53 39 96 87 96h75v66c0 53 39 96 87 96h426c48 0 87-43 87-96V389c0-53-39-96-87-96Z]
+
+for n from:0 to:11 [
+    context [
+        offset {64/2},{64/2}
+        scale {$size / 1024}
+
+        context [
+            mask inverted:yes [
+                pen #ff width:200
+                offset -512,-512
+                $mask
+            ]
+            scale 2.8
+            rotate { $n * 30 }
+            fill $color opacity:0.6
+            path svg:[m-499-59 133 89-25-53c256 49 526 49 782 0l-25 53 133-89-158-28 45 39C133 0-133 0-386-48l45-39z]
+        ]
+
+        offset -512,-512
+        fill $background opacity:1
+        $mask
+        fill $color
+        path svg:[M218 131c-48 0-87 43-87 96v408c0 53 39 96 87 96h52v-64h-52c-16 0-29-14-29-32V227c0-17 13-32 29-32h426c16 0 29 15 29 32v43h58v-43c0-53-39-96-87-96H218Zm162 162c-48 0-87 43-87 96v408c0 53 39 96 87 96h426c48 0 87-43 87-96V389c0-53-39-96-87-96H380Zm0 64h426c16 0 29 14 29 32v408c0 18-13 32-29 32H380c-16 0-29-14-29-32V389c0-18 13-32 29-32Z]
+    ]
+
+    offset 0,64
+]
