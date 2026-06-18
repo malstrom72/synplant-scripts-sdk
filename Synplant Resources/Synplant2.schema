@@ -1,4 +1,5 @@
-include: chimera.schema
+// SDK-adjusted include path (original: ../../../Chimera/chimera.schema)
+include: ../CushyLint/chimera.schema
 
 <cushyLayer> = "modal" | "script" | "dev"
 

@@ -896,8 +896,8 @@ myScript.myKnob = {
 
 `touch(beginEdit)` is called with `true` when the user starts editing (e.g. clicks the knob) and
 `false` when they finish. Beyond the per-script variables, Synplant exposes a large set of standard
-(Chimera) GUI variables and product variables — these are documented separately in the Cushy
-Variables reference.
+GUI variables and product variables — these are documented separately in the Cushy Variables
+reference.
 
 ### GUI Actions
 

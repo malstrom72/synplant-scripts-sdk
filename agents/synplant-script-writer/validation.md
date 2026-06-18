@@ -42,12 +42,14 @@ CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 
 Pass a directory path with a trailing slash so companion `.schema` files resolve.
 
-> **Tooling status in this SDK snapshot.** Two pieces the linter needs are not yet vendored here:
-> the `PikaCmd` binary the `CushyLint` runner invokes (only `MakaronCmd` is present, arm64), and the
-> Synplant product schema (`Synplant2.schema`) that package `.schema` headers include. Until those are
-> added, CushyLint will not run end-to-end in this checkout. In the meantime: check `.cushy` syntax by
-> hand against `cushy.schema` / `chimera.schema` and the example packages, and verify behavior with
-> the live bridge. Do not claim a CushyLint pass you could not actually run.
+The `CushyLint` runner builds its `PikaCmd` engine from the vendored source
+([`CushyLint/support/PikaCmd/`](../../CushyLint/support/PikaCmd)) on first run, so a C++ compiler is
+needed the first time on a platform without the prebuilt binary (an arm64-macOS binary is included).
+The product schema is [`Synplant Resources/Synplant2.schema`](../../Synplant%20Resources/Synplant2.schema)
+(which pulls in the standard host actions from [`CushyLint/chimera.schema`](../../CushyLint/chimera.schema));
+package `.schema` headers include it. The first run also compiles the schema, so it is slower than later runs. A CushyLint pass
+confirms `.cushy` syntax and schema conformance only — never runtime behavior; verify that with the
+live bridge, and do not claim a pass you did not actually run.
 
 ## Package schema header
 
