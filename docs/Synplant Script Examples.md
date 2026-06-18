@@ -24,7 +24,6 @@ specifically see the *Synplant Mods Guide*.
     -   [Tuning Fork](#tuning-fork)
     -   [Inverse Plant](#inverse-plant)
     -   [Tween Branches](#tween-branches)
--   [Shared helpers](#shared-helpers)
 
 ## Released examples
 
@@ -94,8 +93,8 @@ Shows: working with the genome through `GENES`, generating random vectors with t
 destination, and it runs a Papageno search on each file and saves the resulting patches, with a
 progress display and an error report.
 
-Shows: iterating files with `dir`, running the `papageno` engine repeatedly, long-running
-work with progress feedback (see [Shared helpers](#shared-helpers)), and structured result reporting.
+Shows: iterating files with `dir`, running the `papageno` engine repeatedly, long-running work with
+its own progress display, and structured result reporting.
 
 ### Tuning Fork
 
@@ -126,16 +125,3 @@ Synplant's own interface.
 
 Shows: branch math against `BRANCH_COUNT` and the patch `branches` array, applied as an undoable
 edit.
-
-## Shared helpers
-
-`examples/common/` holds small reusable pieces used by some of the GUI examples:
-
--   **ProgressBar** (`ProgressBar.cushy` / `ProgressBar.js`) — a drop-in progress dialog for
-    long-running work. A script supplies a `worker` callback that does a slice of work and returns
-    progress; the bar drives it and closes itself when done. Used by batch-style scripts such as
-    Genobatch.
--   **ScriptCommon.schema** — a shared CushyLint schema fragment that the example layouts include, so
-    their custom views and actions validate.
-
-These are helpers, not scripts you run directly.

@@ -22,8 +22,6 @@ Starting points by task:
 - **Extending Synplant's own interface** — [`examples/Mods/`](../../examples/Mods): Favorite Button,
   Detailed DNA Hints, Graft Onto Branch, Tween Branches. See the
   [Mods Guide](../../docs/Synplant%20Mods%20Guide.md).
-- **Shared GUI helpers** — [`examples/common/`](../../examples/common): a reusable progress bar and a
-  shared schema fragment.
 
 When adapting an example:
 
