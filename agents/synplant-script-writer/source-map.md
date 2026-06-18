@@ -7,6 +7,10 @@ Use these repository files as the grounding map for Synplant scripting work.
 - [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md) — the JavaScript API:
   engine limits, constants, functions, the patch/genome/branch object model, Genopatch, host helpers,
   and the Cushy interface.
+- [`docs/Synplant User Guide.md`](../../docs/Synplant%20User%20Guide.md) — Synplant product behavior,
+  terminology, patch and genome concepts, workflow, and user-facing feature descriptions.
+- [`docs/Synplant User Guide.pdf`](../../docs/Synplant%20User%20Guide.pdf) — the original user guide
+  source.
 - [`ts/COJSEngine.d.ts`](../../ts/COJSEngine.d.ts) — the authoritative, machine-readable declaration
   of the native API. When the prose and the declarations disagree, the declarations win.
 - [`docs/Synplant Cushy Variables Reference.md`](../../docs/Synplant%20Cushy%20Variables%20Reference.md) —

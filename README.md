@@ -33,6 +33,7 @@ Synplant internals — see [Script types](#script-types) below.
 | Document | What it covers |
 | --- | --- |
 | [Synplant JS Reference](docs/Synplant%20JS%20Reference.md) | The JavaScript API: engine, constants, functions, the patch/genome object model, Genopatch, the Cushy interface |
+| [Synplant User Guide](docs/Synplant%20User%20Guide.md) | Product behavior, terminology, user-facing feature descriptions, workflow, and interface concepts |
 | [Synplant Cushy Variables Reference](docs/Synplant%20Cushy%20Variables%20Reference.md) | The GUI variables and built-in actions a `.cushy` layout or script can read, write, and trigger |
 | [Synplant Mods Guide](docs/Synplant%20Mods%20Guide.md) | Writing Mods that patch Synplant's own interface at load time |
 | [Synplant Script Examples](docs/Synplant%20Script%20Examples.md) | A guided index of the scripts under `examples/` |
@@ -188,6 +189,10 @@ needed beyond what is in this repository; the CushyLint binaries are prebuilt.
 [Node.js](https://nodejs.org/) (version 18 or newer) is needed only for two optional tasks: running
 the JS Console MCP bridge server in [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp), and
 compiling TypeScript against `ts/COJSEngine.d.ts`.
+
+[Python 3](https://www.python.org/) is needed only for SDK maintenance: `tools/bootstrap-docling.sh`
+installs [Docling](https://github.com/DS4SD/docling) into a local virtual environment, and
+`tools/convert-user-guide.sh` uses it to convert `docs/Synplant User Guide.pdf` to Markdown.
 
 ## A note on compatibility
 
