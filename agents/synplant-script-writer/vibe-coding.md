@@ -63,9 +63,10 @@ Synplant runs scripts from the **Synplant Scripts** folder — open it from Synp
 - Mods go in a `Mods/` subfolder; every `.js` there runs at startup.
 
 For quicker iteration you can keep a project-local scripts folder and link Synplant's scripts folder
-to it. Linking changes Synplant's live scripts installation and may need elevated permissions, so ask
-the user before doing it, and first check whether the live folder is already a symlink to another
-workspace (on macOS, inspect it with `ls -ld` and `readlink`).
+to it — see **Development scripts folder** in the [repository README](../../README.md#development-scripts-folder)
+for the macOS/Windows commands. Linking changes Synplant's live scripts installation and may need
+elevated permissions, so ask the user before doing it, and first check whether the live folder is
+already a symlink to another workspace (on macOS, inspect it with `ls -ld` and `readlink`).
 
 ## The live bridge
 
