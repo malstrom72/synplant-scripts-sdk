@@ -15,6 +15,7 @@ interface ParamInfo<ParamType> {
 }
 declare const BRANCH_COUNT: Integer
 declare const PROGRAM_COUNT: Integer
+declare const GROWABLE_GENE_COUNT: Integer
 declare const PARAMS: ParamInfo<ParamId>[]
 declare const GENES: ParamInfo<GenomeParamId>[]
 declare const CONTROLS: ParamInfo<ControlParamId>[]

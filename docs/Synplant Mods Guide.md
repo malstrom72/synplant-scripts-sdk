@@ -257,7 +257,11 @@ Four Mods ship as examples and are good reading:
     (patches `Synplant2_main` and `Synplant2_legacyMode`). The fullest example.
 -   **Detailed DNA Hints** — patches `Synplant2_dna` to show richer, value-aware hints for the genes.
 -   **Graft Onto Branch** — adds a patch operation that grafts material onto a selected branch
-    (patches `Synplant2_main`).
+    (patches `Synplant2_main`). See the JS Reference sections on
+    [explicit branch morphs](Synplant%20JS%20Reference.md#explicit-branch-morphs) and
+    [grafting](Synplant%20JS%20Reference.md#grafting) for the patch-model details behind it. The Mod
+    vendors a copy of the reusable source snippet [`snippets/grafting.js`](../snippets/grafting.js)
+    so the example remains self-contained.
 -   **Tween Branches** — adds an operation that interpolates between branches (patches
     `Synplant2_main`).
 

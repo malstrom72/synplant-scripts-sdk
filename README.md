@@ -78,6 +78,9 @@ Synplant's interface and scripting are built from several Sonic Charge technolog
   live Synplant engine through the JS Console bridge (see [Live scripting bridge](#live-scripting-bridge)).
 - `examples/` — complete, working example scripts, indexed by the
   [Script Examples](docs/Synplant%20Script%20Examples.md) document.
+- `snippets/` — stable, copyable source snippets for script authors. Copy these into your script's
+  own IIFE/closure for distributable scripts or packages rather than depending on a shared
+  install-time library.
 - `CushyLint/` — the command-line `.cushy` syntax checker and `cushy.schema`, the canonical reference
   for the `.cushy` format.
 - `ts/` — the TypeScript declaration file (`COJSEngine.d.ts`) that is the authoritative form of the

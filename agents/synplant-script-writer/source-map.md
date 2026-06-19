@@ -45,6 +45,9 @@ Use these repository files as the grounding map for Synplant scripting work.
   the example scripts, what each does, and which techniques it shows.
 - [`examples/`](../../examples) — the example scripts themselves. Inspect package contents; treat
   `.spscript` items as directories, not flat files.
+- [`snippets/`](../../snippets) — stable, copyable source snippets for script authors. Use these as
+  reference implementations, then copy the needed code into the script's own IIFE/closure for
+  distributable scripts or packages.
 
 ## The live bridge
 

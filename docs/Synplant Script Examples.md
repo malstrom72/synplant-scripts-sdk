@@ -65,7 +65,8 @@ saving their patches.
 The four bundled Mods — **Favorite Button**, **Detailed DNA Hints**, **Graft Onto Branch**, and
 **Tween Branches** — live in `examples/Mods/`. They patch Synplant's own interface at load time. They
 are documented in full in the *Synplant Mods Guide*; start with **Favorite Button** as the most
-complete worked example.
+complete worked example. **Graft Onto Branch** vendors code from `snippets/grafting.js` so the
+example remains self-contained; use the snippet as source material when writing your own variants.
 
 ## Other examples
 

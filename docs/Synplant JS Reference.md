@@ -183,6 +183,7 @@ All are absolute paths ending with a directory separator. Example values on macO
 
     BRANCH_COUNT  = 12      // branches (and layers) per patch
     PROGRAM_COUNT = 16      // program slots
+    GROWABLE_GENE_COUNT = 43 // genes represented in per-branch explicit morph data
 
 ### Parameter Constants
 
@@ -797,6 +798,127 @@ whether the audio engine smooths parameter changes. Setting either to `null` bef
 patch is created (from loading, randomization, Genopatch, etc.). `legacyMode` puts a patch into
 Synplant 1 compatibility behavior. [`spawnPatch`](#spawnpatch) grows a new patch from a chosen
 branch, the scripted equivalent of planting a seed.
+
+### Gene categories
+
+The 48 genes (`GENES`) are not a flat list; they differ in how they behave across a patch's
+branches. `GROWABLE_GENE_COUNT` (43) marks the boundary in `GENES` order: the first 43 genes are
+growable, the last 5 are not. A branch's per-branch genome data (its explicit morph) only covers the
+growable genes, so `branch.explicit.length === GROWABLE_GENE_COUNT` when it is non-null.
+Non-growable genes are always taken from the seed genome and apply to the whole patch.
+
+-   **Growable (per-branch)** — most of the first `GROWABLE_GENE_COUNT` genes. Each branch can carry
+    its own morphed value. These mutate as a plant grows and can be shaped independently per branch:
+    envelopes, modulation, oscillators A/B, FM, filter, saturation, reverb mix/attack, and so on.
+-   **Exclusive** — `rvb_len`, `rvb_chor`, `rvb_damp`. These are growable, so each branch stores its
+    own value and they appear in explicit morph data, but their effect is mutually exclusive: they
+    parameterize Synplant's single shared reverb tail, so only one configuration is realized at a
+    time. The realized value comes from the current **lead branch**: in non-layered bulb modes this is
+    the latest triggered branch; in Layered bulb mode it is the first branch in the current rotated
+    branch order (the bottom-most branch in the circular GUI), regardless of whether that layer is
+    enabled.
+-   **Non-growable (global)** — the last 5 genes in `GENES` order: `rvb_size`, `adj_bass`,
+    `adj_treb`, `adj_pan`, `adj_clip`. They never grow, never appear in explicit morph data, and are
+    taken from the seed genome to apply to the whole patch.
+
+| Category | Genes | Per-branch value | In explicit morph | Realized effect |
+| --- | --- | --- | --- | --- |
+| Growable | first 43 genes, except the three below | yes | yes | per branch |
+| Exclusive | `rvb_len`, `rvb_chor`, `rvb_damp` | yes | yes | one at a time (lead branch) |
+| Non-growable | `rvb_size`, `adj_bass`, `adj_treb`, `adj_pan`, `adj_clip` | no | no | whole patch |
+
+The word "exclusive" describes the effect, not the data. The gene value is ordinary per-branch data;
+the downstream reverb resource is singular. Avoid treating these as shared gene values — only the
+realized reverb-tail effect is shared.
+
+Dump the boundary from the running plug-in:
+
+    for (var i = 0; i < GENES.length; ++i) {
+        print(i + '\t' + GENES[i].NAME + (i < GROWABLE_GENE_COUNT ? '\tgrowable' : '\tnon-growable'));
+    }
+
+### Explicit branch morphs
+
+By default a branch grows a random variation of the seed: `branch.explicit` is `null`, and the
+branch's sound is the seed genome plus pseudo-random mutation that scales with branch length (seeded
+by `seedId` and spread by `control.atonality`).
+
+When `branch.explicit` is non-null, the branch follows an **explicit morph** instead. `explicit` is a
+`number[]` of length `GROWABLE_GENE_COUNT`, indexed in `GENES` order: `explicit[i]` is the
+per-unit-length morph slope for gene `GENES[i].NAME`. Only growable genes participate.
+Non-growable genes (indices greater than or equal to `GROWABLE_GENE_COUNT`) are never morphed and
+are always taken from the seed.
+
+The realized value of a growable gene on an explicit branch at branch length `L` is:
+
+    value = seedGenome[gene] + explicit[i] * L
+
+At `L = 0` (fully contracted) the branch equals the seed; extending it moves each gene linearly
+along its slope. `L` is the branch's live length, so a morphed branch still responds to growth
+(mod-wheel `growth +` / `growth -`) by travelling farther along the same slope.
+
+To make a branch reproduce a target genome `T` exactly at length `L`:
+
+    explicit[i] = (T[GENES[i].NAME] - seedGenome[GENES[i].NAME]) / L
+
+Slopes that round to approximately zero may be stored as `0`. This identity — a branch that becomes
+a specific target sound at its tip — is the basis of grafting.
+
+### Grafting
+
+**Grafting** attaches the sound of one patch onto a branch of another, written as an explicit morph
+so the destination branch grows from its own seed into the source patch's sound at the tip. The
+reusable source implementation is
+[`snippets/grafting.js`](../snippets/grafting.js). The bundled Mod
+[`examples/Mods/Graft Onto Branch.js`](../examples/Mods/Graft%20Onto%20Branch.js) vendors that
+implementation so it remains self-contained. The snippet is meant to be copied into a private scope;
+it provides three local functions, `calcBranchPitch(...)`, `copyBranchPatch(...)`, and
+`graftPatchOntoBranch(...)`, while the remaining math and retuning helpers stay nested inside the
+grafting function. The Mod wraps the copy/graft functions as a two-step clipboard flow:
+
+-   **Copy Branch** — `spawnPatch(sourcePatch, selectedBranch)` grows the selected branch into a
+    standalone patch, capturing that branch's exact sound and pitch. The Mod then serializes it with
+    `marshal('patch', …)` and writes it to the clipboard with `writeClipboard(...)`.
+-   **Graft Onto Branch** — `unmarshal('patch', …)` reads the clipboard patch (guarded with
+    `isMarshaledFormat('patch', …)`), reconciles it into the destination's frame, then computes
+    `explicit[i] = (sourceGene - destSeedGene) / destBranchLength` for each growable gene and stores
+    the result on the destination's selected branch. The operation is wrapped in `saveUndo(...)` and
+    committed with `setElement('patch', …)`.
+
+The destination branch must have some length; as `L` approaches zero the slope becomes undefined.
+The Mod requires the branch to be extended a little.
+
+Grafting is not just a raw per-gene delta. Several genes are interpreted relative to other patch
+state, so the source genome is first reconciled into the destination's frame:
+
+-   **Pitch (`a_freq`)** — shifted by the source/destination pitch difference, accounting for
+    `pitchAdjust`, `control.tuning`, and the destination branch's mapped pitch (which depends on
+    `control.bulbMode` and `control.rotation`). The result is octave-wrapped to stay in range. If the
+    wrap forces the destination seed to move, the user is warned because existing branches can
+    change.
+-   **Envelope key-follow (`env_kf`)** — when active, envelope time is rescaled to compensate for the
+    pitch shift.
+-   **Filter key-follow (`flt_kf`)** — `flt_freq` is recomputed through the filter cutoff mapping so
+    the absolute cutoff is preserved after retuning.
+-   **Effect / reverb wet (`rvb_mix` vs `control.effect`)** — the source's effective wet amount is
+    converted into the destination's effect context.
+-   **Volume** — the grafted branch's `volume` is offset by the source/destination master-volume
+    difference in decibels.
+
+Only after these corrections are the per-gene slopes computed and written to `branch.explicit`; the
+grafted branch's `id` is copied from the source branch.
+
+Because Layered bulb mode triggers several branches at once, grafting different source patches onto
+separate branches — extending each to full length and enabling its layer — creates a stacked patch.
+The global/non-growable genes (`rvb_size`, `adj_*`) plus control parameters still come from the
+single seed genome, so they are dictated by whichever patch is the base. The exclusive reverb-tail
+genes (`rvb_len`, `rvb_chor`, `rvb_damp`) are realized from the lead branch, which in Layered mode is
+the bottom-most branch in the current rotated branch order, even if that layer is disabled. Keep
+`control.atonality` low if you do not want Layered mode's per-layer detuning.
+
+See also: [`spawnPatch`](#spawnpatch), [`marshal`](#marshal), [`unmarshal`](#unmarshal), and
+[Mods](#mods). For distributable scripts, copy the relevant snippet code into your script's own
+IIFE/closure instead of depending on `snippets/` being installed beside it.
 
 ## Host Script Helpers
 
