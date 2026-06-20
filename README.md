@@ -39,7 +39,7 @@ Synplant internals — see [Script types](#script-types) below.
 
 | Document | What it covers |
 | --- | --- |
-| [Synplant JS Reference](docs/Synplant%20JS%20Reference.md) | The JavaScript API: engine, constants, functions, the patch/genome object model, Genopatch, the Cushy interface |
+| [Synplant JS Reference](docs/Synplant%20JS%20Reference.md) / [HTML](docs/Synplant%20JS%20Reference.html) | The JavaScript API: engine, constants, functions, the patch/genome object model, Genopatch, the Cushy interface |
 | [Synplant User Guide](docs/Synplant%20User%20Guide.md) | Product behavior, terminology, user-facing feature descriptions, workflow, and interface concepts |
 | [Synplant Cushy Variables Reference](docs/Synplant%20Cushy%20Variables%20Reference.md) | The GUI variables and built-in actions a `.cushy` layout or script can read, write, and trigger |
 | [Synplant Mods Guide](docs/Synplant%20Mods%20Guide.md) | Writing Mods that patch Synplant's own interface at load time |
@@ -55,6 +55,20 @@ For agent-based script development, see
 [`agents/synplant-script-writer/vibe-coding.md`](agents/synplant-script-writer/vibe-coding.md). It
 includes a starter prompt with the SDK clone URL, a recommended separate project layout, the
 project-local `AGENTS.md`, MCP bridge setup, and the second-session smoke test.
+
+## Maintaining documentation
+
+Most reference documentation is edited as Markdown under `docs/`. Some files also have checked-in
+`.html` copies for offline viewing. After editing a Markdown file with a matching HTML file,
+regenerate the HTML with:
+
+```sh
+tools/regenerate-doc-html.sh "docs/Synplant JS Reference.md"
+```
+
+Run `tools/regenerate-doc-html.sh` with no arguments to regenerate every Markdown file in `docs/`
+that already has a checked-in HTML target. The script uses `pandoc -s --no-highlight` so regenerated
+output stays close to the existing plain code-block style.
 
 ## Technology overview
 
@@ -203,6 +217,9 @@ compiling TypeScript against `ts/COJSEngine.d.ts`.
 [Python 3](https://www.python.org/) is needed only for SDK maintenance: `tools/bootstrap-docling.sh`
 installs [Docling](https://github.com/DS4SD/docling) into a local virtual environment, and
 `tools/convert-user-guide.sh` uses it to convert `docs/Synplant User Guide.pdf` to Markdown.
+
+[Pandoc](https://pandoc.org/) is needed only for SDK maintenance: `tools/regenerate-doc-html.sh`
+uses it to regenerate the checked-in HTML copies of Markdown reference docs.
 
 ## A note on compatibility
 

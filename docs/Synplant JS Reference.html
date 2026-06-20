@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Synplant JS Reference</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Synplant JS Reference</h1>
+</header>
+<h1 id="synplant-javascript-api-reference-v1.0">Synplant JavaScript API
+Reference v1.0</h1>
+<p>This reference documents the JavaScript API exposed to scripts
+running inside Synplant 2. It was written and verified against
+<strong>Synplant 2.0.2 (build 309)</strong>. The canonical
+machine-readable form of this API is the TypeScript definition file <a
+href="../ts/COJSEngine.d.ts"><code>ts/COJSEngine.d.ts</code></a>; this
+document is the prose companion to it.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#engine">Engine</a></li>
+<li><a href="#runtime-boundaries">Runtime Boundaries</a></li>
+<li><a href="#typescript-definitions">TypeScript Definitions</a></li>
+<li><a href="#file-access-and-permissions">File Access and
+Permissions</a></li>
+<li><a href="#constants">Constants</a>
+<ul>
+<li><a href="#build-constants">Build Constants</a></li>
+<li><a href="#directory-constants">Directory Constants</a></li>
+<li><a href="#synplant-constants">Synplant Constants</a></li>
+<li><a href="#parameter-constants">Parameter Constants</a></li>
+</ul></li>
+<li><a href="#functions">Functions</a></li>
+<li><a href="#objects">Objects</a>
+<ul>
+<li><a href="#patch-object">Patch object</a></li>
+<li><a href="#branch-object">Branch object</a></li>
+<li><a href="#layer-object">Layer object</a></li>
+<li><a href="#midiconfig-object">MidiConfig object</a></li>
+<li><a href="#fileinfo-object">FileInfo object</a></li>
+<li><a href="#gcresults-object">GCResults object</a></li>
+</ul></li>
+<li><a href="#papageno-genopatch">Papageno (Genopatch)</a></li>
+<li><a href="#the-dna--genome-model">The DNA / Genome Model</a></li>
+<li><a href="#host-script-helpers">Host Script Helpers</a></li>
+<li><a href="#cushy-interface">Cushy Interface</a>
+<ul>
+<li><a href="#script-types">Script Types</a></li>
+<li><a href="#script-startup">Script Startup</a></li>
+<li><a href="#mods">Mods</a></li>
+<li><a href="#gui-variables">GUI Variables</a></li>
+<li><a href="#gui-actions">GUI Actions</a></li>
+<li><a href="#script-state-and-undo-sync">Script State and Undo
+Sync</a></li>
+<li><a href="#optional-hooks">Optional Hooks</a></li>
+<li><a href="#performance-notes">Performance Notes</a></li>
+</ul></li>
+</ul>
+<h2 id="engine">Engine</h2>
+<p>The JavaScript engine in Synplant is based on <a
+href="https://github.com/malstrom72/NuXJS">NuXJS</a>, a sandboxed
+JavaScript engine written by Magnus Lidström. It was designed to be
+small, fast, and easy to integrate into existing products. It is fully
+ECMAScript 3 compliant with partial ECMAScript 5 support
+(<code>JSON</code>, <code>[ ]</code> indexing of strings,
+<code>Object.assign</code>, <code>Array.isArray</code>, getters/setters,
+and a few other retrofits).</p>
+<p>Every instance of Synplant runs in its own JavaScript environment,
+but all scripts within one instance share the same global object. The
+engine only works while the Synplant window is open. The entire
+environment is created when the window opens and destroyed when it
+closes (all global variables are lost).</p>
+<p>While JavaScript code is executing, the user interface is frozen. If
+a single script execution runs for more than <strong>20
+seconds</strong>, it is suspended and the user is offered the choice of
+aborting or continuing. This limit applies to each individual JavaScript
+call, not to how long a script window may stay open. There is a memory
+cap of <strong>64 MB</strong> per instance (after garbage collection); a
+script that exceeds it is terminated. Memory grows faster than raw data
+size suggests: the smallest allocated value (e.g. a number) uses 16
+bytes before any array, object, or string overhead. Strings are stored
+as UTF-16.</p>
+<p>For measuring elapsed time inside a script, use <a
+href="#getmonotonictime"><code>getMonotonicTime()</code></a> rather than
+<code>Date.now()</code>. <code>getMonotonicTime()</code> returns
+milliseconds from a monotonic high-resolution timer that is immune to
+wall-clock adjustments; reserve <code>Date.now()</code> for actual
+calendar timestamps.</p>
+<p>Synplant scripts do not have a step-through debugger. The normal
+workflow is to use <code>print(...)</code> for trace output and <a
+href="#display"><code>display(...)</code></a> for blocking, user-visible
+checkpoints.</p>
+<h2 id="runtime-boundaries">Runtime Boundaries</h2>
+<p>Synplant scripts do not run in the real-time audio or MIDI processing
+callback. A script cannot receive raw incoming MIDI events or process
+the live audio stream sample-by-sample. They also cannot bounce/export
+rendered audio: <a
+href="#analyzepatchaudio"><code>analyzePatchAudio(...)</code></a>
+synthesizes internally for pitch/level analysis and returns
+measurements, not audio buffers or audio files. There is no network or
+internet API.</p>
+<p>What scripts <em>can</em> do is considerable:</p>
+<ul>
+<li><strong>Read and write the patch.</strong> The full patch — genome,
+control parameters, branches (the DNA tree), layers — is available
+through <a href="#getelement"><code>getElement('patch')</code></a> / <a
+href="#setelement"><code>setElement('patch', …)</code></a>.</li>
+<li><strong>Analyze audio offline.</strong> <a
+href="#analyzepatchaudio"><code>analyzePatchAudio(...)</code></a>
+synthesizes a patch internally and returns measured pitch and/or volume,
+without touching the live audio engine.</li>
+<li><strong>Drive the AI sound matcher.</strong> The entire Papageno /
+Genopatch engine is scriptable through the <a
+href="#papageno-genopatch"><code>papageno</code></a> object — load a
+reference sound, run an evolutionary search, read back solutions.</li>
+<li><strong>Send MIDI.</strong> <a
+href="#sendmidi"><code>sendMidi(...)</code></a> emits a MIDI
+message.</li>
+<li><strong>Preview patches.</strong> <a
+href="#setpreview"><code>setPreview(...)</code></a> selects a patch for
+non-committal auditioning without loading it.</li>
+</ul>
+<p>File I/O is sandboxed; see <a
+href="#file-access-and-permissions">File Access and Permissions</a>.</p>
+<h2 id="typescript-definitions">TypeScript Definitions</h2>
+<p>The authoritative API is the TypeScript declaration file <a
+href="../ts/COJSEngine.d.ts"><code>ts/COJSEngine.d.ts</code></a>.
+Synplant’s own GUI is written in TypeScript compiled to the ES3 subset
+the engine runs, and the same definitions are what script authors should
+target. Two helper aliases appear throughout:</p>
+<pre><code>declare type Byte = number     // an integer 0..255 (used for binary file data)
+declare type Integer = number  // a value that is conceptually an integer</code></pre>
+<p>There are effectively <strong>two layers</strong> of API:</p>
+<ol type="1">
+<li><strong>The native engine API</strong> — everything declared in
+<code>COJSEngine.d.ts</code> and listed under <a
+href="#functions">Functions</a>, <a href="#objects">Objects</a>, and <a
+href="#constants">Constants</a> below. These are guaranteed to exist
+whenever a script runs.</li>
+<li><strong>Host script helpers</strong> — additional functions
+(<code>clamp</code>, <code>lerp</code>, <code>select</code>,
+<code>displayCushy</code>, <code>getCachedPatch</code>, …) defined by
+Synplant’s running main script in the shared global space. They are
+convenient and widely used by scripts and Mods, but they are not part of
+the engine and are not in <code>COJSEngine.d.ts</code>. See <a
+href="#host-script-helpers">Host Script Helpers</a>.</li>
+</ol>
+<h2 id="file-access-and-permissions">File Access and Permissions</h2>
+<p>Synplant sandboxes script file I/O. At startup the engine grants a
+fixed set of <strong>trusted paths</strong>; anything outside them
+triggers a one-time permission prompt.</p>
+<ul>
+<li><strong>Trusted read-only</strong> (listing and loading allowed
+without prompt): the script resources path (<code>DIRS.SCRIPTS</code>
+and other external resource folders), the factory patches
+(<code>DIRS.PATCHES</code>), the Genopatch support folder
+(<code>DIRS.PAPAGENO</code>), and the skins folder
+(<code>DIRS.SKINS</code>).</li>
+<li><strong>Trusted read-write</strong> (full file access without
+prompt): the Sonic Charge user-documents folder
+<strong><code>DIRS.DOCUMENTS</code></strong>. This is the only location
+a script may freely create, write, move, and erase files in. Persist
+your script’s data here.</li>
+</ul>
+<p>When a script attempts an operation outside the granted set — saving
+to an arbitrary folder the user picked with <a
+href="#browse"><code>browse</code></a>, creating a directory elsewhere,
+erasing a file — the engine shows a modal <strong>“Grant permission to …
+: …”</strong> dialog. If the user approves, the grant is remembered for
+the rest of the session; if they decline, the operation throws
+(<code>"user canceled"</code>). There is also an automatic grant for the
+directory of the currently open patch.</p>
+<p>Practical guidance: read and write under <code>DIRS.DOCUMENTS</code>
+for friction-free persistence, and expect (and handle) a permission
+prompt or thrown error when touching user-chosen locations.</p>
+<h2 id="constants">Constants</h2>
+<h3 id="build-constants">Build Constants</h3>
+<pre><code>PLATFORM = {
+    CPU:        string          // &#39;arm64&#39; | &#39;x86-64&#39; | &#39;x86&#39; | &#39;ppc&#39;
+    OS:         string          // &#39;mac&#39; | &#39;windows&#39;
+}
+
+BUILD = {
+    COMPILER:   string
+    COPYRIGHT:  string          // e.g. &quot;2008-2024&quot;
+    DATE:       string          // e.g. &quot;Aug 30 2024&quot;
+    FORMAT:     string          // e.g. &quot;Standalone&quot; | &quot;VST&quot; | &quot;AU&quot; ...
+    LIBS:       string
+    NUMBER:     number          // build number, e.g. 309
+    TARGET:     string          // &#39;Debug&#39; | &#39;Beta&#39; | &#39;Release&#39;
+    TIME:       string
+    VERSION:    string          // e.g. &quot;2.0.2&quot;
+}</code></pre>
+<blockquote>
+<p>Note: <code>PLATFORM</code>, <code>BUILD</code>, and
+<code>DIRS</code> are not injected by the bare engine — they are
+populated by Synplant’s main script from Cushy variables
+(<code>getCushyVariable('BUILD.NUMBER')</code>, etc.). They are present
+whenever the standard GUI is loaded, which is always the case for a
+running script, but they belong to the <a
+href="#host-script-helpers">host helper layer</a>.</p>
+</blockquote>
+<h3 id="directory-constants">Directory Constants</h3>
+<pre><code>DIRS = {
+    BINARY:         string      // the folder the plug-in / application resides in
+    PATCHES:        string      // factory patches (read-only trusted)
+    DOCUMENTS:      string      // Sonic Charge user documents (read-write trusted)
+    DOCUMENTATION:  string
+    SUPPORT:        string
+    SCRIPTS:        string      // the &quot;Synplant Scripts&quot; folder (read-only trusted)
+    SKINS:          string      // the &quot;Synplant Skins&quot; folder (read-only trusted)
+    PAPAGENO:       string      // Genopatch support folder (read-only trusted)
+}</code></pre>
+<p>All are absolute paths ending with a directory separator. Example
+values on macOS (Synplant 2.0.2):</p>
+<pre><code>BINARY        /Applications/Sonic Charge/Synplant.app/Contents/Resources/
+PATCHES       /Library/Audio/Presets/Sonic Charge/
+DOCUMENTS     /Users/&lt;user&gt;/Documents/Sonic Charge/
+DOCUMENTATION /Library/Documentation/Sonic Charge/
+SUPPORT       /Library/Application Support/Sonic Charge/
+SCRIPTS       /Library/Application Support/Sonic Charge/Synplant Scripts/
+SKINS         /Library/Application Support/Sonic Charge/Synplant Skins/
+PAPAGENO      /Library/Application Support/Sonic Charge/Synplant Genopatch/</code></pre>
+<p><code>DIR_SLASH</code> holds the platform directory separator
+(<code>'/'</code> on macOS, <code>'\'</code> on Windows).</p>
+<h3 id="synplant-constants">Synplant Constants</h3>
+<pre><code>BRANCH_COUNT  = 12      // branches (and layers) per patch
+PROGRAM_COUNT = 16      // program slots
+GROWABLE_GENE_COUNT = 43 // genes represented in per-branch explicit morph data</code></pre>
+<h3 id="parameter-constants">Parameter Constants</h3>
+<p>Parameters are normally accessed by symbolic name
+(e.g. <code>getParam('flt_freq')</code>), though the index form is also
+accepted. Three arrays expose parameter metadata, all holding
+<code>ParamInfo</code> objects:</p>
+<pre><code>interface ParamInfo {
+    NAME:     string                    // symbolic name, e.g. &#39;flt_freq&#39;
+    STEPS:    number | null             // step count if stepped, else null
+    CHOICES:  string[] | null           // choice labels for stepped params, else null
+    DEFAULT:  number                    // default value, 0..1
+}
+
+PARAMS    // all 98 parameters, in index order
+CONTROLS  // the 14 control (performance) parameters  == PARAMS[0..13]
+GENES     // the 48 genome parameters                 == PARAMS[50..97]
+
+PARAM_INDEXES = { &lt;name&gt;: &lt;index&gt;, ... }   // name → index lookup</code></pre>
+<p>All parameter values are normalized <strong>0 to 1</strong>. For a
+<em>stepped</em> parameter (<code>STEPS</code> is non-null), convert
+between the normalized value and the integer step like this:</p>
+<pre><code>paramValue     = steppedInteger / (STEPS - 1)
+steppedInteger = Math.min(Math.floor(paramValue * STEPS), STEPS - 1)</code></pre>
+<p>For stepped parameters, <code>CHOICES[steppedInteger]</code> is the
+label, and <a href="#paramtext"><code>paramText</code></a> / <a
+href="#paramvalue"><code>paramValue</code></a> convert to and from the
+human-readable text.</p>
+<p><strong><code>PARAMS</code> layout</strong> (index : name, step count
+in parentheses):</p>
+<pre><code>0..13   Control parameters
+        0 modWheel   1 rotation   2 tuning      3 atonality   4 effect      5 release
+        6 volume     7 wheelTarget(10)          8 wheelScale  9 velSens    10 glideTime
+        11 voiceMode(3)            12 bulbMode(4)              13 tempoSync(8)
+
+14..25  branch1 .. branch12               // per-branch length (0..1)
+26..37  branchVolume1 .. branchVolume12   // per-branch volume (0..1)
+38..49  enableLayer1 .. enableLayer12 (2) // per-layer on/off (stepped, 2)
+
+50..97  Genome parameters (48 genes), in order:
+        env_time env_loop env_tilt env_kf
+        vol_atk vol_dcy vol_sus vol_fade
+        mod_atk mod_dcy mod_sh mod_vel
+        lfo_rate lfo_amt lfo_bal lfo_dly
+        a_form a_noise a_mod a_color a_freq
+        fm_mod fm_amt mix_mod osc_mix
+        b_form b_noise b_mod sub_am b_freq b_sh
+        flt_type flt_q flt_mod flt_sep flt_freq flt_kf
+        saturate
+        rvb_mix rvb_atk rvb_len rvb_damp rvb_chor rvb_size
+        adj_bass adj_treb adj_pan adj_clip</code></pre>
+<p><strong>Stepped control parameters</strong> and their choices:</p>
+<pre><code>wheelTarget (10)  growth +, growth -, filter +, filter -, env time +, env time -,
+                  fm amount, lfo amount, effect, volume
+voiceMode (3)     poly, mono, legato
+bulbMode (4)      standard, velocity, ranges, layered
+tempoSync (8)     off, 1/2, 1/4 D, 1/2 T, 1/4, 1/8 D, 1/4 T, 1/8</code></pre>
+<p><code>enableLayer1..12</code> are stepped (2): 0 = off, 1 = on. All
+other control and genome parameters are continuous. To dump the
+authoritative parameter list from the running plug-in:</p>
+<pre class="javascript"><code>var sb = new StringBuilder();
+for (var i = 0; i &lt; PARAMS.length; ++i) {
+    var p = PARAMS[i];
+    sb.append(i + &#39;\t&#39; + p.NAME + &#39;\t&#39; + (p.STEPS != null ? p.STEPS + &#39; steps&#39; : &#39;continuous&#39;) + &#39;\n&#39;);
+}
+save(DIRS.DOCUMENTS + &#39;synplant_params.txt&#39;, sb.build());</code></pre>
+<h2 id="functions">Functions</h2>
+<p>Signatures follow the <a
+href="../ts/COJSEngine.d.ts"><code>COJSEngine.d.ts</code></a> types.
+Optional arguments are shown in square brackets, with their default
+where one applies.</p>
+<h3 id="analyzepatchaudio">analyzePatchAudio</h3>
+<pre><code>function analyzePatchAudio(patch: Patch, midiNote: Integer, midiVelocity: Integer,
+        maxHeld: number, maxSeconds: number, analyzePitch: boolean, analyzeVolume: boolean,
+        [sampleRate: number = 44100], [randomSeed: Integer = 1], [initLFOPhase: number = 0.25])
+        : { pitch?: number, volume?: number }</code></pre>
+<p>Synthesizes <code>patch</code> offline for the given MIDI note and
+velocity and returns the measured pitch and/or volume. The returned
+<code>pitch</code> is a floating-point MIDI note (60 = C3);
+<code>volume</code> is in decibels (0 dB = nominal level).
+<code>maxHeld</code> and <code>maxSeconds</code> bound the held time and
+total render in seconds. Does not affect live playback.</p>
+<p>See also: <a href="#setpreview">setPreview</a>.</p>
+<h3 id="ask">ask</h3>
+<pre><code>function ask(caption: string, [defaultReply: string]) : string | null</code></pre>
+<p>Prompts the user for a single line of text through a simple edit
+dialog. Returns the entered string, or <code>null</code> if the user
+cancels.</p>
+<p>See also: <a href="#display">display</a>.</p>
+<h3 id="browse">browse</h3>
+<pre><code>function browse([browserType: string = &quot;open&quot;], [fileTypes: string|string[]|null = null],
+        [initialDir: string|null = null], [defaultFileName: string]) : string | null</code></pre>
+<p>Opens a file browser and returns the chosen path, or
+<code>null</code> if cancelled. <code>browserType</code> is
+<code>"open"</code>, <code>"save"</code>, or <code>"folder"</code>.
+<code>fileTypes</code> is an extension or array of extensions (without
+the leading dot); pass <code>null</code> to accept all files. Recognized
+types include <code>"synplant"</code>, <code>"synp"</code>,
+<code>"scmc"</code>, <code>"mid"</code>, <code>"wav"</code>,
+<code>"wave"</code>,
+<code>"aiff"</code>/<code>"aifc"</code>/<code>"aif"</code>/<code>"afc"</code>,
+<code>"txt"</code>, and <code>"js"</code>. If <code>fileTypes</code>
+contains audio extensions a sample preview is enabled; if it is only
+<code>"synplant"</code>/<code>"synp"</code> the patch browser is used.
+That browser includes Factory Patches / User Patches navigation
+shortcuts and lets the user audition the selected patch by playing MIDI
+before loading it. <code>defaultFileName</code> (save browser only)
+should omit the extension. If <code>initialDir</code> is
+<code>null</code>, a directory is chosen automatically from the first
+extension.</p>
+<p>See also: <a href="#dir">dir</a>, <a href="#load">load</a>, <a
+href="#save">save</a>.</p>
+<h3 id="composenumbstrict">composeNumbstrict</h3>
+<pre><code>function composeNumbstrict(v: string|number|boolean|object, [multiLine: boolean = false],
+        [brackets: boolean = true]) : string</code></pre>
+<p>Serializes a string, number, boolean, or object to Numbstrict text
+(Synplant’s JSON-like object notation). <code>multiLine</code>
+pretty-prints with newlines and indentation; <code>brackets</code>
+controls whether the outermost curly brackets are emitted.</p>
+<p>See also: <a href="#parsenumbstrict">parseNumbstrict</a>.</p>
+<h3 id="copyfile">copyFile</h3>
+<pre><code>function copyFile(fromPath: string, toPath: string) : void</code></pre>
+<p>Copies a file. Subject to file-access permissions (see <a
+href="#file-access-and-permissions">File Access and
+Permissions</a>).</p>
+<h3 id="createelement">createElement</h3>
+<pre><code>function createElement(type: &quot;patch&quot;) : Patch
+function createElement(type: &quot;midiConfig&quot;) : MidiConfig</code></pre>
+<p>Returns a new default element of the given type (an initialized
+patch, or a default MIDI config), without altering the current plug-in
+state.</p>
+<p>See also: <a href="#getelement">getElement</a>, <a
+href="#setelement">setElement</a>, <a href="#objects">Objects</a>.</p>
+<h3 id="deriveopenpatchdir">deriveOpenPatchDir</h3>
+<pre><code>function deriveOpenPatchDir() : string | null</code></pre>
+<p>Returns the directory of the currently open patch, or
+<code>null</code> if none. This directory carries an automatic load/list
+permission grant.</p>
+<h3 id="dir">dir</h3>
+<pre><code>function dir(path: string, [filter: string|string[]]) : FileInfo[]</code></pre>
+<p>Lists the contents of a directory, returning an array of <a
+href="#fileinfo-object"><code>FileInfo</code></a> objects.
+<code>filter</code> is an extension or array of extensions (no leading
+dot); the special filter <code>"/"</code> matches directories. Requires
+list permission for <code>path</code>.</p>
+<p>See also: <a href="#fileinfo">fileInfo</a>, <a
+href="#fileinfo-object">FileInfo object</a>.</p>
+<h3 id="display">display</h3>
+<pre><code>function display(message: string, [alertType: string = &quot;plain&quot;], [buttons: string = &quot;ok&quot;],
+        [defaultButton: string]) : string</code></pre>
+<p>Shows a modal alert and blocks until it is dismissed, returning the
+name of the button pressed. <code>alertType</code> is
+<code>"plain"</code>, <code>"question"</code>, <code>"warning"</code>,
+<code>"info"</code>, or <code>"error"</code>. <code>buttons</code> is
+<code>"ok"</code>, <code>"ok cancel"</code>,
+<code>"retry cancel"</code>, <code>"yes no"</code>,
+<code>"yes no cancel"</code>, or <code>"abort retry ignore"</code>. The
+return value is one of <code>"ok"</code>, <code>"cancel"</code>,
+<code>"retry"</code>, <code>"yes"</code>, <code>"no"</code>,
+<code>"abort"</code>, <code>"ignore"</code>.</p>
+<p>See also: <a href="#ask">ask</a>, <a href="#print">print</a>.</p>
+<h3 id="editcushyvariable">editCushyVariable</h3>
+<pre><code>function editCushyVariable(guiVariable: string, beginEdit: boolean) : void</code></pre>
+<p>Brackets a GUI-variable edit: call with <code>true</code> before
+changing a variable interactively and <code>false</code> after, so the
+host treats the change as a single user edit (for undo coalescing and
+parameter smoothing).</p>
+<p>See also: <a href="#setcushyvariable">setCushyVariable</a>, <a
+href="#editparam">editParam</a>.</p>
+<h3 id="editparam">editParam</h3>
+<pre><code>function editParam(param: string|number, [beginEdit: boolean]) : void</code></pre>
+<p>Marks the beginning and end of an interactive edit of a parameter (by
+name or index). Notifies the host that the user is manipulating the
+parameter, e.g. to bracket automation recording.</p>
+<p>See also: <a href="#setparam">setParam</a>, <a
+href="#getparam">getParam</a>.</p>
+<h3 id="erasefile">eraseFile</h3>
+<pre><code>function eraseFile(path: string) : void</code></pre>
+<p>Deletes a file. Subject to file-access permissions.</p>
+<h3 id="fileinfo">fileInfo</h3>
+<pre><code>function fileInfo(path: string) : FileInfo | null</code></pre>
+<p>Returns a <a href="#fileinfo-object"><code>FileInfo</code></a> for
+<code>path</code>, or <code>null</code> if it does not exist. Useful for
+existence checks before <a href="#makedir"><code>makeDir</code></a> / <a
+href="#save"><code>save</code></a>.</p>
+<h3 id="fullpath">fullPath</h3>
+<pre><code>function fullPath([base: string], [relative: string]) : string</code></pre>
+<p>Resolves <code>relative</code> against <code>base</code> (or the
+default scripts directory) into an absolute path.</p>
+<h3 id="gc">gc</h3>
+<pre><code>function gc() : GCResults</code></pre>
+<p>Runs garbage collection and returns before/after heap statistics (see
+<a href="#gcresults-object"><code>GCResults</code></a>).</p>
+<h3 id="getcushyvariable">getCushyVariable</h3>
+<pre><code>function getCushyVariable(guiVariable: string, [utf8: boolean]) : string</code></pre>
+<p>Reads the current value of a Cushy GUI variable as a string. See <a
+href="#gui-variables">GUI Variables</a> and the separate Cushy Variables
+reference for the available variables.</p>
+<p>See also: <a href="#setcushyvariable">setCushyVariable</a>, <a
+href="#performcushyaction">performCushyAction</a>.</p>
+<h3 id="getelement">getElement</h3>
+<pre><code>function getElement(type: &quot;patch&quot;) : Patch
+function getElement(type: &quot;midiConfig&quot;) : MidiConfig</code></pre>
+<p>Returns the current patch or MIDI configuration as a plain JavaScript
+object.</p>
+<p>See also: <a href="#setelement">setElement</a>, <a
+href="#getelementid">getElementId</a>, <a
+href="#objects">Objects</a>.</p>
+<h3 id="getelementid">getElementId</h3>
+<pre><code>function getElementId(type: &quot;patch&quot;) : Integer</code></pre>
+<p>Returns the current patch’s identity integer, which changes on any
+modification. Only <code>"patch"</code> has an element id. Use it to
+cheaply detect whether the patch changed since you last looked.</p>
+<p>See also: <a href="#getelement">getElement</a>.</p>
+<h3 id="getmonotonictime">getMonotonicTime</h3>
+<pre><code>function getMonotonicTime() : number</code></pre>
+<p>Returns milliseconds from a monotonic high-resolution timer. Use this
+for elapsed-time measurement (it is immune to wall-clock changes); use
+<code>Date.now()</code> only for calendar timestamps.</p>
+<h3 id="getparam">getParam</h3>
+<pre><code>function getParam(param: string|number) : number</code></pre>
+<p>Returns the current normalized (0..1) value of a parameter, by name
+or index.</p>
+<p>See also: <a href="#setparam">setParam</a>, <a
+href="#paramtext">paramText</a>.</p>
+<h3 id="ismarshaledformat">isMarshaledFormat</h3>
+<pre><code>function isMarshaledFormat(type: &quot;patch&quot;|&quot;midiConfig&quot;, source: string) : boolean</code></pre>
+<p>Returns <code>true</code> if <code>source</code> is the marshaled
+(file) text form of the given element type. Marshaled patches begin with
+<code>SynplantPatch:</code> and MIDI configs with
+<code>SynplantMIDIConfig:</code>.</p>
+<p>See also: <a href="#marshal">marshal</a>, <a
+href="#unmarshal">unmarshal</a>.</p>
+<h3 id="load">load</h3>
+<pre><code>function load(filePath: string, encoding: &quot;binary&quot;) : Byte[]
+function load(filePath: string, [encoding: string = &quot;utf-8&quot;]) : string</code></pre>
+<p>Loads a file. With <code>"binary"</code>, returns an array of byte
+values; otherwise returns text decoded as <code>"utf-8"</code> (default)
+or <code>"iso-8859-1"</code>. Requires load permission for the path.</p>
+<p>See also: <a href="#save">save</a>, <a href="#dir">dir</a>, <a
+href="#browse">browse</a>.</p>
+<h3 id="makedir">makeDir</h3>
+<pre><code>function makeDir(path: string) : void</code></pre>
+<p>Creates a directory. Subject to file-access permissions (allowed
+without prompt under <code>DIRS.DOCUMENTS</code>).</p>
+<h3 id="marshal">marshal</h3>
+<pre><code>function marshal(type: &quot;patch&quot;, source: Patch, [forFile: boolean]) : string
+function marshal(type: &quot;midiConfig&quot;, source: MidiConfig, [forFile: boolean]) : string</code></pre>
+<p>Serializes a patch or MIDI config to its Numbstrict text form. Pass
+<code>forFile = true</code> for the on-disk representation (e.g. before
+<a href="#save"><code>save</code></a>).</p>
+<p>See also: <a href="#unmarshal">unmarshal</a>, <a
+href="#ismarshaledformat">isMarshaledFormat</a>.</p>
+<h3 id="movefile">moveFile</h3>
+<pre><code>function moveFile(fromPath: string, toPath: string) : void</code></pre>
+<p>Moves or renames a file. Subject to file-access permissions.</p>
+<h3 id="paramtext">paramText</h3>
+<pre><code>function paramText(param: string|number, value: number, [highPrecision: boolean]) : string</code></pre>
+<p>Formats a normalized parameter <code>value</code> as the
+human-readable text Synplant would display, e.g.
+<code>paramText('voiceMode', 0.5)</code> returns <code>"mono"</code> and
+<code>paramText('volume', 0.38)</code> returns
+<code>"-7.93 dB"</code>.</p>
+<p>See also: <a href="#paramvalue">paramValue</a>, <a
+href="#getparam">getParam</a>.</p>
+<h3 id="paramvalue">paramValue</h3>
+<pre><code>function paramValue(param: string|number, value: string) : number</code></pre>
+<p>Inverse of <a href="#paramtext"><code>paramText</code></a>: parses
+display text into a normalized value, e.g.
+<code>paramValue('voiceMode', 'mono')</code> returns
+<code>0.5</code>.</p>
+<h3 id="parsenumbstrict">parseNumbstrict</h3>
+<pre><code>function parseNumbstrict(s: string) : string|number|boolean|object</code></pre>
+<p>Parses Numbstrict text into a JavaScript value.</p>
+<p>See also: <a href="#composenumbstrict">composeNumbstrict</a>.</p>
+<h3 id="performcushyaction">performCushyAction</h3>
+<pre><code>function performCushyAction(action: string, [params: string]) : boolean</code></pre>
+<p>Invokes a built-in Cushy/host action (e.g. <code>"reload"</code>,
+<code>"register"</code>, <code>"launch"</code>) with an optional
+Numbstrict parameter string. Returns whether the action succeeded.</p>
+<p>See also: <a href="#getcushyvariable">getCushyVariable</a>, <a
+href="#setcushyvariable">setCushyVariable</a>.</p>
+<h3 id="print">print</h3>
+<pre><code>function print(v: any) : void</code></pre>
+<p>Writes a line of trace output. Accepts any value, coerced to a
+string.</p>
+<p>See also: <a href="#display">display</a>.</p>
+<h3 id="readclipboard">readClipboard</h3>
+<pre><code>function readClipboard() : string | null</code></pre>
+<p>Returns the clipboard’s text contents, or <code>null</code> if empty
+or unavailable.</p>
+<p>See also: <a href="#writeclipboard">writeClipboard</a>.</p>
+<h3 id="run">run</h3>
+<pre><code>function run(filePath: string) : void</code></pre>
+<p>Loads and executes a JavaScript file in the shared global
+environment. Used to launch scripts and to load supporting
+<code>.js</code> files.</p>
+<h3 id="save">save</h3>
+<pre><code>function save(filePath: string, data: string|Byte[], [encoding: string = &quot;utf-8&quot;]) : void</code></pre>
+<p>Writes <code>data</code> (a string, or a <code>Byte[]</code> for
+binary) to a file, encoded as <code>"utf-8"</code> (default),
+<code>"iso-8859-1"</code>, or <code>"binary"</code>. Subject to
+file-access permissions.</p>
+<p>See also: <a href="#load">load</a>.</p>
+<h3 id="saveundo">saveUndo</h3>
+<pre><code>function saveUndo(description: string, [collapse: boolean]) : void</code></pre>
+<p>Records an undo checkpoint with the given description before a
+change. The snapshot covers Synplant document state such as the current
+patch, parameters, and MIDI configuration. <code>description</code>
+should be a user-readable string; call <a
+href="#translate"><code>translate</code></a> on static label text when
+the label may eventually be localized. <code>collapse</code> merges this
+step with the previous one of the same description.</p>
+<p>Call <code>saveUndo</code> immediately before applying a script
+change. The snapshot captures the state to return to, so the pattern is
+snapshot-then-mutate; calling it after the change can record the
+already-modified state and make the undo step ineffective.</p>
+<p>The undo snapshot does not include a running script’s own JavaScript
+state, such as global variables, GUI-local selection state, drag state,
+caches, generated display buffers, or source data used to generate a
+patch. Undo or redo can therefore rewind the Synplant document while a
+running GUI script’s JavaScript state is left unchanged. GUI scripts
+that keep their own state should reconcile it against the document after
+undo, redo, and other external patch changes.</p>
+<h4 id="script-state-undo-and-reconciliation">Script state, undo and
+reconciliation</h4>
+<p>For simple state derived from the patch, reconciliation can be as
+small as watching <a
+href="#getelementid"><code>getElementId('patch')</code></a> or the Cushy
+variable <code>patch.identity</code> and rebuilding the cache when the
+id changes.</p>
+<p>Generator scripts often need a stronger pattern. A generator may
+produce a patch from inputs that cannot be read back from the patch
+alone, such as source files, analysis data, random seeds, user choices,
+or intermediate search state. The generated patch is not enough to
+recover those inputs after undo/redo unless the script keeps its own
+history.</p>
+<p>A common reconciliation pattern is:</p>
+<ol type="1">
+<li>Call <code>saveUndo(description)</code> immediately before changing
+the document.</li>
+<li>Write the generated patch with <a
+href="#setelement"><code>setElement('patch', patch)</code></a> or change
+parameters with <a href="#setparam"><code>setParam</code></a> / <a
+href="#editparam"><code>editParam</code></a>.</li>
+<li>Compute a content hash for the generated patch or patch region and
+memoize the generator inputs under that hash.</li>
+<li>Mark the write as your own by storing the new patch id immediately
+after the write: <code>lastPatchId = setElement('patch', patch)</code>
+when replacing the patch, or
+<code>lastPatchId = getElementId('patch')</code> after parameter edits.
+This prevents the script’s next sync check from treating its own output
+as an external edit.</li>
+<li>On a sync check, watch the patch id. When it changes, hash the
+current patch or relevant patch region and look it up in the memoized
+history.</li>
+<li>If the hash is found, restore the matching generator inputs so the
+GUI matches the patch. If the hash is missing, treat the script as out
+of sync with the patch and disable or visually mark controls that would
+otherwise imply the GUI state still describes the patch.</li>
+</ol>
+<p>Keep memoized history bounded when a GUI script can generate many
+distinct states during a session. For scripts where the generated patch
+should remain legible outside the script, also consider embedding a
+small human-readable tag in the patch name or another appropriate patch
+field; do not use large <code>project.*</code> or
+<code>preferences.*</code> Cushy values as undo-history substitutes.</p>
+<p>For a continuous gesture such as dragging a custom control, create
+one undo checkpoint at the first document-changing update, not on every
+mouse move. If <code>collapse</code> is <code>true</code> and
+<code>description</code> is identical to the previous undo step,
+Synplant merges it with that step to avoid spamming the undo
+history.</p>
+<p>GUI-less scripts are one-shot scripts without a running Cushy
+interface. They normally do not need to preserve JavaScript GUI state
+across undo/redo, but they should still call <code>saveUndo</code>
+before user-visible document changes. GUI scripts stay loaded and can
+perform multiple independent edits over time, so they should create
+their own undo snapshots before each document change.</p>
+<p>The host manages redo automatically; there is no
+<code>saveRedo</code>.</p>
+<p>See also: <a href="#getelementid">getElementId</a>, <a
+href="#cushy-interface">Cushy Interface</a>, <a
+href="#translate">translate</a></p>
+<h3 id="sendmidi">sendMidi</h3>
+<pre><code>function sendMidi(status: Integer, [data1: Integer], [data2: Integer]) : void</code></pre>
+<p>Sends a MIDI message with the given status and data bytes.</p>
+<h3 id="setcushyvariable">setCushyVariable</h3>
+<pre><code>function setCushyVariable(guiVariable: string, value: string, [underEdit: boolean],
+        [utf8: boolean]) : boolean</code></pre>
+<p>Sets a Cushy GUI variable. <code>underEdit</code> marks the change as
+part of an in-progress interactive edit.</p>
+<p>See also: <a href="#getcushyvariable">getCushyVariable</a>, <a
+href="#editcushyvariable">editCushyVariable</a>.</p>
+<h3 id="setelement">setElement</h3>
+<pre><code>function setElement(type: &quot;patch&quot;, patch: Patch) : Integer
+function setElement(type: &quot;midiConfig&quot;, config: MidiConfig) : void</code></pre>
+<p>Replaces the current patch or MIDI configuration. For
+<code>"patch"</code>, returns the new patch id. If the patch’s
+<code>patchId</code> or <code>seedId</code> is <code>null</code>, a
+fresh unique id is assigned automatically — the expected behavior when
+creating a distinct new patch from loading, randomization, etc.</p>
+<p>See also: <a href="#getelement">getElement</a>, <a
+href="#createelement">createElement</a>.</p>
+<h3 id="setparam">setParam</h3>
+<pre><code>function setParam(param: string|number, value: number) : void</code></pre>
+<p>Sets a parameter (by name or index) to a normalized 0..1 value.</p>
+<p>See also: <a href="#getparam">getParam</a>, <a
+href="#editparam">editParam</a>.</p>
+<h3 id="setpreview">setPreview</h3>
+<pre><code>function setPreview([patch: Patch]) : void</code></pre>
+<p>Selects <code>patch</code> as the current non-committal preview, the
+same kind of patch the patch browser lets the user audition before
+loading. <code>setPreview</code> does not trigger a note on its own; the
+user must play MIDI to hear the selected preview patch. Call with no
+argument to stop previewing.</p>
+<h3 id="spawnpatch">spawnPatch</h3>
+<pre><code>function spawnPatch(patch: Patch, branchNumber: Integer, [newSeedId: Integer]) : Patch</code></pre>
+<p>Returns a new patch grown from <code>patch</code> at the given branch
+— the scripted form of planting a seed from a branch. Optionally assigns
+a specific <code>seedId</code>.</p>
+<p>See also: <a href="#the-dna--genome-model">The DNA / Genome
+Model</a>.</p>
+<h3 id="splitpath">splitPath</h3>
+<pre><code>function splitPath(path: string) : [string, string, string]</code></pre>
+<p>Splits a path into <code>[directory, name, extension]</code>.</p>
+<p>See also: <a href="#fullpath">fullPath</a>.</p>
+<h3 id="translate">translate</h3>
+<pre><code>function translate(s: string) : string</code></pre>
+<p>Returns the localized translation of <code>s</code>, or
+<code>s</code> unchanged if no translation exists.</p>
+<h3 id="unmarshal">unmarshal</h3>
+<pre><code>function unmarshal(type: &quot;patch&quot;, source: string) : Patch
+function unmarshal(type: &quot;midiConfig&quot;, source: string) : MidiConfig</code></pre>
+<p>Parses the marshaled text form back into a patch or MIDI config
+object.</p>
+<p>See also: <a href="#marshal">marshal</a>, <a
+href="#ismarshaledformat">isMarshaledFormat</a>.</p>
+<h3 id="writeclipboard">writeClipboard</h3>
+<pre><code>function writeClipboard(data: string) : void</code></pre>
+<p>Replaces the clipboard’s text contents.</p>
+<p>See also: <a href="#readclipboard">readClipboard</a>.</p>
+<h2 id="objects">Objects</h2>
+<h3 id="patch-object">Patch object</h3>
+<p><a href="#getelement"><code>getElement('patch')</code></a> / <a
+href="#createelement"><code>createElement('patch')</code></a>
+return:</p>
+<pre><code>{
+    implementation: Integer     // engine implementation id
+    name:           string
+    path:           string|null // source file; filename takes priority over name when updating
+    modified:       boolean
+    id:             Integer     // identity, auto-incremented on any modification
+    patchId:        Integer|null// audio-smoothing id; null → assigned on setElement
+    seedId:         Integer|null// atonality/detune seed; null → assigned on setElement
+    pitchAdjust:    number
+    legacyMode:     boolean     // Synplant 1 compatibility mode
+    control:        { [controlName]: number }   // the 14 control params, 0..1
+    genome:         { [geneName]:   number }     // the 48 genes, 0..1
+    branches:       Branch[]    // BRANCH_COUNT (12) entries
+    layers:         Layer[]     // BRANCH_COUNT (12) entries
+}</code></pre>
+<p><code>control</code> keys are the 14 <a
+href="#parameter-constants">control parameter</a> names;
+<code>genome</code> keys are the 48 gene names. Both hold normalized
+0..1 values.</p>
+<h3 id="branch-object">Branch object</h3>
+<p>Each entry of <code>patch.branches</code>:</p>
+<pre><code>{
+    id:        Integer          // unique branch id
+    length:    number           // branch length, 0..1
+    volume:    number           // branch volume, 0..1
+    explicit:  number[] | null  // explicit per-branch morph values, or null
+}</code></pre>
+<h3 id="layer-object">Layer object</h3>
+<p>Each entry of <code>patch.layers</code>:</p>
+<pre><code>{
+    enabled: number             // 0 (off) or 1 (on)
+}</code></pre>
+<h3 id="midiconfig-object">MidiConfig object</h3>
+<p><a href="#getelement"><code>getElement('midiConfig')</code></a> / <a
+href="#createelement"><code>createElement('midiConfig')</code></a>
+return:</p>
+<pre><code>{
+    sourcePath:           string|null
+    sourceText:           string|null   // marshaled &quot;SynplantMIDIConfig: { ... }&quot;
+    inputChannel:         Integer|null  // null = &quot;any&quot;
+    outputChannel:        Integer|null
+    programChanges:       boolean
+    pitchWheelRange:      Integer
+    pitchWheelOnHeldOnly: boolean
+    velocityCurve:        &quot;low&quot; | &quot;normal&quot; | &quot;high&quot; | &quot;fixed&quot;
+    notesSelectsBranch:   boolean
+    mouseClickVelocity:   Integer
+    minPolyphony:         Integer
+    maxPolyphony:         Integer
+    pressureCurve:        &quot;soft&quot; | &quot;normal&quot; | &quot;hard&quot; | &quot;off&quot;
+    masterTuning:         number        // Hz, default 440
+    controlCC:            { [controlName]: Integer|null }   // CC per control param
+    genomeCC:             { [geneName]:   Integer|null }     // CC per gene
+    branchesCC:           (Integer|null)[]                   // CC per branch (12)
+}</code></pre>
+<h3 id="fileinfo-object">FileInfo object</h3>
+<p>Returned by <a href="#dir"><code>dir</code></a> and <a
+href="#fileinfo"><code>fileInfo</code></a>:</p>
+<pre><code>{
+    name:        string         // filename including extension (no path)
+    size:        Integer        // bytes
+    created:     Date
+    modified:    Date
+    isDirectory: boolean
+    isReadOnly:  boolean
+    macFileType: string
+}</code></pre>
+<h3 id="gcresults-object">GCResults object</h3>
+<p>Returned by <a href="#gc"><code>gc</code></a>:</p>
+<pre><code>{
+    preCount:  Integer          // live values before GC
+    preSize:   Integer          // bytes before GC
+    pooled:    Integer
+    postCount: Integer          // live values after GC
+    postSize:  Integer          // bytes after GC
+}</code></pre>
+<h2 id="papageno-genopatch">Papageno (Genopatch)</h2>
+<p>Papageno is Synplant’s AI sound-matching engine (presented to users
+as <strong>Genopatch</strong>). It takes a reference sound and runs a
+multi-threaded evolutionary search across several “stalks”, each growing
+a set of candidate patches (“solutions”) that approximate the reference.
+The whole engine is scriptable through the global <code>papageno</code>
+object.</p>
+<blockquote>
+<p>The methods below mirror Synplant’s own Genopatch UI. When no
+reference is loaded the engine is uninitialized
+(<code>papageno.isInitialized()</code> is <code>false</code>) and
+queries such as <code>getNetInfo()</code> return nothing useful.</p>
+</blockquote>
+<pre><code>papageno.initialize(config: PapagenoConfiguration): void
+papageno.isInitialized(): boolean
+papageno.loadReference(filePath, maxLength, eraseFile): void
+papageno.updateReferenceRange(start, stop, zeroCrossStartArea?, zeroCrossStopArea?): void
+papageno.startOrStopReferencePlayback(doPlay?): void
+papageno.getReferenceInfo(): PapagenoReferenceInfo | null
+papageno.getReferenceDisplayData(from, to, step): number[]   // min/max pairs per step
+papageno.getReferencePlaybackPosition(): number | null
+
+papageno.startSearch(): void
+papageno.stopSearch(): void
+papageno.isSearching(): boolean
+papageno.finishedSearching(): boolean
+
+papageno.getStalkCount(): Integer
+papageno.getStalkInfo(stalkNumber): PapagenoStalkInfo
+papageno.getSolution(stalkNumber, solutionNumber): PapagenoSolution
+papageno.getActiveStalkNumber(): Integer
+papageno.focusOnStalk(stalkNumber | null, iterations?): void
+papageno.respawnStalk(stalkNumber, startingPoint?, startingPointSpread?): void
+papageno.getTacticsSuccessRatios(stalkNumber): { crossOrNet: number[], reviseCounts: number[] }
+papageno.getNetInfo(): { name, date, codeSize, pdResolution }</code></pre>
+<p>Key supporting types (see <code>COJSEngine.d.ts</code> for the full
+<code>PapagenoConfiguration</code>):</p>
+<pre><code>PapagenoStalkInfo     { id, iterations, height, solutions, seed }
+PapagenoSolution      { patch, iteration, height, error, offset, duration }
+PapagenoReferenceInfo { path, id, length, start, stop, pitch }</code></pre>
+<p>A typical scripted flow: <code>loadReference</code> → optionally
+<code>updateReferenceRange</code> → <code>startSearch</code>, poll
+<code>isSearching()</code> / <code>getStalkInfo()</code>, then read
+<code>getSolution(...)</code> patches and apply the best with
+<code>setElement('patch', solution.patch)</code>. The bundled example
+<strong>Export All Genopatch Solutions.js</strong> walks every
+stalk/solution and saves them.</p>
+<h2 id="the-dna-genome-model">The DNA / Genome Model</h2>
+<p>A Synplant patch is built from three layers of parameters:</p>
+<ul>
+<li><strong>Genome</strong> — 48 genes (<code>GENES</code>) that define
+the <em>sound</em> of a voice: envelopes, modulation, the two
+oscillators (A/B), FM, the filter, saturation, reverb, and output
+adjust. These are the “DNA” that Genopatch evolves and that mutate when
+you grow a plant.</li>
+<li><strong>Branches</strong> — up to <code>BRANCH_COUNT</code> (12)
+branches form the visual DNA tree. Each branch has a
+<code>length</code>, a <code>volume</code>, and optional
+<code>explicit</code> morph data. Branch geometry, together with
+<code>control.rotation</code>, <code>control.atonality</code>, and
+<code>seedId</code>, determines how a branch maps to pitch and
+detuning.</li>
+<li><strong>Control parameters</strong> — 14 performance/global
+parameters (<code>CONTROLS</code>): <code>tuning</code>,
+<code>atonality</code>, <code>effect</code>, <code>release</code>,
+<code>volume</code>, <code>bulbMode</code>, <code>voiceMode</code>, the
+mod-wheel routing (<code>wheelTarget</code>, <code>wheelScale</code>,
+<code>modWheel</code>), <code>glideTime</code>, <code>velSens</code>,
+<code>tempoSync</code>, and <code>rotation</code>.</li>
+</ul>
+<p><code>seedId</code> controls the pseudo-random atonality detuning
+applied across branches; <code>patchId</code> controls whether the audio
+engine smooths parameter changes. Setting either to <code>null</code>
+before <code>setElement('patch', …)</code> asks Synplant to assign a
+fresh unique id — do this when a genuinely new patch is created (from
+loading, randomization, Genopatch, etc.). <code>legacyMode</code> puts a
+patch into Synplant 1 compatibility behavior. <a
+href="#spawnpatch"><code>spawnPatch</code></a> grows a new patch from a
+chosen branch, the scripted equivalent of planting a seed.</p>
+<h3 id="gene-categories">Gene categories</h3>
+<p>The 48 genes (<code>GENES</code>) are not a flat list; they differ in
+how they behave across a patch’s branches.
+<code>GROWABLE_GENE_COUNT</code> (43) marks the boundary in
+<code>GENES</code> order: the first 43 genes are growable, the last 5
+are not. A branch’s per-branch genome data (its explicit morph) only
+covers the growable genes, so
+<code>branch.explicit.length === GROWABLE_GENE_COUNT</code> when it is
+non-null. Non-growable genes are always taken from the seed genome and
+apply to the whole patch.</p>
+<ul>
+<li><strong>Growable (per-branch)</strong> — most of the first
+<code>GROWABLE_GENE_COUNT</code> genes. Each branch can carry its own
+morphed value. These mutate as a plant grows and can be shaped
+independently per branch: envelopes, modulation, oscillators A/B, FM,
+filter, saturation, reverb mix/attack, and so on.</li>
+<li><strong>Exclusive</strong> — <code>rvb_len</code>,
+<code>rvb_chor</code>, <code>rvb_damp</code>. These are growable, so
+each branch stores its own value and they appear in explicit morph data,
+but their effect is mutually exclusive: they parameterize Synplant’s
+single shared reverb tail, so only one configuration is realized at a
+time. The realized value comes from the current <strong>lead
+branch</strong>: in non-layered bulb modes this is the latest triggered
+branch; in Layered bulb mode it is the first branch in the current
+rotated branch order (the bottom-most branch in the circular GUI),
+regardless of whether that layer is enabled.</li>
+<li><strong>Non-growable (global)</strong> — the last 5 genes in
+<code>GENES</code> order: <code>rvb_size</code>, <code>adj_bass</code>,
+<code>adj_treb</code>, <code>adj_pan</code>, <code>adj_clip</code>. They
+never grow, never appear in explicit morph data, and are taken from the
+seed genome to apply to the whole patch.</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Genes</th>
+<th>Per-branch value</th>
+<th>In explicit morph</th>
+<th>Realized effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Growable</td>
+<td>first 43 genes, except the three below</td>
+<td>yes</td>
+<td>yes</td>
+<td>per branch</td>
+</tr>
+<tr>
+<td>Exclusive</td>
+<td><code>rvb_len</code>, <code>rvb_chor</code>,
+<code>rvb_damp</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>one at a time (lead branch)</td>
+</tr>
+<tr>
+<td>Non-growable</td>
+<td><code>rvb_size</code>, <code>adj_bass</code>, <code>adj_treb</code>,
+<code>adj_pan</code>, <code>adj_clip</code></td>
+<td>no</td>
+<td>no</td>
+<td>whole patch</td>
+</tr>
+</tbody>
+</table>
+<p>The word “exclusive” describes the effect, not the data. The gene
+value is ordinary per-branch data; the downstream reverb resource is
+singular. Avoid treating these as shared gene values — only the realized
+reverb-tail effect is shared.</p>
+<p>Dump the boundary from the running plug-in:</p>
+<pre><code>for (var i = 0; i &lt; GENES.length; ++i) {
+    print(i + &#39;\t&#39; + GENES[i].NAME + (i &lt; GROWABLE_GENE_COUNT ? &#39;\tgrowable&#39; : &#39;\tnon-growable&#39;));
+}</code></pre>
+<h3 id="panning-and-stereo">Panning and stereo</h3>
+<p>Synplant’s stereo placement is tied to branch position in the bulb:
+branches on the left side pan left, and branches on the right side pan
+right. The non-growable <code>adj_pan</code> gene controls the amount of
+this branch-position panning for the whole patch. In Layered mode,
+spreading enabled layers around the bulb therefore creates a wider
+stereo image than clustering them near the same angle.</p>
+<p>The exact normalized transfer function for <code>adj_pan</code> is
+not part of the script API contract; treat it as the patch’s global
+panning amount rather than assuming a particular linear mapping.</p>
+<h3 id="explicit-branch-morphs">Explicit branch morphs</h3>
+<p>By default a branch grows a random variation of the seed:
+<code>branch.explicit</code> is <code>null</code>, and the branch’s
+sound is the seed genome plus pseudo-random mutation that scales with
+branch length (seeded by <code>seedId</code> and spread by
+<code>control.atonality</code>).</p>
+<p>When <code>branch.explicit</code> is non-null, the branch follows an
+<strong>explicit morph</strong> instead. <code>explicit</code> is a
+<code>number[]</code> of length <code>GROWABLE_GENE_COUNT</code>,
+indexed in <code>GENES</code> order: <code>explicit[i]</code> is the
+per-unit-length morph slope for gene <code>GENES[i].NAME</code>. Only
+growable genes participate. Non-growable genes (indices greater than or
+equal to <code>GROWABLE_GENE_COUNT</code>) are never morphed and are
+always taken from the seed.</p>
+<p>The realized value of a growable gene on an explicit branch at branch
+length <code>L</code> is:</p>
+<pre><code>value = seedGenome[gene] + explicit[i] * L</code></pre>
+<p>At <code>L = 0</code> (fully contracted) the branch equals the seed;
+extending it moves each gene linearly along its slope. <code>L</code> is
+the branch’s live length, so a morphed branch still responds to growth
+(mod-wheel <code>growth +</code> / <code>growth -</code>) by travelling
+farther along the same slope.</p>
+<p>To make a branch reproduce a target genome <code>T</code> exactly at
+length <code>L</code>:</p>
+<pre><code>explicit[i] = (T[GENES[i].NAME] - seedGenome[GENES[i].NAME]) / L</code></pre>
+<p>Slopes that round to approximately zero may be stored as
+<code>0</code>. This identity — a branch that becomes a specific target
+sound at its tip — is the basis of grafting.</p>
+<h3 id="grafting">Grafting</h3>
+<p><strong>Grafting</strong> attaches the sound of one patch onto a
+branch of another, written as an explicit morph so the destination
+branch grows from its own seed into the source patch’s sound at the tip.
+The reusable source implementation is <a
+href="../snippets/grafting.js"><code>snippets/grafting.js</code></a>.
+The bundled Mod <a
+href="../examples/Mods/Graft%20Onto%20Branch.js"><code>examples/Mods/Graft Onto Branch.js</code></a>
+vendors that implementation so it remains self-contained. The snippet is
+meant to be copied into a private scope; it provides three local
+functions, <code>calcBranchPitch(...)</code>,
+<code>copyBranchPatch(...)</code>, and
+<code>graftPatchOntoBranch(...)</code>, while the remaining math and
+retuning helpers stay nested inside the grafting function. The Mod wraps
+the copy/graft functions as a two-step clipboard flow:</p>
+<ul>
+<li><strong>Copy Branch</strong> —
+<code>spawnPatch(sourcePatch, selectedBranch)</code> grows the selected
+branch into a standalone patch, capturing that branch’s exact sound and
+pitch. The Mod then serializes it with <code>marshal('patch', …)</code>
+and writes it to the clipboard with
+<code>writeClipboard(...)</code>.</li>
+<li><strong>Graft Onto Branch</strong> —
+<code>unmarshal('patch', …)</code> reads the clipboard patch (guarded
+with <code>isMarshaledFormat('patch', …)</code>), reconciles it into the
+destination’s frame, then computes
+<code>explicit[i] = (sourceGene - destSeedGene) / destBranchLength</code>
+for each growable gene and stores the result on the destination’s
+selected branch. The operation is wrapped in <code>saveUndo(...)</code>
+and committed with <code>setElement('patch', …)</code>.</li>
+</ul>
+<p>The destination branch must have some length; as <code>L</code>
+approaches zero the slope becomes undefined. The Mod requires the branch
+to be extended a little.</p>
+<p>Grafting is not just a raw per-gene delta. Several genes are
+interpreted relative to other patch state, so the source genome is first
+reconciled into the destination’s frame:</p>
+<ul>
+<li><strong>Pitch (<code>a_freq</code>)</strong> — shifted by the
+source/destination pitch difference, accounting for
+<code>pitchAdjust</code>, <code>control.tuning</code>, and the
+destination branch’s mapped pitch (which depends on
+<code>control.bulbMode</code> and <code>control.rotation</code>). The
+result is octave-wrapped to stay in range. If the wrap forces the
+destination seed to move, the user is warned because existing branches
+can change.</li>
+<li><strong>Envelope key-follow (<code>env_kf</code>)</strong> — when
+active, envelope time is rescaled to compensate for the pitch
+shift.</li>
+<li><strong>Filter key-follow (<code>flt_kf</code>)</strong> —
+<code>flt_freq</code> is recomputed through the filter cutoff mapping so
+the absolute cutoff is preserved after retuning.</li>
+<li><strong>Effect / reverb wet (<code>rvb_mix</code> vs
+<code>control.effect</code>)</strong> — the source’s effective wet
+amount is converted into the destination’s effect context.</li>
+<li><strong>Volume</strong> — the grafted branch’s <code>volume</code>
+is offset by the source/destination master-volume difference in
+decibels.</li>
+</ul>
+<p>Only after these corrections are the per-gene slopes computed and
+written to <code>branch.explicit</code>; the grafted branch’s
+<code>id</code> is copied from the source branch.</p>
+<p>Because Layered bulb mode triggers several branches at once, grafting
+different source patches onto separate branches — extending each to full
+length and enabling its layer — creates a stacked patch. The
+global/non-growable genes (<code>rvb_size</code>, <code>adj_*</code>)
+plus control parameters still come from the single seed genome, so they
+are dictated by whichever patch is the base. The exclusive reverb-tail
+genes (<code>rvb_len</code>, <code>rvb_chor</code>,
+<code>rvb_damp</code>) are realized from the lead branch, which in
+Layered mode is the bottom-most branch in the current rotated branch
+order, even if that layer is disabled. Keep
+<code>control.atonality</code> low if you do not want Layered mode’s
+per-layer detuning.</p>
+<p>See also: <a href="#spawnpatch"><code>spawnPatch</code></a>, <a
+href="#marshal"><code>marshal</code></a>, <a
+href="#unmarshal"><code>unmarshal</code></a>, and <a
+href="#mods">Mods</a>. For distributable scripts, copy the relevant
+snippet code into your script’s own IIFE/closure instead of depending on
+<code>snippets/</code> being installed beside it.</p>
+<h2 id="host-script-helpers">Host Script Helpers</h2>
+<p>These functions are <strong>not</strong> part of the engine API; they
+are defined by Synplant’s running main script in the shared global space
+and are available to scripts and Mods while the standard GUI is loaded.
+They are convenient but version-dependent — treat them as a softer
+contract than the native API, and guard with <code>typeof</code> if in
+doubt.</p>
+<p>Math/utility helpers (verified present in build 309):
+<code>clamp</code>, <code>lerp</code>, <code>scale</code>,
+<code>square</code>, <code>cube</code>, <code>fract</code>,
+<code>unescape</code>, <code>floorMod</code>,
+<code>StringBuilder</code>, <code>createClass</code>,
+<code>Color</code>, and the <code>random</code> object.</p>
+<p>GUI/state helpers: <code>displayCushy</code>,
+<code>closeCushy</code>, <code>toggleCushy</code>,
+<code>getDisplayedCushy</code>, <code>select</code>,
+<code>selected</code>, <code>getCachedPatch</code>,
+<code>displayHint</code>, <code>assert</code>.</p>
+<p>In particular <code>select('program', n)</code> /
+<code>selected('program')</code> and <code>selected('branch')</code> are
+host-script helpers, not engine functions — this is why they do not
+appear in <code>COJSEngine.d.ts</code>.</p>
+<h2 id="cushy-interface">Cushy Interface</h2>
+<h3 id="script-types">Script Types</h3>
+<p>There are three kinds of user script:</p>
+<ol type="1">
+<li><strong>Standalone <code>.js</code></strong> — a single JavaScript
+file in the Synplant Scripts folder. It runs when chosen from the script
+menu. Good for one-shot operations (e.g. transform the current
+patch).</li>
+<li><strong>GUI scripts (<code>.spscript</code>)</strong> — a directory
+named <code>MyScript.spscript</code> containing a
+<code>MyScript.js</code> launcher and one or more <code>.cushy</code>
+layouts (plus optional <code>.js</code>, <code>.schema</code>, image,
+and other resources). The launcher opens a Cushy window for the
+script.</li>
+<li><strong>Mods</strong> — scripts in the <code>Mods</code> subfolder
+that run automatically at startup and patch Synplant’s <em>own</em>
+built-in GUI. See <a href="#mods">Mods</a> below.</li>
+</ol>
+<p>Standalone scripts and GUI scripts are discovered from
+<code>DIRS.SCRIPTS</code> and listed in Synplant’s script menu, which
+also offers <strong>Open Scripts Folder</strong>.</p>
+<h3 id="script-startup">Script Startup</h3>
+<p>A GUI script’s launcher opens its layout on a Cushy <em>layer</em>
+with <code>displayCushy</code>:</p>
+<pre class="javascript"><code>displayCushy(&#39;MyScript.spscript/MyScript_main&#39;, &#39;script&#39;, true);</code></pre>
+<p>The three layers are <code>'modal'</code>, <code>'script'</code>, and
+<code>'dev'</code>. User scripts use the <code>'script'</code> layer.
+When the GUI engine opens a <code>.cushy</code> file it first runs the
+sibling <code>.js</code> of the same name
+(<code>MyScript_main.js</code>) if present, which sets up the script’s
+functions and state.</p>
+<p>Cushy runs this JavaScript every time the script opens <strong>and on
+every GUI rebuild</strong> — and rebuilds are not only developer
+actions: changing Synplant’s zoom/scale forces a reload so graphics and
+layout coordinates rescale. Scripts must therefore survive being re-run:
+guard initialization so you do not clobber existing global state,
+e.g.</p>
+<pre class="javascript"><code>if (!globals.myScript) { myScript = { /* initial state */ }; }</code></pre>
+<p>Because all scripts share one global object, keep your script’s state
+under a single object named after the script to avoid colliding with
+others.</p>
+<h3 id="mods">Mods</h3>
+<p>A <strong>Mod</strong> is a script that patches Synplant’s
+<em>own</em> built-in GUI at load time. Mods live in a <code>Mods</code>
+subfolder of the Synplant Scripts folder; <strong>every <code>.js</code>
+in <code>Mods/</code> is run automatically at startup</strong> (in
+alphabetical order).</p>
+<p>A Mod registers one or more rewriters with the host helper
+<code>addModPatcher</code>:</p>
+<pre class="javascript"><code>addModPatcher(modName, cushyName, function (cushyName, cushyContents) {
+    // return a modified cushyContents string, or undefined to leave it unchanged
+});</code></pre>
+<p>When the Mods folder exists, the main script installs the engine hook
+<a href="#optional-hooks"><code>handleCushyPreparation</code></a>, which
+runs the registered patchers as each built-in <code>.cushy</code>
+(e.g. <code>'Synplant2_main'</code>, <code>'Synplant2_dna'</code>) is
+loaded. Patchers <strong>string-rewrite the raw
+<code>.cushy</code>/Makaron source before it is parsed</strong>,
+injecting views, <code>@define</code>s, IVG vector icons, and
+click/context actions. A patcher that returns unchanged contents throws
+(a guard against stale Mods). Mods also add JavaScript behavior through
+a global <code>mods</code> namespace (e.g.
+<code>mods.favoriteButton = { … }</code>) that the injected Cushy
+references. See the bundled Mods (Favorite Button, Detailed DNA Hints,
+Graft Onto Branch, Tween Branches) for working examples, and the
+separate Mods guide for details.</p>
+<h3 id="gui-variables">GUI Variables</h3>
+<p>Cushy views interface with your script through GUI variables. A view
+tied to <code>myScript.myKnob</code> continuously reads it to draw, and
+writes it when the user interacts. All GUI variable values are strings
+(which may contain numbers in decimal text, or Numbstrict for
+arrays/structures). Cushy resolves a variable in one of these ways:</p>
+<ul>
+<li>an existing JS string variable — read and written directly;</li>
+<li>an existing JS function — called to get the value (Cushy can never
+set it);</li>
+<li>an existing JS object — with <code>get()</code>,
+<code>set(value)</code>, and optional <code>touch(beginEdit)</code>
+functions;</li>
+<li>a name that does not exist as a JS variable — Cushy creates a
+Cushy-only variable (avoid this).</li>
+</ul>
+<pre class="javascript"><code>myScript.myKnob = {
+    get: function () { return &#39;&#39; + ((Math.exp(myScript.myValue) - 1) / 10); },
+    set: function (s) { myScript.myValue = Math.log(1 + 10 * +s); }
+};</code></pre>
+<p><code>touch(beginEdit)</code> is called with <code>true</code> when
+the user starts editing (e.g. clicks the knob) and <code>false</code>
+when they finish. Beyond the per-script variables, Synplant exposes a
+large set of standard GUI variables and product variables — these are
+documented separately in the Cushy Variables reference.</p>
+<h3 id="gui-actions">GUI Actions</h3>
+<p>When the user clicks a button or selects a menu item, Cushy performs
+a GUI action — either a built-in action or a JavaScript function you
+provide. Actions receive a single string parameter in its raw, unparsed
+form (a quoted string still carries its quotes; use
+<code>unescape</code> to strip them). You may implement an action
+as:</p>
+<ul>
+<li>a function with the action’s name (receives the parameter), or</li>
+<li>an object with an <code>execute(param)</code> function and optional
+<code>enabled(param)</code> and <code>checked(param)</code> functions
+returning booleans.</li>
+</ul>
+<h3 id="script-state-and-undo-sync">Script State and Undo Sync</h3>
+<p>Undo snapshots restore Synplant’s document state, not a running
+script’s JavaScript variables or derived GUI state. If a GUI script
+keeps cached data, selections, generated display buffers, or other state
+derived from the patch, undo/redo can make that cache stale. The usual
+pattern is to watch the Cushy variable <code>patch.identity</code> and
+refresh only when it changes. In JavaScript, the same identity is
+available through <a
+href="#getelementid"><code>getElementId('patch')</code></a>.</p>
+<p>Use a Cushy <code>autoexecs</code> <code>onChanged</code> action to
+run the refresh after patch changes:</p>
+<pre class="javascript"><code>if (!this.myScript) {
+    myScript = {
+        lastPatchId: null,
+        refreshFromPatch: function() {
+            var id = getElementId(&#39;patch&#39;);
+            if (this.lastPatchId === id) {
+                return;
+            }
+            this.lastPatchId = id;
+            this.patch = getElement(&#39;patch&#39;);
+            // Rebuild cached UI state derived from this.patch here.
+        }
+    };
+}</code></pre>
+<pre class="numbstrict"><code>autoexecs: {
+    {
+        action: &quot;myScript.refreshFromPatch&quot;
+        onReload: true
+    }
+    {
+        onChanged: patch.identity
+        action: &quot;myScript.refreshFromPatch&quot;
+    }
+}</code></pre>
+<p>Call <a href="#saveundo"><code>saveUndo</code></a> before script
+actions that modify the patch. After
+<code>setElement('patch', patch)</code> or parameter edits, update the
+script’s cached <code>lastPatchId</code> or let the next
+<code>onChanged</code> refresh do it. Scripts that generate patches from
+state that cannot be reconstructed from the patch should also use the
+hash/history reconciliation pattern described under <a
+href="#saveundo"><code>saveUndo</code></a>. Persisted Cushy variables
+such as <code>preferences.*</code>, <code>instance.*</code>, and
+<code>project.*</code> control storage lifetime; they are not a
+substitute for undo snapshots and are not documented as participating in
+the patch undo history.</p>
+<h3 id="optional-hooks">Optional Hooks</h3>
+<p>A script may define these global hook functions, which the host calls
+if present:</p>
+<pre><code>handleCushyPreparation(cushyName, cushyContents) → string | undefined
+    Called as each .cushy is loaded; return modified contents to rewrite it, or undefined to
+    leave it unchanged. This is the mechanism Mods use.
+
+handleCushyTrace(text) → void
+    Receives trace text from the Cushy/host layer.</code></pre>
+<h3 id="performance-notes">Performance Notes</h3>
+<p>JavaScript runs on the UI thread and freezes the interface while it
+executes, with a 20-second suspension limit per call. Keep per-frame
+work (GUI variable getters, animations) minimal; cache results and use
+<a href="#getelementid"><code>getElementId('patch')</code></a> to avoid
+recomputing when nothing changed. For heavy work, do it in response to
+an explicit user action, not in a continuously polled getter. Prefer <a
+href="#getmonotonictime"><code>getMonotonicTime()</code></a> for any
+timing logic.</p>
+</body>
+</html>

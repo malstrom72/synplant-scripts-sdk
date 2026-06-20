@@ -558,14 +558,67 @@ See also: [load](#load).
 
     function saveUndo(description: string, [collapse: boolean]) : void
 
-Records an undo checkpoint with the given description before a change. `collapse` merges this step
-with the previous one of the same description.
+Records an undo checkpoint with the given description before a change. The snapshot covers Synplant
+document state such as the current patch, parameters, and MIDI configuration. `description` should
+be a user-readable string; call [`translate`](#translate) on static label text when the label may
+eventually be localized. `collapse` merges this step with the previous one of the same description.
 
 Call `saveUndo` immediately before applying a script change. The snapshot captures the state to
 return to, so the pattern is snapshot-then-mutate; calling it after the change can record the
-already-modified state and make the undo step ineffective. For a continuous gesture such as dragging
-a custom control, create one undo checkpoint at the first document-changing update, not on every
-mouse move. The host manages redo automatically; there is no `saveRedo`.
+already-modified state and make the undo step ineffective.
+
+The undo snapshot does not include a running script's own JavaScript state, such as global
+variables, GUI-local selection state, drag state, caches, generated display buffers, or source data
+used to generate a patch. Undo or redo can therefore rewind the Synplant document while a running
+GUI script's JavaScript state is left unchanged. GUI scripts that keep their own state should
+reconcile it against the document after undo, redo, and other external patch changes.
+
+#### Script state, undo and reconciliation
+
+For simple state derived from the patch, reconciliation can be as small as watching
+[`getElementId('patch')`](#getelementid) or the Cushy variable `patch.identity` and rebuilding the
+cache when the id changes.
+
+Generator scripts often need a stronger pattern. A generator may produce a patch from inputs that
+cannot be read back from the patch alone, such as source files, analysis data, random seeds, user
+choices, or intermediate search state. The generated patch is not enough to recover those inputs
+after undo/redo unless the script keeps its own history.
+
+A common reconciliation pattern is:
+
+1. Call `saveUndo(description)` immediately before changing the document.
+2. Write the generated patch with [`setElement('patch', patch)`](#setelement) or change parameters
+   with [`setParam`](#setparam) / [`editParam`](#editparam).
+3. Compute a content hash for the generated patch or patch region and memoize the generator inputs
+   under that hash.
+4. Mark the write as your own by storing the new patch id immediately after the write:
+   `lastPatchId = setElement('patch', patch)` when replacing the patch, or
+   `lastPatchId = getElementId('patch')` after parameter edits. This prevents the script's next sync
+   check from treating its own output as an external edit.
+5. On a sync check, watch the patch id. When it changes, hash the current patch or relevant patch
+   region and look it up in the memoized history.
+6. If the hash is found, restore the matching generator inputs so the GUI matches the patch. If the
+   hash is missing, treat the script as out of sync with the patch and disable or visually mark
+   controls that would otherwise imply the GUI state still describes the patch.
+
+Keep memoized history bounded when a GUI script can generate many distinct states during a session.
+For scripts where the generated patch should remain legible outside the script, also consider
+embedding a small human-readable tag in the patch name or another appropriate patch field; do not use
+large `project.*` or `preferences.*` Cushy values as undo-history substitutes.
+
+For a continuous gesture such as dragging a custom control, create one undo checkpoint at the first
+document-changing update, not on every mouse move. If `collapse` is `true` and `description` is
+identical to the previous undo step, Synplant merges it with that step to avoid spamming the undo
+history.
+
+GUI-less scripts are one-shot scripts without a running Cushy interface. They normally do not need
+to preserve JavaScript GUI state across undo/redo, but they should still call `saveUndo` before
+user-visible document changes. GUI scripts stay loaded and can perform multiple independent edits
+over time, so they should create their own undo snapshots before each document change.
+
+The host manages redo automatically; there is no `saveRedo`.
+
+See also: [getElementId](#getelementid), [Cushy Interface](#cushy-interface), [translate](#translate)
 
 ### sendMidi
 
@@ -1099,9 +1152,11 @@ autoexecs: {
 
 Call [`saveUndo`](#saveundo) before script actions that modify the patch. After `setElement('patch',
 patch)` or parameter edits, update the script's cached `lastPatchId` or let the next `onChanged`
-refresh do it. Persisted Cushy variables such as `preferences.*`, `instance.*`, and `project.*`
-control storage lifetime; they are not a substitute for undo snapshots and are not documented as
-participating in the patch undo history.
+refresh do it. Scripts that generate patches from state that cannot be reconstructed from the patch
+should also use the hash/history reconciliation pattern described under [`saveUndo`](#saveundo).
+Persisted Cushy variables such as `preferences.*`, `instance.*`, and `project.*` control storage
+lifetime; they are not a substitute for undo snapshots and are not documented as participating in
+the patch undo history.
 
 ### Optional Hooks
 
