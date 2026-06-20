@@ -17,7 +17,7 @@ if (!globals.jsConsole) {
 		knownGlobals: { },
 		heapKiBUsed: '0',
 		heapItemCount: '0',
-		bridge: { on: false, lastSeq: 0 }
+		bridge: { on: false, lastSeq: 0, base: '' }
 	}
 }
 
@@ -237,7 +237,7 @@ Object.assign(jsConsole, {
 		its seq advances past the last one handled. The bridgeTick autoexec polls
 		request.json (see JSConsole_main.cushy).
 	*/
-	bridgeBase: function() {
+	bridgeDefaultBase: function() {
 		/*
 			Keep the bridge folder inside DIRS.DOCUMENTS — Synplant grants scripts
 			deep read-write access there by default (it is the trusted
@@ -248,7 +248,8 @@ Object.assign(jsConsole, {
 	},
 	bridgeOn: function() {
 		var jc = this;
-		var base = jc.bridgeBase();
+		var base = jc.bridgeDefaultBase();
+		jc.bridge.base = base;
 		jc.bridge.lastSeq = 0;
 		try {
 			var req = JSON.parse(load(base + 'request.json'));
@@ -280,7 +281,7 @@ Object.assign(jsConsole, {
 	bridgeStatus: function() {
 		var jc = this;
 		print("Bridge is " + (jc.bridge.on ? "ON" : "OFF") + ".");
-		print("Base: " + jc.bridgeBase());
+		print("Base: " + (this.bridge.base || this.bridgeDefaultBase()));
 		if (jc.bridge.on) {
 			print("Last handled seq: " + jc.bridge.lastSeq);
 		}
@@ -332,20 +333,24 @@ Object.assign(jsConsole, {
 		return result;
 	},
 	bridgeTick: function() {
-		var jc = this;
-		if (!jc.bridge.on) {
-			return;
-		}
-		var base = jc.bridgeBase();
-		var text;
 		try {
-			text = load(base + 'request.json');
-		} catch (e) {
-			return;		// folder / file not present yet, keep waiting
-		}
-		var req;
-		try {
-			req = JSON.parse(text);
+			var jc = this;
+			if (!jc.bridge.on) {
+				return;
+			}
+			var base = jc.bridge.base;
+			if (!base) {
+				return;
+			}
+			var text;
+			try {
+				text = load(base + 'request.json');
+			} catch (e) {
+				return;		// folder / file not present yet, keep waiting
+			}
+			var req;
+			try {
+				req = JSON.parse(text);
 			} catch (e) {
 				return;		// partial or invalid write, try again next tick
 			}
@@ -375,9 +380,10 @@ Object.assign(jsConsole, {
 			try {
 				save(base + 'response.json', JSON.stringify(response));
 			} catch (e) {
-				print("!!! bridge: failed to write response: " + e);
+				print("!!! Failed to write bridge response: " + e);
 			}
-		},
+		} catch (e) { }
+	},
 	minimize: {
 		execute: function() { jsConsole.minimized = !jsConsole.minimized; },
 		checked: function() { return !jsConsole.minimized; }
