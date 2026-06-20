@@ -175,8 +175,9 @@ end to end — they are the canonical worked references.
 
 A few things that trip up first-time authors, all expanded in the schema or example scripts:
 
-- **All text needs an explicit `font`** — Cushy has no default font, so text with no `font` is simply
-  not drawn.
+- **All text-bearing views/styles need an explicit `font`** — Cushy has no default font. Text in
+  `caption` views, button captions, bubble styles, and any other text-bearing view/style is simply
+  not drawn unless that view or style provides a `font`.
 - **Coordinates are clipped at view bounds** — a child cannot draw or receive clicks outside its
   parent.
 - **Colors use normalized components** — `rgb(1,1,1,0.35)`, not `rgb(255,255,255,...)`.

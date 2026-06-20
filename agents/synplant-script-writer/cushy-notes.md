@@ -25,13 +25,16 @@ See [`CushyLint/cushy.schema`](../../CushyLint/cushy.schema) for the strict synt
 
 ## scriptRoot and the script identity
 
-Define a script-root macro at the top of every `.cushy` file and use it wherever the package folder
-name appears in Cushy fields such as `file:` and `ivgFile:` references. The example packages use
-`@scriptIdentifier` for the JavaScript object name and a script-name define for the title:
+Define script identity macros at the top of every `.cushy` file. When the package has local
+resources, also define a script-root macro and use it wherever the package folder name appears in
+Cushy fields such as `file:` and `ivgFile:` references. Recent example packages commonly use
+`@script` for the JavaScript object name; some docs and older examples use `@scriptIdentifier` for
+the same role.
 
 ```makaron
 @include scriptSupport.makaron
-@define scriptIdentifier=myScript
+@define script=myScript
+@define scriptRoot=My Script.spscript
 @define scriptName=My Script
 ```
 
@@ -40,7 +43,8 @@ is plain JavaScript and must use the literal package path.
 
 Renaming a script is a multi-point change — keep these in sync or action dispatch breaks:
 
-- the `@define scriptIdentifier=<name>` in the `.cushy`,
+- the `@define script=<name>` in the `.cushy` (`@scriptIdentifier` in packages using that
+  convention),
 - the top-level JavaScript global object (`if (!globals.myScript) { myScript = ... }`),
 - the schema action prefix (`action: "myScript.startup"`),
 - the package folder `<Name>.spscript/` and its filenames,
@@ -49,6 +53,57 @@ Renaming a script is a multi-point change — keep these in sync or action dispa
 
 After a rename, search the package for the old name; remaining matches should be human-readable text,
 not dispatch/schema/filename/path references.
+
+## CushyLint
+
+See [`validation.md`](validation.md) for the full command. Easy mistake: passing a directory path
+**without** a trailing slash can skip the package's companion `.schema` file and produce false "rule
+missing" errors. Always add the slash:
+
+```sh
+CushyLint/CushyLint "$(pwd)/My Script.spscript/"
+#                                           ^
+```
+
+## Cluster views
+
+A `cluster` is not only a display primitive. By default it is an editable paint surface tied to its
+`array`.
+
+If `array` points to a normal JavaScript array of plain values, the cluster can write directly into
+that array while the user clicks or drags. This is useful for editable step lanes or grids, but
+dangerous when the array is meant to be derived display state. One failure mode is dragging through a
+display lane and writing marker/image values back into cells that should be controlled by script
+state.
+
+Safer patterns:
+
+1. Display-only cluster: use `readonly: true` when the cluster should only visualize state.
+2. Editable cluster with controlled state: use custom per-cell GUI variable objects with `get` and
+   `set` methods instead of plain values when writes need to be intercepted.
+3. Separate display and interaction: layer a readonly visual cluster with a transparent interaction
+   cluster for `mouseIndex` and `clickActions`.
+
+Practical rule of thumb: use a plain array only when it is okay for the cluster to modify it
+directly. Use `readonly: true` or per-cell `get`/`set` objects when the displayed values are derived
+from script state.
+
+Per-cell `get`/`set` objects are for editable cells that need to intercept writes. For readonly data
+that changes over time, prefer a plain array refreshed by an `autoexecs` tick. Do not call
+`getElement(...)` from a per-cell getter; it runs once per cell per poll.
+
+A cluster is also not always the right primitive for an overlay. If each row only needs one moving
+marker, put the marker view in a `group` and drive the group's `offset: { <var>, <var> }` and
+`visibility: <var>` from a tick. Those fields change without recreating views, and the script only
+has to write one position and visible flag per marker instead of one value per cell.
+
+## `mouseIndex`
+
+- `mouseIndex` is useful for tracking which cluster rectangle the pointer is over.
+- It may become an empty string during pointer transitions or release.
+- Do not blindly coerce it to a number, because `""` can behave like `0` and cause controls to snap
+  to the first cell.
+- Keep a last valid index or ignore empty updates during drag.
 
 ## Reload and state
 
@@ -76,7 +131,7 @@ freezes while script code runs, and a single call over 20 seconds is suspended.
 
 ```cushy
 autoexecs: {
-    { action: "@scriptIdentifier.tick", repeat: 1/@fps }
+    { action: "@script.tick", repeat: 1/@fps }
 }
 ```
 
@@ -113,6 +168,8 @@ averages rather than tracing every tick.
 - Use repeat rates that communicate intent. Target 50 Hz or lower for normal scripts; avoid
   "as often as possible" rates like `repeat: 0.001`. To react to a value change, use `onChanged`
   rather than a fast poll — it runs on the next tick only when the value actually changes.
+- Updating a variable every tick is acceptable when the view needs full-rate updates. If a variable
+  is read by views, changing it frequently keeps those reads active at the full rate.
 
 ### GUI variables and polling
 
@@ -136,12 +193,24 @@ averages rather than tracing every tick.
   ```
 
   Reading `myScript.doThing` returns the descriptor; call `myScript.doThing.execute(param)` to run it.
+- For dynamic IVG data, compact list strings are usually fine for payloads of a few hundred
+  characters, or even around a thousand characters. If the IVG only needs a tiny part of a very large
+  structure, do not serialize the whole thing every tick; `guiVariables: true` can be a better fit.
+- There is no simple "`bindings` are faster" or "`guiVariables` is faster" rule. Choose based on
+  clarity and update pattern.
 
 ### View redraw and vector caching
 
 - Cushy uses dirty-rectangle redraws and occlusion culling; drawing outside a view's bounds is clipped
   and the clipped work is not done. Hidden/invisible views usually cost little unless their state
   depends on heavy variable refreshes.
+- Bounds and clipping affect both correctness and performance: drawing outside a view's bounds is
+  clipped, and the clipped-away work is not drawn. Covered views can often be partly or fully skipped
+  when covered by non-transparent views.
+- Cushy can handle many views. The cost depends on update patterns, variable refreshes, redraw area,
+  and what each view does.
+- `hover` and `mousePosition` updates are not inherently expensive, but avoid doing unnecessary work
+  in their actions or getters.
 - Vector views cache: for the first few ticks after creation a vector draws directly; once stable it
   draws into a compressed offscreen buffer and reuses that cache until its source material, accessed
   bound variables, or native params (`$width`/`$height`) change. Static or rarely-updated vector views
@@ -184,6 +253,13 @@ averages rather than tracing every tick.
 - `saveUndo` captures Synplant document state, not your script's JavaScript state. After undo/redo,
   derive script state from the patch where possible (e.g. re-read on `getElementId('patch')` change)
   rather than assuming your cached GUI state still matches.
+- To make a GUI recover its own controls after undo/redo when generation is many-to-one, memoize the
+  inputs that produced an output and key them by a compact content signature of the generated patch or
+  patch region.
+- Keep numeric fingerprints inside 32-bit integer operations. JavaScript numbers are doubles;
+  repeated multiplication by large constants can lose low bits before the next bitwise coercion. For
+  compact content signatures, prefer a shift/add step that truncates every round, such as
+  `hash = (((hash << 5) - hash) + value) | 0;`.
 
 ## Easy `.cushy` mistakes
 
@@ -222,13 +298,161 @@ drawn or clickable. For a slider, the slit `start`/`end` coordinates define wher
 cap travels, not its edges, so the cap fill and its frame stroke must stay inside the view bounds at
 the travel extremes. When a control looks clipped at the ends, widen the view or inset the slit.
 
+Use `dragArea` only when the parent view itself is the thing being moved, and there is larger
+surrounding space for it to move in. Do not use `dragArea` for "click anywhere in a fixed pad and
+move a marker there": a `dragArea` moves its parent. Making the parent as large as the whole pad
+gives it no useful room to move, and putting a larger `dragArea` inside a smaller handle group is
+clipped by the handle group's bounds.
+
+For fixed pads, layer a full-size `click` view with `mousePosition`, `press`, and `release` actions,
+plus a `hover` view when live hover tracking is needed. Let JavaScript store a `dragging` flag,
+convert the reported mouse coordinates into the control value, and move the visual marker with group
+`offset` variables or another script-controlled visual state.
+
+## Driving IVG from script state
+
+`vector` views can render dynamic data by combining static `defines:` with live `bindings:`. Static
+settings such as sizes or palette colors belong in `defines:`. Data that JavaScript updates while the
+GUI is open belongs in `bindings:` and is re-read when it changes.
+
+```cushy
+{
+    type: "vector"
+    file: "@scriptRoot/Points"
+    defines: {
+        "pointSize": "@pointSize"
+        "color": "#E0D0D0E0"
+    }
+    bindings: {
+        "points": @script.points
+        "selected": @script.selectedPoint
+    }
+}
+```
+
+The script can keep a binding as an IVG/ImpD list string:
+
+```javascript
+myScript.points = "[[0,120,80,yes],[1,160,96,no]]";
+```
+
+Then IVG can iterate the list and split each row:
+
+```ivg
+for p in:$points [
+    $split $p into:i,x,y,enabled
+    context [
+        offset $x,$y
+        ellipse 0,0,$pointSize
+    ]
+]
+```
+
+For more structured state, a `vector` view can set `guiVariables: true`. This allows IVG source to
+read GUI variables directly with `$<variable-name>` and refreshes when variables touched during the
+last repaint change. Prefer explicit `defines:` plus `bindings:` when the data can be expressed
+cleanly; it makes the view's input contract visible in the `.cushy` file and avoids giving the
+drawing layer access to the full GUI-variable namespace.
+
+When JavaScript needs to generate the whole IVG source string, use the `variable:` source form:
+
+```cushy
+{ type: "vector", variable: @script.ivgSource }
+```
+
+`variable: <var>` is the direct form for this pattern: the named GUI variable contains the complete
+IVG source. Use `code:` when the source is written inline in the `.cushy` file; use `variable:` when
+JavaScript owns and updates the source string.
+
+Generated IVG source is flexible but shifts drawing text generation into JavaScript. IVG/ImpD is
+interpreted when it renders, so the cost is not a separate compile step; the tradeoff is that
+JavaScript may need to rebuild and store more source text, and static `_test.ivg` validation cannot
+cover every generated path. NuXJS stores string character data as UTF-16, so a large source string or
+compact text payload is usually much cheaper than an equivalent JavaScript array of numbers, though
+normal string object and allocation overhead still applies.
+
+## Input model
+
+There is no documented Cushy model for binding arbitrary real-time keyboard keys such as arrows or
+WASD to script actions. Design live interaction around mouse hover, click, drag, context click, and
+modifier masks. Text input is available through:
+
+- `ask(question, [default])` in JavaScript: a modal text dialog returning a string or `null` on
+  cancel.
+- The Cushy `edit` built-in action: a modal editor bound to a variable, with optional `default` and
+  `reaction`.
+- The Cushy `console` view: TTY-style input/output with live `inputVariable`, `inputAction` on Enter,
+  and `outputVariable` or `outputArray`. See `JS Console.spscript`.
+
+If modifier combinations matter, test them in Synplant and give each modifier its own click mask with
+an explicit priority order.
+
+### Click mask dispatch
+
+For `click` and `button` views, an `actions` block is an ordered dispatch table, not a list of
+callbacks. For each mouse event, Cushy scans masks **bottom up**, so later entries have higher
+priority, and chooses one matching action.
+
+Consequences:
+
+- Only one action runs for a given event.
+- Later masks can steal events from earlier masks when their type/modifiers match.
+- Do not add extra masks speculatively. An apparently harmless `{ "down", "nop" }` at the bottom of
+  the table can take priority for hit-tracking entry events.
+- Put more specific modifier masks after less specific masks when both could match, e.g. put
+  `press+shift` below `press` if shift should win.
+- `context` handles right-click/control-click and can bind directly to a script action, not only to
+  the built-in `popup` action.
+- `down`/`up` are hit-tracking enter/leave masks. They are not extra press-drag callbacks.
+
+For a press-drag-release pad, use the masks that define that interaction:
+
+```cushy
+{
+    type: "click"
+    actions: {
+        { "press", "@script.press" }
+        { "release", "@script.release" }
+    }
+    mousePosition: { xy: @script.mousePosition, integer: false }
+}
+```
+
+## Cushy action binding
+
+Cushy JavaScript actions called as methods on the script singleton bind `this` to that script object.
+For example, inside `myScript.padPress`, `this === myScript` is true.
+
+Referencing the explicit script singleton is still acceptable when it makes callbacks or moved helper
+functions clearer, but do not diagnose action failure as a `this` binding problem without checking it
+directly:
+
+```javascript
+// Valid when called as a Cushy action on myScript.
+padPress: function () {
+    this.dragging = true;
+    this.setFromMouse(this.mousePosition);
+}
+
+// Also valid, and sometimes clearer for callbacks/helper reuse.
+padPress: function () {
+    myScript.dragging = true;
+    myScript.setFromMouse(myScript.mousePosition);
+}
+```
+
 ## All text requires an explicit font
 
 Cushy has no default font. Any text — `caption` views, button `caption` fields (via `font` in the
-button style), bubble styles — is not drawn at all without an explicit `font`. There is no fallback.
+button style), bubble styles, or any other text-bearing view — is not drawn at all unless that view
+or style has an explicit `font`. There is no fallback font.
 
 ```cushy
+// caption view
 { type: "caption", text: "...", font: { ivgfont: "sans-serif", size: 13, color: "..." } }
+
+// button caption
+standard: { fill: "...", font: { ivgfont: "sans-serif", size: 14, color: "..." } }
 ```
 
 ## Radio button / checked state pattern
@@ -259,7 +483,7 @@ Do not assemble window chrome from primitive views. Include the support macros a
 ```makaron
 @include scriptSupport.makaron
 
-@window(left, top, width, height, "@scriptName", @backgroundColor, @frameColor, white, @scriptIdentifier, @<
+@window(left, top, width, height, "@scriptName", @backgroundColor, @frameColor, white, @script, @<
     // content views; coordinates start at the content area top-left
 @>)
 ```
