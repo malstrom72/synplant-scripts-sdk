@@ -24,6 +24,20 @@ My Script.spscript/
 
 Treat `.spscript` examples as directories; inspect their internal files before adapting one.
 
+Package `.schema` paths are relative to the `.schema` file itself. When creating a package in the
+recommended separate project layout (`scripts/My Script.spscript/` plus
+`references/synplant-scripts-sdk/`), create the schema with project-correct paths from the start:
+
+```schema
+include: ../../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
+resources: ../
+resources: ../../references/synplant-scripts-sdk/Synplant Resources
+```
+
+The bundled SDK examples use `../../Synplant Resources/...` because they live under
+`examples/<Name>.spscript/` inside the SDK checkout. Do not copy that header unchanged into a
+different directory depth.
+
 ### GUI startup pattern
 
 - Open the window from the launcher with `displayCushy('<Name>.spscript/<Name>_main', 'script', true)`.

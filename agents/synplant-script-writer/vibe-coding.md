@@ -45,6 +45,35 @@ my-synplant-scripts/
 Write project scripts under `scripts/`, not inside the SDK checkout, unless you are deliberately
 contributing SDK examples.
 
+For `.spscript` packages, remember that `include:` and `resources:` paths in the package `.schema`
+are relative to that `.schema` file. The bundled examples live under
+`references/synplant-scripts-sdk/examples/`, so their schema header uses paths that are correct for
+that location. A new package under this project layout should be created with paths that are correct
+from `scripts/MyTool.spscript/MyTool_main.schema`:
+
+```schema
+include: ../../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
+resources: ../
+resources: ../../references/synplant-scripts-sdk/Synplant Resources
+```
+
+This is only for CushyLint and editor/schema tooling in the project checkout. Runtime loading inside
+Synplant resolves installed script resources separately.
+
+The same rule applies if the SDK's `JS Console.spscript` is copied into project `scripts/`. Its
+original schema paths are correct at the SDK root, not under `scripts/`. In the standard project
+layout, rewrite `scripts/JS Console.spscript/JSConsole.schema` to:
+
+```schema
+include: ../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
+resources: ../
+resources: ../references/synplant-scripts-sdk/Synplant Resources
+```
+
+Do not copy `Synplant Resources/` into `scripts/` to satisfy copied SDK schema paths. If CushyLint or
+an editor is looking for `scripts/Synplant Resources/`, the copied package schema is wrong; update the
+schema paths instead.
+
 ## Minimal project `AGENTS.md`
 
 ```md
@@ -130,6 +159,11 @@ the engine and globals alive, so the bridge survives it. In the JS Console windo
 reload button (or `reload`); a `reset` performs a full engine reset that clears globals and tears down
 the bridge. Closing Synplant's window destroys the whole environment. GUI scripts must survive being
 re-run, because an end user changing the zoom scale also forces a reload.
+
+If CushyLint validates a fixed file but Synplant still shows the old parse error, assume Synplant is
+still serving a cached resource and reload before chasing a new theory. The bridge is excellent for
+engine logic, but it cannot see pixels; GUI rendering and blank-text/font issues require looking at
+the actual Synplant window.
 
 ## JavaScript style
 

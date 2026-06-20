@@ -987,8 +987,11 @@ applied across branches; <code>patchId</code> controls whether the audio
 engine smooths parameter changes. Setting either to <code>null</code>
 before <code>setElement('patch', …)</code> asks Synplant to assign a
 fresh unique id — do this when a genuinely new patch is created (from
-loading, randomization, Genopatch, etc.). <code>legacyMode</code> puts a
-patch into Synplant 1 compatibility behavior. <a
+loading, randomization, Genopatch, etc.). For repeatedly updated
+versions of the same sounding patch, keep <code>patchId</code> stable so
+held notes can smooth instead of retriggering; keep <code>seedId</code>
+stable when branch detuning should not jump. <code>legacyMode</code>
+puts a patch into Synplant 1 compatibility behavior. <a
 href="#spawnpatch"><code>spawnPatch</code></a> grows a new patch from a
 chosen branch, the scripted equivalent of planting a seed.</p>
 <h3 id="gene-categories">Gene categories</h3>

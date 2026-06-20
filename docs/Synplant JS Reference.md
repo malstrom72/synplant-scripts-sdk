@@ -859,9 +859,11 @@ A Synplant patch is built from three layers of parameters:
 `seedId` controls the pseudo-random atonality detuning applied across branches; `patchId` controls
 whether the audio engine smooths parameter changes. Setting either to `null` before
 `setElement('patch', …)` asks Synplant to assign a fresh unique id — do this when a genuinely new
-patch is created (from loading, randomization, Genopatch, etc.). `legacyMode` puts a patch into
-Synplant 1 compatibility behavior. [`spawnPatch`](#spawnpatch) grows a new patch from a chosen
-branch, the scripted equivalent of planting a seed.
+patch is created (from loading, randomization, Genopatch, etc.). For repeatedly updated versions of
+the same sounding patch, keep `patchId` stable so held notes can smooth instead of retriggering; keep
+`seedId` stable when branch detuning should not jump. `legacyMode` puts a patch into Synplant 1
+compatibility behavior. [`spawnPatch`](#spawnpatch) grows a new patch from a chosen branch, the
+scripted equivalent of planting a seed.
 
 ### Gene categories
 

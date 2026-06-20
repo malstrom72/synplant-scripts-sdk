@@ -21,6 +21,23 @@ the UI and is bounded by the ~20 s suspension limit. See
 [`tools/jsconsole-bridge-mcp/README.md`](../../tools/jsconsole-bridge-mcp/README.md) and
 [`vibe-coding.md`](vibe-coding.md).
 
+### GUI render checks
+
+The bridge verifies JavaScript behavior, not pixels. These signals are useful for logic and routing
+but do not prove the `.cushy` rendered correctly:
+
+- `getDisplayedCushy('script')` reports the current script-layer layout path. It does not prove that
+  the layout parsed, drew, or contains visible text.
+- A package's `_main.js` may run and create its global object even if the companion `.cushy` layout
+  has a parse/render problem.
+- Calling a script's JavaScript methods over the bridge tests script logic, not the on-screen view
+  tree.
+
+Cushy/Makaron parse errors are shown in native modal OS dialogs outside the Cushy layer system. There
+is no known bridge API for reading those dialogs. Missing fonts, clipped bounds, bad IVG drawing,
+wrong z-order, stale resources, parse dialogs, and other render-only issues require looking at the
+actual Synplant window.
+
 To check that the TypeScript `GenomeParamId` union still matches the live engine's `GENES` array,
 capture the live gene names and run the SDK drift check:
 
@@ -62,7 +79,12 @@ The product schema is [`Synplant Resources/Synplant2.schema`](../../Synplant%20R
 (which pulls in the standard host actions from [`CushyLint/chimera.schema`](../../CushyLint/chimera.schema));
 package `.schema` headers include it. The first run also compiles the schema, so it is slower than later runs. A CushyLint pass
 confirms `.cushy` syntax and schema conformance only — never runtime behavior; verify that with the
-live bridge, and do not claim a pass you did not actually run.
+live bridge and by looking at the real window, and do not claim a pass you did not actually run.
+
+CushyLint reads the current file from disk. Synplant may still be using cached resources from before
+your latest edit while the window is open. If CushyLint says the file is valid but Synplant still
+shows an older parse error, run `sp_eval("performCushyAction('reload')")` or use the JS Console reload
+button, then test again.
 
 ## Package schema header
 
@@ -85,10 +107,42 @@ Adjust `<rel>` to wherever the product schema lives in the project. Declare reso
 schema (not only on the CushyLint command line) so editor integrations resolve `@include
 scriptSupport.makaron`, `file:` references, and built-in resources consistently.
 
+For scripts developed outside this SDK checkout, schema paths must match where the package actually
+lives. The bundled examples use `../../Synplant Resources/...` because they live under
+`examples/<Name>.spscript/` inside the SDK. In the recommended separate-project layout, packages live
+under `scripts/<Name>.spscript/`, so a newly created package schema should point back to
+`../../references/synplant-scripts-sdk/Synplant Resources/...` from the start. See
+[`vibe-coding.md`](vibe-coding.md) for the project-layout header.
+
+The same rule applies to SDK packages copied into project `scripts/`. For example, if
+`JS Console.spscript` is copied from `references/synplant-scripts-sdk/JS Console.spscript` to
+`scripts/JS Console.spscript`, rewrite the copied `scripts/JS Console.spscript/JSConsole.schema`
+header to:
+
+```schema
+include: ../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
+resources: ../
+resources: ../references/synplant-scripts-sdk/Synplant Resources
+```
+
+Do not make `scripts/Synplant Resources/` to satisfy the copied schema's original SDK-relative paths.
+That directory should not exist in the project scripts folder; the correct fix is to point the copied
+`.schema` file back to the SDK checkout under `references/`.
+
+The `include:` line brings in Synplant-specific view and action definitions. The `resources: ../`
+line lets package-local file references resolve through the package's parent directory. The
+`resources: <rel>/Synplant Resources` line lets `@include scriptSupport.makaron` and built-in
+resources such as `rectDropShadow` resolve. Declare these resource roots in the schema, not only
+through a CushyLint command-line argument, so editor integrations resolve includes and file references
+consistently.
+
 ## What validation does and does not prove
 
 - A clean syntax/schema check confirms the `.js`/`.cushy` parse and conform — not that the script
   behaves correctly inside Synplant.
+- CushyLint validates the current on-disk files; it does not model Synplant's runtime resource cache.
+- CushyLint does not flag text-bearing views/styles that omit `font`; those are schema-valid but draw
+  blank in Synplant.
 - CushyLint does not validate or rasterize IVG drawing code. Check IVG against
   [`docs/IVG Documentation.md`](../../docs/IVG%20Documentation.md) and known-working example resources.
 - The authoritative behavioral check is running it in Synplant — over the bridge when possible.

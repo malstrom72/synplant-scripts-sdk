@@ -114,6 +114,10 @@ has to write one position and visible flag per marker instead of one value per c
 - Over the bridge, a normal reload is `sp_eval("performCushyAction('reload')")`: it flushes cached
   resources, rebuilds the open GUI, and reruns JavaScript without replacing the engine. It does not
   close the current script window, so the bridge survives it.
+- Synplant caches `.cushy`, JavaScript, IVG, and other script resources while the window is open.
+  CushyLint reads fresh files from disk, but Synplant may still show an old parse error from its
+  cache until a normal reload. If the on-disk file validates but Synplant still reports a stale error,
+  reload before debugging the file further.
 - A full reset (the JS Console `reset`, or `performCushyAction('reload', 'reset')`) recreates the
   engine and clears globals. Do not drive a full reset over the bridge — it tears the bridge down.
 - If interaction objects are kept across reloads they may retain old methods and closures. For
@@ -122,6 +126,19 @@ has to write one position and visible flag per marker instead of one value per c
   returns before the package's `_main.js` runs. Do not assert the package global in the same
   `sp_eval`; check it in a follow-up eval. Inspect which script window is open with
   `sp_eval("getDisplayedCushy('script')")`, and confirm the scripts root with `sp_eval("DIRS.SCRIPTS")`.
+
+## GUI render verification
+
+The JS Console bridge verifies script logic, not the rendered GUI. `getDisplayedCushy('script')`
+reports the script-layer layout path that Synplant is trying to display; it does not prove the
+layout parsed, painted, or contains visible text. A package's `_main.js` can run and create its
+global object even when the companion `.cushy` has a layout problem, so bridge calls into that object
+can pass while the window is blank or broken.
+
+Cushy/Makaron parse errors are shown in native modal OS dialogs outside the Cushy layer system. There
+is no known bridge API for reading those dialogs. Missing fonts, clipped bounds, bad IVG drawing,
+wrong z-order, stale resources, parse dialogs, and other render-only issues require looking at the
+actual Synplant window.
 
 ## Timed actions and animation
 
@@ -446,6 +463,9 @@ padPress: function () {
 Cushy has no default font. Any text — `caption` views, button `caption` fields (via `font` in the
 button style), bubble styles, or any other text-bearing view — is not drawn at all unless that view
 or style has an explicit `font`. There is no fallback font.
+
+CushyLint does not flag this. A text-bearing view/style with no `font` is schema-valid and can still
+render blank in Synplant.
 
 ```cushy
 // caption view

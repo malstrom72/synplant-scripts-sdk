@@ -26,7 +26,9 @@ Starting points by task:
 When adapting an example:
 
 - Preserve the package structure unless the task clearly calls for a single-file script.
-- Update schema includes and resource paths consistently.
+- Create the package `.schema` with paths that are correct for the package's actual location. The SDK
+  examples' `../../Synplant Resources/...` header is correct inside `examples/`; a separate project
+  under `scripts/` normally points back through `../../references/synplant-scripts-sdk/...`.
 - Keep generated JavaScript within the engine's ES3 constraints (see
   [`instructions.md`](instructions.md)).
 - Verify behavior against the live engine with the bridge when it is available.
