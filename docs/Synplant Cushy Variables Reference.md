@@ -171,6 +171,16 @@ written.
 Use `instance.*` for state that should survive closing and reopening the GUI window, and `project.*`
 for state that should travel with the user's saved song.
 
+Keep persisted data small and intentional. Large or frequently changing `preferences.*` values can
+make global preference loading/saving heavier, and excessive `project.*` data adds to host project
+state. Do not use these namespaces as general caches, logs, or bulk data stores; prefer ordinary
+JavaScript state for rebuildable data and `instance.*` for temporary per-instance GUI state.
+
+These namespaces control persistence only. They are not documented as patch undo snapshots; GUI
+scripts that mirror patch state should still resync from the patch when `patch.identity` changes
+(`getElementId('patch')` is the matching JavaScript API). See [Script State and Undo
+Sync](Synplant%20JS%20Reference.md#script-state-and-undo-sync).
+
 ## Feedback variables
 
     feedbacks.<id>      read-only    // product-defined feedback/metering values

@@ -38,7 +38,7 @@ declare type BrowserType = "open" | "save" | "folder"
 	Special recognized filetypes: "synplant", "synp", "scmc", "mid", "wav", "wave", "aiff", "aifc", "aif", "afc", "txt", "js"
 	If fileTypes is null, all files are accepted
 	If fileTypes contains audio file extensions, a sample preview is enabled
-	If fileTypes are only "synplant" and / or "synp", the patch browser with preview will be used
+	If fileTypes are only "synplant" and / or "synp", the patch browser will be used, with Factory/User shortcuts and MIDI preview
 	defaultFileName is only used for save browser, do *not* include file extension
 	If initialDir is null, a directory is chosen automatically based on the first extension in fileTypes
 */
@@ -203,6 +203,7 @@ declare function marshal(type: "midiConfig", source: MidiConfig, forFile?: boole
 declare function unmarshal(type: "midiConfig", source: string): MidiConfig
 
 declare function spawnPatch(patch: Patch, branchNumber: Integer, newSeedId?: Integer): Patch
+/** Selects the non-committal preview patch. Does not trigger sound on its own; play MIDI to audition it. */
 declare function setPreview(patch?: Patch): void
 
 declare function editParam(param: number | ParamId, beginEdit?: boolean): void

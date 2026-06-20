@@ -33,6 +33,7 @@ document is the prose companion to it.
     -   [Mods](#mods)
     -   [GUI Variables](#gui-variables)
     -   [GUI Actions](#gui-actions)
+    -   [Script State and Undo Sync](#script-state-and-undo-sync)
     -   [Optional Hooks](#optional-hooks)
     -   [Performance Notes](#performance-notes)
 
@@ -83,7 +84,8 @@ What scripts *can* do is considerable:
     [`papageno`](#papageno-genopatch) object — load a reference sound, run an evolutionary search,
     read back solutions.
 -   **Send MIDI.** [`sendMidi(...)`](#sendmidi) emits a MIDI message.
--   **Preview patches.** [`setPreview(...)`](#setpreview) auditions a patch without committing it.
+-   **Preview patches.** [`setPreview(...)`](#setpreview) selects a patch for non-committal
+    auditioning without loading it.
 
 File I/O is sandboxed; see [File Access and Permissions](#file-access-and-permissions).
 
@@ -294,8 +296,10 @@ Opens a file browser and returns the chosen path, or `null` if cancelled. `brows
 dot); pass `null` to accept all files. Recognized types include `"synplant"`, `"synp"`, `"scmc"`,
 `"mid"`, `"wav"`, `"wave"`, `"aiff"`/`"aifc"`/`"aif"`/`"afc"`, `"txt"`, and `"js"`. If `fileTypes`
 contains audio extensions a sample preview is enabled; if it is only `"synplant"`/`"synp"` the patch
-browser with preview is used. `defaultFileName` (save browser only) should omit the extension. If
-`initialDir` is `null`, a directory is chosen automatically from the first extension.
+browser is used. That browser includes Factory Patches / User Patches navigation shortcuts and lets
+the user audition the selected patch by playing MIDI before loading it. `defaultFileName` (save
+browser only) should omit the extension. If `initialDir` is `null`, a directory is chosen
+automatically from the first extension.
 
 See also: [dir](#dir), [load](#load), [save](#save).
 
@@ -557,6 +561,12 @@ See also: [load](#load).
 Records an undo checkpoint with the given description before a change. `collapse` merges this step
 with the previous one of the same description.
 
+Call `saveUndo` immediately before applying a script change. The snapshot captures the state to
+return to, so the pattern is snapshot-then-mutate; calling it after the change can record the
+already-modified state and make the undo step ineffective. For a continuous gesture such as dragging
+a custom control, create one undo checkpoint at the first document-changing update, not on every
+mouse move. The host manages redo automatically; there is no `saveRedo`.
+
 ### sendMidi
 
     function sendMidi(status: Integer, [data1: Integer], [data2: Integer]) : void
@@ -595,8 +605,9 @@ See also: [getParam](#getparam), [editParam](#editparam).
 
     function setPreview([patch: Patch]) : void
 
-Auditions `patch` as a non-committal preview, the way the patch browser does on hover. Call with no
-argument to stop previewing.
+Selects `patch` as the current non-committal preview, the same kind of patch the patch browser lets
+the user audition before loading. `setPreview` does not trigger a note on its own; the user must play
+MIDI to hear the selected preview patch. Call with no argument to stop previewing.
 
 ### spawnPatch
 
@@ -837,6 +848,16 @@ Dump the boundary from the running plug-in:
         print(i + '\t' + GENES[i].NAME + (i < GROWABLE_GENE_COUNT ? '\tgrowable' : '\tnon-growable'));
     }
 
+### Panning and stereo
+
+Synplant's stereo placement is tied to branch position in the bulb: branches on the left side pan
+left, and branches on the right side pan right. The non-growable `adj_pan` gene controls the amount
+of this branch-position panning for the whole patch. In Layered mode, spreading enabled layers around
+the bulb therefore creates a wider stereo image than clustering them near the same angle.
+
+The exact normalized transfer function for `adj_pan` is not part of the script API contract; treat it
+as the patch's global panning amount rather than assuming a particular linear mapping.
+
 ### Explicit branch morphs
 
 By default a branch grows a random variation of the seed: `branch.explicit` is `null`, and the
@@ -1035,6 +1056,52 @@ implement an action as:
 -   a function with the action's name (receives the parameter), or
 -   an object with an `execute(param)` function and optional `enabled(param)` and `checked(param)`
     functions returning booleans.
+
+### Script State and Undo Sync
+
+Undo snapshots restore Synplant's document state, not a running script's JavaScript variables or
+derived GUI state. If a GUI script keeps cached data, selections, generated display buffers, or other
+state derived from the patch, undo/redo can make that cache stale. The usual pattern is to watch the
+Cushy variable `patch.identity` and refresh only when it changes. In JavaScript, the same identity is
+available through [`getElementId('patch')`](#getelementid).
+
+Use a Cushy `autoexecs` `onChanged` action to run the refresh after patch changes:
+
+```javascript
+if (!this.myScript) {
+    myScript = {
+        lastPatchId: null,
+        refreshFromPatch: function() {
+            var id = getElementId('patch');
+            if (this.lastPatchId === id) {
+                return;
+            }
+            this.lastPatchId = id;
+            this.patch = getElement('patch');
+            // Rebuild cached UI state derived from this.patch here.
+        }
+    };
+}
+```
+
+```numbstrict
+autoexecs: {
+    {
+        action: "myScript.refreshFromPatch"
+        onReload: true
+    }
+    {
+        onChanged: patch.identity
+        action: "myScript.refreshFromPatch"
+    }
+}
+```
+
+Call [`saveUndo`](#saveundo) before script actions that modify the patch. After `setElement('patch',
+patch)` or parameter edits, update the script's cached `lastPatchId` or let the next `onChanged`
+refresh do it. Persisted Cushy variables such as `preferences.*`, `instance.*`, and `project.*`
+control storage lifetime; they are not a substitute for undo snapshots and are not documented as
+participating in the patch undo history.
 
 ### Optional Hooks
 
