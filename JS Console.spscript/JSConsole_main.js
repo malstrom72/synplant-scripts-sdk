@@ -305,18 +305,18 @@ Object.assign(jsConsole, {
 		var jc = this;
 		var captured = '';
 		var result = { ok: true, value: '', output: '', error: '' };
+		var savedPrint = print;
 		/*
 			Echo the incoming command into the console so the user sees what the
 			host is doing, then capture print() output while still showing it.
 		*/
-		jc.printNoLF("BRIDGE> " + code + '\n');
-		var savedPrint = print;
-		print = function(s) {
-			captured += s + '\n';
-			jc.printNoLF(s + '\n');
-			jc.realPrint(s);
-		};
 		try {
+			jc.printNoLF("BRIDGE> " + code + '\n');
+			print = function(s) {
+				captured += s + '\n';
+				jc.printNoLF(s + '\n');
+				jc.realPrint(s);
+			};
 			_ = eval.call(null, code);
 			result.value = jc.bridgeStringify(_);
 			jc.printNoLF("  = " + result.value + '\n');
@@ -346,27 +346,38 @@ Object.assign(jsConsole, {
 		var req;
 		try {
 			req = JSON.parse(text);
-		} catch (e) {
-			return;		// partial or invalid write, try again next tick
-		}
-		if (!req || typeof req.seq != 'number' || req.seq <= jc.bridge.lastSeq) {
-			return;
-		}
-		jc.bridge.lastSeq = req.seq;
-		var r = jc.bridgeEval('' + req.code);
-		var response = {
-			seq: req.seq,
-			ok: r.ok,
-			value: r.value,
-			output: r.output,
-			error: r.error
-		};
-		try {
-			save(base + 'response.json', JSON.stringify(response));
-		} catch (e) {
-			print("!!! bridge: failed to write response: " + e);
-		}
-	},
+			} catch (e) {
+				return;		// partial or invalid write, try again next tick
+			}
+			if (!req || typeof req.seq != 'number' || req.seq <= jc.bridge.lastSeq) {
+				return;
+			}
+			jc.bridge.lastSeq = req.seq;
+			var response;
+			try {
+				var r = jc.bridgeEval('' + req.code);
+				response = {
+					seq: req.seq,
+					ok: r.ok,
+					value: r.value,
+					output: r.output,
+					error: r.error
+				};
+			} catch (e) {
+				response = {
+					seq: req.seq,
+					ok: false,
+					value: '',
+					output: '',
+					error: '' + e
+				};
+			}
+			try {
+				save(base + 'response.json', JSON.stringify(response));
+			} catch (e) {
+				print("!!! bridge: failed to write response: " + e);
+			}
+		},
 	minimize: {
 		execute: function() { jsConsole.minimized = !jsConsole.minimized; },
 		checked: function() { return !jsConsole.minimized; }
