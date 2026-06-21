@@ -86,6 +86,55 @@ your latest edit while the window is open. If CushyLint says the file is valid b
 shows an older parse error, run `sp_eval("performCushyAction('reload')")` or use the JS Console reload
 button, then test again.
 
+## Static IVG validation
+
+CushyLint validates that referenced `.ivg` files exist, but it does not parse or rasterize the IVG
+source inside them. Run the static IVG renderer before trusting a new external icon or vector:
+
+```sh
+tools/validate-static-ivg.sh        # macOS / Linux
+tools\validate-static-ivg.cmd       # Windows
+```
+
+The validator renders self-contained static `.ivg` files under `Synplant Resources` and `examples`
+to PNG using `tools/IVG2PNG/`. Files that depend on GUI/Cushy variables are reported as
+dynamic and skipped. Files that use filesystem IVG `include` statements are also skipped: `IVG2PNG`
+parses `include`, but this command-line executor does not provide a filesystem include loader, so
+`include support.ivg` reports `Could not include file`. Helper files with no top-level `bounds` are
+skipped too. A failure here catches IVG syntax and renderer errors that a `.cushy` schema pass cannot
+see. By default output goes to `/tmp/synplant-static-ivg-validation` on macOS/Linux or
+`%TEMP%\synplant-static-ivg-validation` on Windows; pass a directory path to override it.
+
+Inline Cushy `code:` snippets still need manual review or extraction before `IVG2PNG` can render
+them. If an IVG source depends on runtime variables or filesystem includes, create a temporary
+self-contained `_test.ivg` copy, substitute representative hardcoded values, inline or simplify
+dependencies as needed, and render that test file directly:
+
+```sh
+tools/IVG2PNG/IVG2PNG --fonts IVG/fonts "path/to/MyFile_test.ivg" "/tmp/MyFile_test.png"
+```
+
+The test IVG must open with `format` and `bounds` so the renderer knows the canvas size:
+
+```ivg
+format IVG-2 requires:IMPD-1
+bounds 0,0,300,300
+```
+
+For tiny glyphs or cell-sized artwork, render a scaled test version that shows the glyph in context.
+Put `scale N` after `bounds` and size the bounds proportionally, for example `bounds 0,0,288,64`
+plus `scale 4` for a 72x16 layout. Stroke widths scale too, so use this to judge proportions rather
+than exact pixel thickness. When testing transparent or stroke-only glyphs, pass a realistic
+background color:
+
+```sh
+tools/IVG2PNG/IVG2PNG --fonts IVG/fonts --background "#202020" "path/to/MyGlyph_test.ivg" "/tmp/MyGlyph_test.png"
+```
+
+For comparing variants, render each variant as its own `_test.ivg` strip with neighboring cells or
+surrounding UI color included. Inspecting the generated PNG inside the assistant only verifies it for
+the assistant; if the user needs to see the result, open or share the rendered PNG explicitly.
+
 ## Package schema header
 
 Each `.spscript` package should include a package-local `.schema` next to its main `.cushy`. It
@@ -143,6 +192,6 @@ consistently.
 - CushyLint validates the current on-disk files; it does not model Synplant's runtime resource cache.
 - CushyLint does not flag text-bearing views/styles that omit `font`; those are schema-valid but draw
   blank in Synplant.
-- CushyLint does not validate or rasterize IVG drawing code. Check IVG against
-  [`docs/IVG Documentation.md`](../../docs/IVG%20Documentation.md) and known-working example resources.
+- CushyLint does not validate or rasterize IVG drawing code. Use `tools/validate-static-ivg.*` for
+  static `.ivg` files, and still check dynamic IVG in the real Synplant window.
 - The authoritative behavioral check is running it in Synplant — over the bridge when possible.

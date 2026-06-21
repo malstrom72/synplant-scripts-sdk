@@ -34,6 +34,11 @@ Use these repository files as the grounding map for Synplant scripting work.
 - [`docs/ivgfont Documentation.md`](../../docs/ivgfont%20Documentation.md) — the `.ivgfont` format.
 - [`cushy-notes.md`](cushy-notes.md) — practical Cushy gotchas and patterns.
 
+The IVG, ImpD, Makaron, and related language documents are mirrored from upstream Sonic Charge
+sources such as [`malstrom72/IVG`](https://github.com/malstrom72/IVG). Do not make local SDK-only
+edits to those reference documents unless the same change has first been made upstream and then
+synced into this SDK. Put Synplant-specific workflow notes in the agent docs instead.
+
 ## Mods
 
 - [`docs/Synplant Mods Guide.md`](../../docs/Synplant%20Mods%20Guide.md) — writing Mods that patch

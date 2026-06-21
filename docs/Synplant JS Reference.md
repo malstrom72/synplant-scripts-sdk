@@ -454,6 +454,9 @@ See also: [setParam](#setparam), [paramText](#paramtext).
 Returns `true` if `source` is the marshaled (file) text form of the given element type. Marshaled
 patches begin with `SynplantPatch:` and MIDI configs with `SynplantMIDIConfig:`.
 
+Use this before passing user-provided or external text to [`unmarshal`](#unmarshal). Some malformed
+marshaled data raises host-level format errors that are not catchable with JavaScript `try/catch`.
+
 See also: [marshal](#marshal), [unmarshal](#unmarshal).
 
 ### load
@@ -691,6 +694,11 @@ Returns the localized translation of `s`, or `s` unchanged if no translation exi
     function unmarshal(type: "midiConfig", source: string) : MidiConfig
 
 Parses the marshaled text form back into a patch or MIDI config object.
+
+Validate untrusted text with [`isMarshaledFormat`](#ismarshaledformat) before calling `unmarshal`.
+Numbstrict parse errors are ordinary JavaScript exceptions, but structurally invalid marshaled data
+can raise a host-level `Invalid data format` error that aborts the current action instead of entering
+a JavaScript `catch` block.
 
 See also: [marshal](#marshal), [isMarshaledFormat](#ismarshaledformat).
 

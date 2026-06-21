@@ -90,6 +90,8 @@ Synplant's interface and scripting are built from several Sonic Charge technolog
 - [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp) — a small
   [Model Context Protocol](https://modelcontextprotocol.io) server that evaluates JavaScript against a
   live Synplant engine through the JS Console bridge (see [Live scripting bridge](#live-scripting-bridge)).
+- [`IVG/`](IVG) — a curated vendored snapshot of the IVG source, renderer tools, fonts, tests, and
+  documentation used by the static IVG validation tools.
 - `examples/` — complete, working example scripts, indexed by the
   [Script Examples](docs/Synplant%20Script%20Examples.md) document.
 - `snippets/` — stable, copyable source snippets for script authors. Copy these into your script's
@@ -186,6 +188,26 @@ CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 Pass a directory path with a trailing slash so companion `.schema` files are picked up. For an
 orientation to the system, read [Cushy Documentation](docs/Cushy%20Documentation.md).
 
+### IVG2PNG
+
+The `IVG` directory is a curated vendored snapshot of the upstream
+[IVG repository](https://github.com/malstrom72/IVG). A prebuilt `IVG2PNG` binary for macOS and
+Windows is included in `tools/IVG2PNG/`, so no compiler is needed for normal use.
+
+To render all static `.ivg` resources in this SDK:
+
+```sh
+tools/validate-static-ivg.sh        # macOS / Linux
+tools\validate-static-ivg.cmd       # Windows
+```
+
+The rendered PNGs are written to a temp directory by default (`/tmp/synplant-static-ivg-validation`
+on macOS/Linux, `%TEMP%\synplant-static-ivg-validation` on Windows). IVG files that depend on Cushy
+or GUI variables, filesystem `include` files, or helper files with no top-level `bounds` are reported
+as skipped by this static renderer pass. If the prebuilt binary cannot run on your platform, the
+scripts automatically rebuild `IVG2PNG` from source using `tools/build-ivg2png.sh` (macOS/Linux) or
+`tools\build-ivg2png.cmd` (Windows, requires MSVC).
+
 ## Live scripting bridge
 
 For development, the `JS Console.spscript` package includes a file bridge that lets an external
@@ -207,8 +229,9 @@ editor completion and type checking.
 
 ## Prerequisites
 
-For everyday scripting — writing `.cushy` and `.js` files and running CushyLint — no extra tools are
-needed beyond what is in this repository; the CushyLint binaries are prebuilt.
+For everyday scripting — writing `.cushy` and `.js` files, running CushyLint, and rendering static
+IVG resources — no extra tools are needed beyond what is in this repository; the CushyLint and
+IVG2PNG binaries are prebuilt for macOS and Windows.
 
 [Node.js](https://nodejs.org/) (version 18 or newer) is needed only for two optional tasks: running
 the JS Console MCP bridge server in [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp), and
@@ -220,6 +243,9 @@ installs [Docling](https://github.com/DS4SD/docling) into a local virtual enviro
 
 [Pandoc](https://pandoc.org/) is needed only for SDK maintenance: `tools/regenerate-doc-html.sh`
 uses it to regenerate the checked-in HTML copies of Markdown reference docs.
+
+A C++ compiler (Xcode/`g++` on macOS, MSVC on Windows) is needed only if the prebuilt `IVG2PNG`
+binary cannot run on your platform and `tools/validate-static-ivg.*` has to rebuild it from source.
 
 ## A note on compatibility
 

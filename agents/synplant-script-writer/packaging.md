@@ -38,6 +38,11 @@ The bundled SDK examples use `../../Synplant Resources/...` because they live un
 `examples/<Name>.spscript/` inside the SDK checkout. Do not copy that header unchanged into a
 different directory depth.
 
+Package-local resources are still resolved from the schema's `resources:` roots, not from the
+`.cushy` file's directory. If a file sits next to the layout in `My Script.spscript/Icon.ivg`, refer
+to it through the package folder, for example `ivgFile: "My Script.spscript/Icon"` or
+`file: "My Script.spscript/Icon"`, not just `"Icon"`.
+
 ### GUI startup pattern
 
 - Open the window from the launcher with `displayCushy('<Name>.spscript/<Name>_main', 'script', true)`.
@@ -56,9 +61,3 @@ the built-in GUI, or alter its behavior. A Mod is a `.js` file in a `Mods/` subf
 folder; every `.js` there runs automatically at startup. Mods rewrite Synplant's built-in `.cushy`
 source as it loads and/or monkey-patch its JavaScript. They are the most powerful and the most
 version-sensitive shape. See the [Mods Guide](../../docs/Synplant%20Mods%20Guide.md).
-
-## Generators that overwrite the patch
-
-For a generator that derives from the current patch and then writes a new patch, capture a stable
-snapshot of the source patch when the script opens, generate from that snapshot rather than from
-partially-overwritten live data, and bracket the change with `saveUndo`.

@@ -521,15 +521,32 @@ reads it on open and writes it on drag, but persistence is the script's responsi
 ## IVG notes
 
 - **Prefer external `.ivg` files over inline `code:`** for static graphics (no GUI-variable
-  references): reference them with `file: "name"` (no extension). External files are easier to review
-  and test in isolation; inline snippets are not.
+  references). External files are easier to review and test in isolation; inline snippets are not.
+- **Package-local IVG paths include the package folder.** Resource lookup starts from the schema's
+  `resources:` roots, usually the parent of the package, not the `.cushy` file's directory. For
+  `My Tool.spscript/Icon.ivg`, use `ivgFile: "My Tool.spscript/Icon"` or
+  `file: "My Tool.spscript/Icon"`, not bare `"Icon"`.
+- **Button icons belong in the button style `icon:` field.** For an icon-only or icon-plus-frame
+  button, use a style like
+  `standard: { icon: { ivgFile: "My Tool.spscript/Icon", defines: { fill: "@textColor" } } }`.
+  The button view's top-level `vector:` field is a separate overlay drawn on top of the normal button
+  graphics with button-state variables available; do not use it just to supply a regular button icon.
+- **SVG path whitespace:** unbracketed `path svg:` data must be one ImpD argument. Compact paths like
+  `path svg:M3,7L8,7L10,9Z` work; paths containing spaces should use brackets, e.g.
+  `path svg:[M 3,7 L 8,7 L 10,9 Z]`.
 - **Colors:** `none` is transparent; `rgb(r,g,b,a)` uses normalized components (`rgb(1,1,1,0.35)`, not
   0–255); CSS-style `rgba(...)` is not valid IVG.
 - **Font coverage:** the built-in `sans-serif` does not cover all Unicode. Use printable ASCII
   (U+0020–U+007E) in GUI-variable return values and captions; characters like the em-dash `—` render
   as replacement boxes. Use `-` or `...` instead.
 
-See [`docs/IVG Documentation.md`](../../docs/IVG%20Documentation.md) for the IVG language.
+Use `tools/validate-static-ivg.sh` / `tools\validate-static-ivg.cmd` for static `.ivg` files. For
+dynamic IVG or IVG that uses filesystem `include`, make a temporary self-contained `_test.ivg` copy
+with representative hardcoded values, add explicit `bounds`, and render it with
+`tools/IVG2PNG/IVG2PNG --fonts IVG/fonts`.
+Use `--background "#202020"` or another realistic color for transparent or stroke-only artwork. See
+[`validation.md`](validation.md#static-ivg-validation) for the full PNG-check workflow and
+[`docs/IVG Documentation.md`](../../docs/IVG%20Documentation.md) for the IVG language.
 
 ## File extensions and `dir()` scanning
 
@@ -537,14 +554,13 @@ Common Synplant file types: patches are `.synplant` (legacy `.synp`), MIDI confi
 and GUI script packages are `.spscript` directories. `browse` also recognizes audio types (`wav`,
 `wave`, `aiff`/`aif`/`aifc`/`afc`) for Genopatch references.
 
-**`dir()` with an extension filter excludes directories.** When `dir(path, filter)` is given an
-extension filter, only matching files are returned — subdirectories are dropped, which silently breaks
-recursive scanning. When a scan must recurse, call `dir(path)` with **no filter** and test the
-extension manually on non-directory entries:
+`dir(path, filter)` accepts one extension string or an array of extension strings. Extensions do not
+include the leading dot. The special extension `"/"` includes directories, so use an array when a
+recursive scan wants both subdirectories and selected file types:
 
 ```javascript
 function scanDir(path) {
-    var entries = dir(path);              // no filter — directories are included
+    var entries = dir(path, [ '/', 'synplant', 'synp' ]);
     for (var i = 0; i < entries.length; ++i) {
         var e = entries[i];
         if (e.isDirectory) {
@@ -556,4 +572,6 @@ function scanDir(path) {
 }
 ```
 
-An extension filter is safe only for known-flat directories where no subdirectories need traversing.
+Use `dir(path)` with no filter only when you need every entry regardless of extension. A filter such
+as `dir(path, 'synplant')` returns matching files only; it does not include subdirectories unless
+`"/"` is part of the filter.
