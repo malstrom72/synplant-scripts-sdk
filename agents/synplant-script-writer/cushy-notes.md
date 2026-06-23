@@ -263,6 +263,11 @@ averages rather than tracing every tick.
   real-time host parameter updates the way replacing the whole patch can.
 - Poll `getElementId('patch')` (a cheap integer that changes on any edit) to detect when the patch
   changed, and only re-read the full patch when it does.
+- Ordinary `.spscript` windows are non-modal and stay open beside Synplant's own UI. If a control
+  changes the sound, edit the live document directly: `saveUndo(...)`, then `setElement('patch', ...)`
+  or parameter edits. Do not build a non-modal preview-plus-Apply editor; Save/export, undo/redo, A/B
+  compare, preset switching, and automation all operate on the live patch, not `setPreview`.
+- `setPreview` is for auditioning or a genuinely modal flow with one clear commit point.
 - Call `saveUndo(description)` **before** mutating patch state — the snapshot is the state the user
   returns to. For a continuous gesture, save undo on the first document-changing update and guard
   further drag updates until release, giving one undo entry per gesture. `saveUndo(..., collapse)` is a
@@ -530,7 +535,8 @@ reads it on open and writes it on drag, but persistence is the script's responsi
   button, use a style like
   `standard: { icon: { ivgFile: "My Tool.spscript/Icon", defines: { fill: "@textColor" } } }`.
   The button view's top-level `vector:` field is a separate overlay drawn on top of the normal button
-  graphics with button-state variables available; do not use it just to supply a regular button icon.
+  graphics with `$down`, `$checked`, `$disabled`, and `$caption` available; use it when the drawing
+  should react to button state, not just to supply a regular static button icon.
 - **SVG path whitespace:** unbracketed `path svg:` data must be one ImpD argument. Compact paths like
   `path svg:M3,7L8,7L10,9Z` work; paths containing spaces should use brackets, e.g.
   `path svg:[M 3,7 L 8,7 L 10,9 Z]`.

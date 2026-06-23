@@ -72,6 +72,12 @@ CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 
 Pass a directory path with a trailing slash so companion `.schema` files resolve.
 
+The `CushyLint/CushyLint` wrapper changes directory into `CushyLint/` before running the checker. If
+you pass extra command-line `.schema` files or resource directories, pass them as absolute paths;
+relative command-line args are resolved from the tool directory, not from your shell's current
+directory. Paths written inside a package-local `.schema` file are still relative to that `.schema`
+file.
+
 The `CushyLint` runner builds its `PikaCmd` engine from the vendored source
 ([`CushyLint/support/PikaCmd/`](../../CushyLint/support/PikaCmd)) on first run, so a C++ compiler is
 needed the first time on a platform without the prebuilt binary (an arm64-macOS binary is included).

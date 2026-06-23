@@ -30,8 +30,10 @@ document is the prose companion to it.
 -   [Cushy Interface](#cushy-interface)
     -   [Script Types](#script-types)
     -   [Script Startup](#script-startup)
+    -   [Script Window Editing](#script-window-editing)
     -   [Mods](#mods)
     -   [GUI Variables](#gui-variables)
+    -   [Dynamic Vector Graphics](#dynamic-vector-graphics)
     -   [GUI Actions](#gui-actions)
     -   [Script State and Undo Sync](#script-state-and-undo-sync)
     -   [Optional Hooks](#optional-hooks)
@@ -44,6 +46,15 @@ sandboxed JavaScript engine written by Magnus Lidström. It was designed to be s
 to integrate into existing products. It is fully ECMAScript 3 compliant with partial ECMAScript 5
 support (`JSON`, `[ ]` indexing of strings, `Object.assign`, `Array.isArray`, getters/setters, and a
 few other retrofits).
+
+**Known issue in currently shipped builds:** `Math.round()` does not coerce a string argument to a
+number before rounding. It evaluates `floor(x + 0.5)` without a `ToNumber` first, so a string makes
+the `+ 0.5` concatenate: `Math.round("7")` returns `70` (`"7" + 0.5` -> `"70.5"`), while
+`Math.round("7.5")` and `Math.round("-3.4")` return `NaN`. This matters because GUI-variable setters
+receive their value as a string, so any control value you round must be coerced first:
+`Math.round(+value)`. Only `Math.round` is affected; `Math.floor`, `Math.ceil`, `Math.abs`, and the
+other numeric `Math` functions coerce correctly. This is fixed in NuXJS and will be corrected in a
+future Synplant build.
 
 Every instance of Synplant runs in its own JavaScript environment, but all scripts within one
 instance share the same global object. The engine only works while the Synplant window is open. The
@@ -665,6 +676,9 @@ Selects `patch` as the current non-committal preview, the same kind of patch the
 the user audition before loading. `setPreview` does not trigger a note on its own; the user must play
 MIDI to hear the selected preview patch. Call with no argument to stop previewing.
 
+Do not use `setPreview` as the main editing model for a non-modal script window. See
+[Script Window Editing](#script-window-editing).
+
 ### spawnPatch
 
     function spawnPatch(patch: Patch, branchNumber: Integer, [newSeedId: Integer]) : Patch
@@ -1061,6 +1075,24 @@ if (!globals.myScript) { myScript = { /* initial state */ }; }
 Because all scripts share one global object, keep your script's state under a single object named
 after the script to avoid colliding with others.
 
+### Script Window Editing
+
+Most `.spscript` windows are non-modal: they stay open while the user can still use Synplant's own UI,
+save or export the current patch, switch presets, compare states, and undo or redo host edits. For
+that kind of window, edit the live document directly. A control that changes the sound should call
+[`saveUndo`](#saveundo) before the user-visible edit, then write the real patch with
+[`setElement('patch', patch)`](#setelement) or change parameters with [`setParam`](#setparam) /
+[`editParam`](#editparam).
+
+Avoid a preview-plus-Apply model in a non-modal editor. [`setPreview`](#setpreview) changes what the
+user hears, but Synplant's Save/export, undo/redo, A/B compare, preset switching, and automation work
+on the live patch, not the preview buffer. A non-modal preview can therefore make what the user hears
+different from what the host stores and can undo.
+
+Preview/apply is appropriate for auditioning or for a genuinely modal flow with a clear single commit
+point. For an ordinary script window, keep what-you-hear and what-the-host-stores the same, and use
+the [script state and undo sync](#script-state-and-undo-sync) pattern when the GUI keeps derived state.
+
 ### Mods
 
 A **Mod** is a script that patches Synplant's *own* built-in GUI at load time. Mods live in a `Mods`
@@ -1097,6 +1129,9 @@ resolves a variable in one of these ways:
 -   an existing JS object — with `get()`, `set(value)`, and optional `touch(beginEdit)` functions;
 -   a name that does not exist as a JS variable — Cushy creates a Cushy-only variable (avoid this).
 
+If a setter rounds the incoming value, coerce first with unary `+` (`Math.round(+value)`) to avoid the
+shipped-engine `Math.round` string bug described under [Engine](#engine).
+
 ```javascript
 myScript.myKnob = {
     get: function () { return '' + ((Math.exp(myScript.myValue) - 1) / 10); },
@@ -1108,6 +1143,56 @@ myScript.myKnob = {
 `false` when they finish. Beyond the per-script variables, Synplant exposes a large set of standard
 GUI variables and product variables — these are documented separately in the Cushy Variables
 reference.
+
+### Dynamic Vector Graphics
+
+Cushy `vector` views draw IVG/ImpD graphics. A vector source is one of:
+
+-   `file: "Pkg.spscript/MyGraphic"` — load an external `.ivg` resource, without the extension;
+-   `code: "..."` — inline IVG source in the `.cushy` file;
+-   `variable: myScript.ivgSource` — read the complete IVG source from a GUI variable.
+
+Use static IVG with `defines:` and `bindings:` when the drawing's geometry is fixed and only values
+such as colors, visibility, labels, or known positions change. This is the default dynamic-vector
+pattern because the `.cushy` file declares the IVG's input contract explicitly, and the `.ivg` file
+can still be rendered separately with representative values.
+
+`defines:` provides constant IVG variables for the render. `bindings:` maps named IVG variables to
+Cushy variables and re-reads them when they change. Use `guiVariables: true` only when the IVG
+genuinely needs open access to GUI variables by name. It allows ordinary ImpD `$name` expansion to
+read from the GUI-variable namespace; the vector tracks GUI variables accessed during the last
+repaint and refreshes when those values change. Reserve JavaScript-generated `variable:` source for
+cases where the geometry itself is computed or unbounded, such as a waveform, a variable-count
+constellation, or generated paths.
+
+Vector views are optimized for static and rarely changing graphics. After the first few redraws, an
+unchanged vector can be cached in a compressed offscreen buffer and reused until its source material,
+accessed bound variables, accessed native variables such as `$width`/`$height`, or accessed GUI
+variables change. `file:` vector source text is cached by the resource manager until a real reload
+(for example the JS Console reload button, `performCushyAction('reload')`, or a zoom-scale reload).
+Calling `displayCushy(...)` again or re-evaluating JavaScript over the bridge does not by itself
+re-read edited `.cushy` or `.ivg` resources.
+
+Button views have a separate top-level `vector:` field. It draws on top of the ordinary button
+graphics and provides IVG variables `$down`, `$checked`, and `$disabled` as `yes`/`no`, plus
+`$caption` as the expanded caption text. Use it when the overlay graphic should react to button
+state:
+
+```numbstrict
+{
+    type: "button"
+    action: "myScript.toggle"
+    checked: myScript.enabled
+    standard: { frame: "#808080", fill: "#202020" }
+    vector: {
+        code: "bounds 0,0,$width,$height; fill #808080; if {$checked == yes} [ fill #70E080 ]; ellipse {$width/2},{$height/2},4,4"
+    }
+}
+```
+
+By contrast, a button style's `icon:` field is an image. Its `ivgCode`/`ivgFile` image form has no
+access to Cushy variables; use the button `vector:` overlay or a separate `vector` view when the IVG
+must react to state.
 
 ### GUI Actions
 

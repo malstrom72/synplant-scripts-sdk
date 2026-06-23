@@ -21,6 +21,7 @@ schema, so the schema is the canonical syntax reference and everything else rout
 | How `.cushy` connects to JavaScript (variables and actions) | [Synplant JS Reference](Synplant%20JS%20Reference.md) → _Cushy Interface_                        |
 | The macro syntax used in `.cushy` files (`@define`, etc.)   | [Makaron Documentation](Makaron%20Documentation.md)                                             |
 | Vector graphics drawn inside views                          | [IVG Documentation](IVG%20Documentation.md) and [ImpD Documentation](ImpD%20Documentation.md)   |
+| Dynamic vector graphics and IVG/Cushy variable wiring        | [Synplant JS Reference](Synplant%20JS%20Reference.md#dynamic-vector-graphics)                    |
 | Working code to copy from                                   | the scripts under [`examples/`](../examples)                                                     |
 
 The schema is written to be read: it carries inline comments alongside every rule and serves as a
@@ -106,6 +107,19 @@ grades, and it is worth deliberately choosing the more stable one:
   `visibility: <var>` (the schema notes these "do not recreate views on change"). This is cheap and
   stable. By contrast, a `caption`'s position or a `knob`'s `bounds` have no variable form and stay
   static.
+
+  `vector` views are another in-place dynamic tool. Prefer static IVG with explicit `defines:` and
+  `bindings:` when the geometry is fixed and only values such as visibility, color, or labels change.
+  Treat `guiVariables: true` as a fallback for drawings that genuinely need open GUI-variable access,
+  and generate the whole IVG source from JavaScript only when the drawing geometry itself is
+  computed. `file:` vector source text is cached until a real reload, so editing an external `.ivg`
+  file while developing requires the JS Console reload button, `performCushyAction('reload')`, or
+  another GUI reload before Synplant re-reads it.
+
+- **Non-modal script windows edit the live document.** Ordinary `.spscript` windows stay open beside
+  Synplant's own UI, so controls that change the sound should call `saveUndo` and write the real patch
+  or parameters directly. A preview-plus-Apply model is for auditioning or a genuinely modal flow; in
+  a non-modal window it can make what the user hears differ from what Save/export and undo/redo see.
 
 - **Rebuilding views from a source variable (`varExpansion`, least stable).** A `group` with
   `varExpansion: 'true'` treats its `views:` as a source string with `[var]myDynamicSource[/var]`

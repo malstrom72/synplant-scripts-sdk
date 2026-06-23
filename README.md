@@ -186,7 +186,9 @@ CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 ```
 
 Pass a directory path with a trailing slash so companion `.schema` files are picked up. For an
-orientation to the system, read [Cushy Documentation](docs/Cushy%20Documentation.md).
+orientation to the system, read [Cushy Documentation](docs/Cushy%20Documentation.md). If you pass
+extra `.schema` files or resource directories on the CushyLint command line, use absolute paths for
+those extra arguments.
 
 ### IVG2PNG
 

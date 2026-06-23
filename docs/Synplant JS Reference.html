@@ -211,8 +211,10 @@ Permissions</a></li>
 <ul>
 <li><a href="#script-types">Script Types</a></li>
 <li><a href="#script-startup">Script Startup</a></li>
+<li><a href="#script-window-editing">Script Window Editing</a></li>
 <li><a href="#mods">Mods</a></li>
 <li><a href="#gui-variables">GUI Variables</a></li>
+<li><a href="#dynamic-vector-graphics">Dynamic Vector Graphics</a></li>
 <li><a href="#gui-actions">GUI Actions</a></li>
 <li><a href="#script-state-and-undo-sync">Script State and Undo
 Sync</a></li>
@@ -229,6 +231,20 @@ ECMAScript 3 compliant with partial ECMAScript 5 support
 (<code>JSON</code>, <code>[ ]</code> indexing of strings,
 <code>Object.assign</code>, <code>Array.isArray</code>, getters/setters,
 and a few other retrofits).</p>
+<p><strong>Known issue in currently shipped builds:</strong>
+<code>Math.round()</code> does not coerce a string argument to a number
+before rounding. It evaluates <code>floor(x + 0.5)</code> without a
+<code>ToNumber</code> first, so a string makes the <code>+ 0.5</code>
+concatenate: <code>Math.round("7")</code> returns <code>70</code>
+(<code>"7" + 0.5</code> -&gt; <code>"70.5"</code>), while
+<code>Math.round("7.5")</code> and <code>Math.round("-3.4")</code>
+return <code>NaN</code>. This matters because GUI-variable setters
+receive their value as a string, so any control value you round must be
+coerced first: <code>Math.round(+value)</code>. Only
+<code>Math.round</code> is affected; <code>Math.floor</code>,
+<code>Math.ceil</code>, <code>Math.abs</code>, and the other numeric
+<code>Math</code> functions coerce correctly. This is fixed in NuXJS and
+will be corrected in a future Synplant build.</p>
 <p>Every instance of Synplant runs in its own JavaScript environment,
 but all scripts within one instance share the same global object. The
 engine only works while the Synplant window is open. The entire
@@ -809,6 +825,9 @@ same kind of patch the patch browser lets the user audition before
 loading. <code>setPreview</code> does not trigger a note on its own; the
 user must play MIDI to hear the selected preview patch. Call with no
 argument to stop previewing.</p>
+<p>Do not use <code>setPreview</code> as the main editing model for a
+non-modal script window. See <a href="#script-window-editing">Script
+Window Editing</a>.</p>
 <h3 id="spawnpatch">spawnPatch</h3>
 <pre><code>function spawnPatch(patch: Patch, branchNumber: Integer, [newSeedId: Integer]) : Patch</code></pre>
 <p>Returns a new patch grown from <code>patch</code> at the given branch
@@ -1269,6 +1288,28 @@ e.g.</p>
 <p>Because all scripts share one global object, keep your script’s state
 under a single object named after the script to avoid colliding with
 others.</p>
+<h3 id="script-window-editing">Script Window Editing</h3>
+<p>Most <code>.spscript</code> windows are non-modal: they stay open
+while the user can still use Synplant’s own UI, save or export the
+current patch, switch presets, compare states, and undo or redo host
+edits. For that kind of window, edit the live document directly. A
+control that changes the sound should call <a
+href="#saveundo"><code>saveUndo</code></a> before the user-visible edit,
+then write the real patch with <a
+href="#setelement"><code>setElement('patch', patch)</code></a> or change
+parameters with <a href="#setparam"><code>setParam</code></a> / <a
+href="#editparam"><code>editParam</code></a>.</p>
+<p>Avoid a preview-plus-Apply model in a non-modal editor. <a
+href="#setpreview"><code>setPreview</code></a> changes what the user
+hears, but Synplant’s Save/export, undo/redo, A/B compare, preset
+switching, and automation work on the live patch, not the preview
+buffer. A non-modal preview can therefore make what the user hears
+different from what the host stores and can undo.</p>
+<p>Preview/apply is appropriate for auditioning or for a genuinely modal
+flow with a clear single commit point. For an ordinary script window,
+keep what-you-hear and what-the-host-stores the same, and use the <a
+href="#script-state-and-undo-sync">script state and undo sync</a>
+pattern when the GUI keeps derived state.</p>
 <h3 id="mods">Mods</h3>
 <p>A <strong>Mod</strong> is a script that patches Synplant’s
 <em>own</em> built-in GUI at load time. Mods live in a <code>Mods</code>
@@ -1310,6 +1351,10 @@ functions;</li>
 <li>a name that does not exist as a JS variable — Cushy creates a
 Cushy-only variable (avoid this).</li>
 </ul>
+<p>If a setter rounds the incoming value, coerce first with unary
+<code>+</code> (<code>Math.round(+value)</code>) to avoid the
+shipped-engine <code>Math.round</code> string bug described under <a
+href="#engine">Engine</a>.</p>
 <pre class="javascript"><code>myScript.myKnob = {
     get: function () { return &#39;&#39; + ((Math.exp(myScript.myValue) - 1) / 10); },
     set: function (s) { myScript.myValue = Math.log(1 + 10 * +s); }
@@ -1319,6 +1364,63 @@ the user starts editing (e.g. clicks the knob) and <code>false</code>
 when they finish. Beyond the per-script variables, Synplant exposes a
 large set of standard GUI variables and product variables — these are
 documented separately in the Cushy Variables reference.</p>
+<h3 id="dynamic-vector-graphics">Dynamic Vector Graphics</h3>
+<p>Cushy <code>vector</code> views draw IVG/ImpD graphics. A vector
+source is one of:</p>
+<ul>
+<li><code>file: "Pkg.spscript/MyGraphic"</code> — load an external
+<code>.ivg</code> resource, without the extension;</li>
+<li><code>code: "..."</code> — inline IVG source in the
+<code>.cushy</code> file;</li>
+<li><code>variable: myScript.ivgSource</code> — read the complete IVG
+source from a GUI variable.</li>
+</ul>
+<p>Use static IVG with <code>defines:</code> and <code>bindings:</code>
+when the drawing’s geometry is fixed and only values such as colors,
+visibility, labels, or known positions change. This is the default
+dynamic-vector pattern because the <code>.cushy</code> file declares the
+IVG’s input contract explicitly, and the <code>.ivg</code> file can
+still be rendered separately with representative values.</p>
+<p><code>defines:</code> provides constant IVG variables for the render.
+<code>bindings:</code> maps named IVG variables to Cushy variables and
+re-reads them when they change. Use <code>guiVariables: true</code> only
+when the IVG genuinely needs open access to GUI variables by name. It
+allows ordinary ImpD <code>$name</code> expansion to read from the
+GUI-variable namespace; the vector tracks GUI variables accessed during
+the last repaint and refreshes when those values change. Reserve
+JavaScript-generated <code>variable:</code> source for cases where the
+geometry itself is computed or unbounded, such as a waveform, a
+variable-count constellation, or generated paths.</p>
+<p>Vector views are optimized for static and rarely changing graphics.
+After the first few redraws, an unchanged vector can be cached in a
+compressed offscreen buffer and reused until its source material,
+accessed bound variables, accessed native variables such as
+<code>$width</code>/<code>$height</code>, or accessed GUI variables
+change. <code>file:</code> vector source text is cached by the resource
+manager until a real reload (for example the JS Console reload button,
+<code>performCushyAction('reload')</code>, or a zoom-scale reload).
+Calling <code>displayCushy(...)</code> again or re-evaluating JavaScript
+over the bridge does not by itself re-read edited <code>.cushy</code> or
+<code>.ivg</code> resources.</p>
+<p>Button views have a separate top-level <code>vector:</code> field. It
+draws on top of the ordinary button graphics and provides IVG variables
+<code>$down</code>, <code>$checked</code>, and <code>$disabled</code> as
+<code>yes</code>/<code>no</code>, plus <code>$caption</code> as the
+expanded caption text. Use it when the overlay graphic should react to
+button state:</p>
+<pre class="numbstrict"><code>{
+    type: &quot;button&quot;
+    action: &quot;myScript.toggle&quot;
+    checked: myScript.enabled
+    standard: { frame: &quot;#808080&quot;, fill: &quot;#202020&quot; }
+    vector: {
+        code: &quot;bounds 0,0,$width,$height; fill #808080; if {$checked == yes} [ fill #70E080 ]; ellipse {$width/2},{$height/2},4,4&quot;
+    }
+}</code></pre>
+<p>By contrast, a button style’s <code>icon:</code> field is an image.
+Its <code>ivgCode</code>/<code>ivgFile</code> image form has no access
+to Cushy variables; use the button <code>vector:</code> overlay or a
+separate <code>vector</code> view when the IVG must react to state.</p>
 <h3 id="gui-actions">GUI Actions</h3>
 <p>When the user clicks a button or selects a menu item, Cushy performs
 a GUI action — either a built-in action or a JavaScript function you
