@@ -1380,7 +1380,11 @@ when the drawing’s geometry is fixed and only values such as colors,
 visibility, labels, or known positions change. This is the default
 dynamic-vector pattern because the <code>.cushy</code> file declares the
 IVG’s input contract explicitly, and the <code>.ivg</code> file can
-still be rendered separately with representative values.</p>
+still be rendered separately with representative values. For static
+validation, make a temporary self-contained <code>_test.ivg</code> copy
+with representative hardcoded values and render that file; see <a
+href="../agents/synplant-script-writer/validation.md#static-ivg-validation">Static
+IVG validation</a>.</p>
 <p><code>defines:</code> provides constant IVG variables for the render.
 <code>bindings:</code> maps named IVG variables to Cushy variables and
 re-reads them when they change. Use <code>guiVariables: true</code> only

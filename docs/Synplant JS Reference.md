@@ -1155,7 +1155,9 @@ Cushy `vector` views draw IVG/ImpD graphics. A vector source is one of:
 Use static IVG with `defines:` and `bindings:` when the drawing's geometry is fixed and only values
 such as colors, visibility, labels, or known positions change. This is the default dynamic-vector
 pattern because the `.cushy` file declares the IVG's input contract explicitly, and the `.ivg` file
-can still be rendered separately with representative values.
+can still be rendered separately with representative values. For static validation, make a temporary
+self-contained `_test.ivg` copy with representative hardcoded values and render that file; see
+[Static IVG validation](../agents/synplant-script-writer/validation.md#static-ivg-validation).
 
 `defines:` provides constant IVG variables for the render. `bindings:` maps named IVG variables to
 Cushy variables and re-reads them when they change. Use `guiVariables: true` only when the IVG

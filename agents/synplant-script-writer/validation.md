@@ -72,6 +72,14 @@ CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 
 Pass a directory path with a trailing slash so companion `.schema` files resolve.
 
+If CushyLint prints `rule view is missing` and `rule actions is missing` during `Checking Schema
+references...`, cites `cushy.schema` line numbers instead of your `.cushy`, and ends with
+`Error count: 7`, it did not load a product/package schema. `view` and `actions` are intentionally
+open rules that the project schema defines by including `Synplant2.schema`; without that schema,
+views and action/parameter references are not validated. Point CushyLint at the package directory
+with a trailing slash, or otherwise make sure the package `.schema` is loaded. A correct run ends
+with `Validation OK` and no schema-internal missing-rule errors.
+
 The `CushyLint/CushyLint` wrapper changes directory into `CushyLint/` before running the checker. If
 you pass extra command-line `.schema` files or resource directories, pass them as absolute paths;
 relative command-line args are resolved from the tool directory, not from your shell's current
@@ -126,6 +134,10 @@ The test IVG must open with `format` and `bounds` so the renderer knows the canv
 format IVG-2 requires:IMPD-1
 bounds 0,0,300,300
 ```
+
+See the JS Reference's
+[Dynamic Vector Graphics](../../docs/Synplant%20JS%20Reference.md#dynamic-vector-graphics) section
+for when to use `defines:`, `bindings:`, `guiVariables: true`, or generated IVG source in Cushy.
 
 For tiny glyphs or cell-sized artwork, render a scaled test version that shows the glyph in context.
 Put `scale N` after `bounds` and size the bounds proportionally, for example `bounds 0,0,288,64`
