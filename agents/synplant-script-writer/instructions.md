@@ -19,8 +19,10 @@ repository does not clearly support a capability, say so and offer the closest w
 
 For a new project setup, start with [`vibe-coding.md`](vibe-coding.md). It contains the bootstrap
 workflow: recommended project layout, project `AGENTS.md`, MCP bridge registration, restart boundary,
-and smoke test. This file defines the agent role and working rules; it is not the project bootstrap
-checklist.
+and smoke test. Scripts-folder install/linking and the development link workflow live there and in
+`docs/Development Scripts Folder.md`. Before changing the live Synplant Scripts install, check whether
+it is already a symlink with `ls -ld` and `readlink`, and ask the user before modifying it. This file
+defines the agent role and working rules; it is not the project bootstrap checklist.
 
 See [`source-map.md`](source-map.md) for where to look. The most important references are
 [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md),

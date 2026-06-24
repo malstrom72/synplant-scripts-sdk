@@ -137,41 +137,9 @@ one location a script may write to without a file-permission prompt. See the JS 
 ### Development scripts folder
 
 For quicker round-trips, keep your scripts in a project folder and point Synplant's Scripts folder at
-it with a symbolic link, so the files you edit are the ones Synplant loads. This pairs well with the
-[live scripting bridge](#live-scripting-bridge): edit a file, then reload over the bridge with
-`sp_eval("performCushyAction('reload')")`.
-
-Confirm the exact folder with **Open Scripts Folder** first, and copy its current contents into your
-project so nothing already installed is lost. On macOS the folder is normally:
-
-```text
-/Library/Application Support/Sonic Charge/Synplant Scripts/
-```
-
-Copy it into your project, move the original aside as a backup, then create the link (the
-`/Library` location needs administrator rights, hence `sudo`):
-
-```sh
-mkdir -p "/path/to/my-synplant-scripts"
-cp -R "/Library/Application Support/Sonic Charge/Synplant Scripts" \
-  "/path/to/my-synplant-scripts/scripts"
-sudo mv "/Library/Application Support/Sonic Charge/Synplant Scripts" \
-  "/Library/Application Support/Sonic Charge/Synplant Scripts.backup"
-sudo ln -s "/path/to/my-synplant-scripts/scripts" \
-  "/Library/Application Support/Sonic Charge/Synplant Scripts"
-```
-
-On Windows, confirm the folder with **Open Scripts Folder**, then copy it into your project, move the
-original aside, and create a directory junction:
-
-```bat
-xcopy "<Synplant Scripts folder>" "C:\path\to\my-synplant-scripts\scripts\" /E /I
-ren "<Synplant Scripts folder>" "Synplant Scripts.backup"
-mklink /J "<Synplant Scripts folder>" "C:\path\to\my-synplant-scripts\scripts"
-```
-
-After linking, the scripts in your project `scripts` directory are the same ones Synplant sees. To
-revert, remove the link and rename the `Synplant Scripts.backup` folder back.
+it with a symbolic link, so the files you edit are the ones Synplant loads. See
+[Development Scripts Folder](docs/Development%20Scripts%20Folder.md) for macOS and Windows commands,
+including re-linking an existing symlink and agent-friendly macOS elevation.
 
 ## Cushy
 
