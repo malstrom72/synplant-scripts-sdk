@@ -77,10 +77,13 @@ Synplant's interface and scripting are built from several Sonic Charge technolog
 - **NuXJS** — the JavaScript engine, fully ECMAScript 3 with parts of ECMAScript 5.
 - **Cushy** — the GUI / layout engine and `.cushy` file format that describes views and wires them to
   scripts through GUI variables and actions.
-- **Numbstrict** — the JSON-like object notation `.cushy` files and patch data are written in.
-- **Makaron** — the macro-expansion syntax that makes `.cushy` files easier to write.
+- **Numbstrict** — the JSON-like object notation `.cushy` files and patch data are written in. From the
+  [Numbstrict repository](https://github.com/malstrom72/Numbstrict).
+- **Makaron** — the macro-expansion syntax that makes `.cushy` files easier to write. Sourced from the
+  [Numbstrict repository](https://github.com/malstrom72/Numbstrict).
 - **IVG** (Imperative Vector Graphics) and **ImpD** — the compact vector-graphics format used for
-  in-view graphics, and the imperative data format it is based on.
+  in-view graphics, and the imperative data format it is based on. From the
+  [IVG repository](https://github.com/malstrom72/IVG).
 
 ## Repository structure
 
