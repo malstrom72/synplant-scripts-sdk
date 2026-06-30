@@ -156,7 +156,7 @@ views: {
 			{
 				type: "caption"
 				font: { ivgfont: "sans-serif", size: 16, color: "white" }
-				text: "JSConsole"
+				text: "JS Console"
 				align: "middle center"
 			}
 
