@@ -1,6 +1,8 @@
 if (!globals.jsConsole) {
 	jsConsole = {
 		realPrint: print,
+		realSave: save,
+		realLoad: load,
 		lastCushyTracer: globals.handleCushyTrace,
 		windowPosition: '',
 		windowZOrder: '',
@@ -252,7 +254,7 @@ Object.assign(jsConsole, {
 		jc.bridge.base = base;
 		jc.bridge.lastSeq = 0;
 		try {
-			var req = JSON.parse(load(base + 'request.json'));
+			var req = JSON.parse(jc.realLoad(base + 'request.json'));
 			if (req && typeof req.seq == 'number') {
 				jc.bridge.lastSeq = req.seq;	// skip any stale request from a previous session
 			}
@@ -269,7 +271,7 @@ Object.assign(jsConsole, {
 			}
 		} catch (e) { }
 		try {
-			save(base + 'bridge.json', JSON.stringify({ ready: true, protocol: 1 }));
+			jc.realSave(base + 'bridge.json', JSON.stringify({ ready: true, protocol: 1 }));
 		} catch (e) { }
 		print("Bridge ON.");
 		print("Folder: " + base);
@@ -344,7 +346,7 @@ Object.assign(jsConsole, {
 			}
 			var text;
 			try {
-				text = load(base + 'request.json');
+				text = jc.realLoad(base + 'request.json');
 			} catch (e) {
 				return;		// folder / file not present yet, keep waiting
 			}
@@ -378,7 +380,7 @@ Object.assign(jsConsole, {
 				};
 			}
 			try {
-				save(base + 'response.json', JSON.stringify(response));
+				jc.realSave(base + 'response.json', JSON.stringify(response));
 			} catch (e) {
 				print("!!! Failed to write bridge response: " + e);
 			}

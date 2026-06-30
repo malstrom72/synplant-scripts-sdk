@@ -171,7 +171,9 @@ const TOOLS = [
 			+ 'file bridge and return the result. The JS Console window must be open with the '
 			+ 'bridge enabled (type `bridge on` in it). Code runs in the shared JS global space, '
 			+ 'so it can read and drive Synplant\'s running scripts. Keep snippets short: each '
-			+ 'eval freezes the UI and is subject to Synplant\'s ~20s suspension limit.',
+			+ 'eval freezes the UI and is subject to Synplant\'s ~20s suspension limit. Wrap '
+			+ 'multi-statement snippets in an IIFE to avoid leaking vars or shadowing host '
+			+ 'globals such as save, load, or print.',
 		inputSchema: {
 			type: 'object',
 			properties: {
