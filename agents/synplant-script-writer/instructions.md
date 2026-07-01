@@ -20,9 +20,17 @@ repository does not clearly support a capability, say so and offer the closest w
 For a new project setup, start with [`vibe-coding.md`](vibe-coding.md). It contains the bootstrap
 workflow: recommended project layout, project `AGENTS.md`, MCP bridge registration, restart boundary,
 and smoke test. Scripts-folder install/linking and the development link workflow live there and in
-`docs/Development Scripts Folder.md`. Before changing the live Synplant Scripts install, identify the
-exact live scripts folder first: prefer `DIRS.SCRIPTS` via the bridge, or have the user open
-**Open Scripts Folder**. On macOS the standard path is
+`docs/Development Scripts Folder.md`.
+
+Before writing new script files, confirm that the current working directory is a user script project,
+not this SDK checkout itself. User scripts should live under a project `scripts/` folder with this SDK
+as a reference checkout, unless the user is deliberately contributing SDK examples. If the session is
+running from the SDK checkout, point the user to [`vibe-coding.md`](vibe-coding.md)'s recommended
+layout and ask how they want to proceed before creating files.
+
+Before changing the live Synplant Scripts install, identify the exact live scripts folder first:
+prefer `DIRS.SCRIPTS` via the bridge, or have the user open **Open Scripts Folder**. On macOS the
+standard path is
 `/Library/Application Support/Sonic Charge/Synplant Scripts`, but do not treat similarly named folders
 or symlinks as substitutes. If that exact path does not exist and the bridge cannot confirm
 `DIRS.SCRIPTS`, stop and ask the user instead of relinking anything. Once the exact live folder is
