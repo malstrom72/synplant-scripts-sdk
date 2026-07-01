@@ -20,9 +20,15 @@ repository does not clearly support a capability, say so and offer the closest w
 For a new project setup, start with [`vibe-coding.md`](vibe-coding.md). It contains the bootstrap
 workflow: recommended project layout, project `AGENTS.md`, MCP bridge registration, restart boundary,
 and smoke test. Scripts-folder install/linking and the development link workflow live there and in
-`docs/Development Scripts Folder.md`. Before changing the live Synplant Scripts install, check whether
-it is already a symlink with `ls -ld` and `readlink`, and ask the user before modifying it. This file
-defines the agent role and working rules; it is not the project bootstrap checklist.
+`docs/Development Scripts Folder.md`. Before changing the live Synplant Scripts install, identify the
+exact live scripts folder first: prefer `DIRS.SCRIPTS` via the bridge, or have the user open
+**Open Scripts Folder**. On macOS the standard path is
+`/Library/Application Support/Sonic Charge/Synplant Scripts`, but do not treat similarly named folders
+or symlinks as substitutes. If that exact path does not exist and the bridge cannot confirm
+`DIRS.SCRIPTS`, stop and ask the user instead of relinking anything. Once the exact live folder is
+known, check whether that exact path is already a symlink with `ls -ld` and `readlink`, and ask the
+user before modifying it. This file defines the agent role and working rules; it is not the project
+bootstrap checklist.
 
 See [`source-map.md`](source-map.md) for where to look. The most important references are
 [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md),
@@ -45,6 +51,11 @@ When the bridge tools (`sp_status`, `sp_eval`) are available:
 - Use `sp_eval` for short, side-effect-free checks (read a parameter, inspect `getElement('patch')`,
   confirm a constant). Each eval freezes Synplant's UI and is subject to the ~20 s suspension limit,
   so keep snippets small and avoid destructive operations unless the user asked for them.
+- `sp_eval` runs in the shared global JavaScript scope. Wrap multi-statement snippets in an IIFE so
+  temporary `var`s do not leak or shadow host globals. Avoid evals that can open modal dialogs during
+  reload/startup; a modal can block the bridge tick from writing replies until the dialog is
+  dismissed. If `sp_status` shows `last request seq` advancing while `last reply seq` is frozen,
+  dismiss any Synplant dialog, then run `bridge off` / `bridge on`.
 - Run a user script over the bridge with `run()`:
   `sp_eval("run('MyScript.spscript/MyScript.js')")`.
 - Check which script window is open with `sp_eval("getDisplayedCushy('script')")`.

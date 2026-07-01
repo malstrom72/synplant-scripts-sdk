@@ -70,7 +70,8 @@ handled.
   snippets short: each eval freezes the UI and is subject to Synplant's ~20s
   per-call suspension limit. Wrap multi-statement snippets in an IIFE so local
   `var`s do not leak into the shared global space or shadow host names like
-  `save`, `load`, or `print`. Default timeout `20000` ms.
+  `save`, `load`, or `print`. Avoid evals that may open modal dialogs during a
+  reload or `displayCushy(...)` call. Default timeout `20000` ms.
 - **`sp_status()`** — report whether a bridge is attached (via `bridge.json`) and
   the last request/reply sequence numbers.
 
@@ -147,3 +148,24 @@ reload** and keeps working. The call returns `true`.
 Do **not** drive a full reset (`performCushyAction('reload', 'reset')`) over the
 bridge — it wipes JS memory, tearing down the JS Console and the bridge. After that
 you must re-enable `bridge on` from the JS Console window. Do resets from the GUI.
+
+## Modal dialogs can block replies
+
+The bridge tick runs on Synplant's UI thread. If an eval opens a synchronous modal
+dialog before the bridge writes `response.json`, the current tick cannot return
+and the bridge cannot process later requests. Common triggers are `display(...)`
+from a script's startup/reload path, or a runtime Cushy/IVG load error dialog such
+as an invalid pre-multiplied `#AARRGGBB` color.
+
+The host-side symptom is repeated `sp_eval` timeouts. `sp_status` usually shows
+`last request seq` advancing while `last reply seq` stays frozen. The eval's side
+effects may already have happened; only the reply is blocked.
+
+Recovery:
+
+1. Dismiss the modal dialog in Synplant.
+2. In the JS Console, run `bridge off`, then `bridge on` to re-announce readiness.
+3. Re-run `sp_status` before sending another eval.
+
+When iterating on GUI packages, run CushyLint and static IVG checks first, then use
+normal reload evals only after the package is unlikely to throw a load-time modal.

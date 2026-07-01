@@ -25,9 +25,9 @@ sudo ln -s "/path/to/my-synplant-scripts/scripts" \
   "/Library/Application Support/Sonic Charge/Synplant Scripts"
 ```
 
-Assistants that cannot answer an interactive `sudo` password prompt can use macOS' native
-administrator dialog instead. After copying the current folder into the project and moving the
-original aside, run the privileged link step through `osascript`:
+If an interactive `sudo` password prompt is inconvenient, macOS' native administrator dialog can run
+the privileged link step instead. After copying the current folder into the project and moving the
+original aside, run:
 
 ```sh
 osascript -e 'do shell script "rm -f \"/Library/Application Support/Sonic Charge/Synplant Scripts\" && ln -s \"/path/to/my-synplant-scripts/scripts\" \"/Library/Application Support/Sonic Charge/Synplant Scripts\"" with administrator privileges'
@@ -36,11 +36,10 @@ osascript -e 'do shell script "rm -f \"/Library/Application Support/Sonic Charge
 The `with administrator privileges` clause runs the whole shell script as root from one GUI prompt,
 so both the `rm` and `ln -s` operations are covered.
 
-If **Open Scripts Folder**, `ls -ld "/Library/Application Support/Sonic Charge/Synplant Scripts"`,
-or `readlink "/Library/Application Support/Sonic Charge/Synplant Scripts"` shows the live folder is
-already a symlink to another workspace, do not repeat the `mv ... .backup` step. The original folder
-was already preserved during the first setup. Re-link by removing the existing symlink and creating
-the new one; `rm` on a symlink removes only the link, never its target.
+If `ls -ld` or `readlink` shows that the exact live folder opened by Synplant is already a symlink to
+another workspace, do not repeat the `mv ... .backup` step. The original folder was already preserved
+during the first setup. Re-link by removing the existing symlink and creating the new one; `rm` on a
+symlink removes only the link, never its target.
 
 On Windows, confirm the folder with **Open Scripts Folder**, then copy it into your project, move the
 original aside, and create a directory junction:

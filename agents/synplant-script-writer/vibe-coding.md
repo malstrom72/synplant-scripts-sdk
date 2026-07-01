@@ -90,6 +90,10 @@ Use the SDK checkout as the source of truth for docs, examples, schemas, resourc
 
 Synplant runs scripts from the **Synplant Scripts** folder — open it from Synplant's script menu with
 **Open Scripts Folder**. Inside Synplant, `DIRS.SCRIPTS` is the absolute path to this folder.
+`DIRS.SCRIPTS` / **Open Scripts Folder** is authoritative. If a filesystem search finds a different
+similarly named folder under Sonic Charge's Application Support directory, ignore it unless it is
+exactly the folder Synplant reported. Do not relink a similarly named folder or local artifact just
+because the standard folder is missing.
 
 - Single-file scripts go in directly as `MyUtility.js`.
 - GUI scripts go in as `MyTool.spscript/` package folders.
@@ -99,7 +103,8 @@ For quicker iteration you can keep a project-local scripts folder and link Synpl
 to it — see **Development scripts folder** in the [repository README](../../README.md#development-scripts-folder)
 for the macOS/Windows commands. Linking changes Synplant's live scripts installation and may need
 elevated permissions, so ask the user before doing it, and first check whether the live folder is
-already a symlink to another workspace (on macOS, inspect it with `ls -ld` and `readlink`).
+already a symlink to another workspace (on macOS, inspect that exact folder with `ls -ld` and
+`readlink`).
 
 ## The live bridge
 

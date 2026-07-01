@@ -119,8 +119,15 @@ async function spEval(args) {
 		}
 		await sleep(POLL_INTERVAL_MS);
 	}
-	throw new Error('timed out after ' + timeout + 'ms waiting for a reply. '
-		+ 'Is the JS Console open in Synplant with the bridge on (type `bridge on`)?');
+	const resp = readJson(RESPONSE_PATH);
+	let detail = '';
+	if (resp && typeof resp.seq === 'number' && resp.seq < seq) {
+		detail = ' Last reply seq is still ' + resp.seq + ' while this request seq is ' + seq + '.';
+	}
+	throw new Error('timed out after ' + timeout + 'ms waiting for a reply.' + detail + ' '
+		+ 'Is the JS Console open in Synplant with the bridge on (type `bridge on`)? '
+		+ 'If this eval opened a modal dialog during a reload or displayCushy call, dismiss the dialog in '
+		+ 'Synplant and re-enable the bridge with `bridge off` then `bridge on`.');
 }
 
 function formatEval(resp) {
@@ -173,7 +180,8 @@ const TOOLS = [
 			+ 'so it can read and drive Synplant\'s running scripts. Keep snippets short: each '
 			+ 'eval freezes the UI and is subject to Synplant\'s ~20s suspension limit. Wrap '
 			+ 'multi-statement snippets in an IIFE to avoid leaking vars or shadowing host '
-			+ 'globals such as save, load, or print.',
+			+ 'globals such as save, load, or print. Avoid evals that may open modal dialogs '
+			+ 'during reload/displayCushy; a modal blocks the bridge tick until dismissed.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -195,7 +203,8 @@ const TOOLS = [
 		name: 'sp_status',
 		description: 'Report whether a JS Console bridge is currently attached (via bridge.json) '
 			+ 'and the last request/reply sequence numbers. Use this to check the connection '
-			+ 'before evaluating.',
+			+ 'before evaluating. If last request keeps advancing while last reply is frozen, '
+			+ 'Synplant is likely not returning from the bridge tick; check for a modal dialog.',
 		inputSchema: { type: 'object', properties: {} }
 	}
 ];

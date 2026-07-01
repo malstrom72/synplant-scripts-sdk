@@ -140,6 +140,22 @@ is no known bridge API for reading those dialogs. Missing fonts, clipped bounds,
 wrong z-order, stale resources, parse dialogs, and other render-only issues require looking at the
 actual Synplant window.
 
+## Button icons and vectors
+
+A button view's top-level `vector:` overlay is rendered in the button's coordinate space and has
+access to `$width`, `$height`, `$down`, `$checked`, `$disabled`, and `$caption`. Use it for stateful
+artwork that should fit the current button bounds.
+
+A button style's `icon:` field is different: it is an image. For IVG icons, Cushy draws the image at
+the icon's own image size, subject only to any explicit `<image>` `scale:` you set; it does not
+auto-fit that artwork to the button bounds. If the button is smaller than the icon, the image clips.
+If the icon was authored to fill a particular button size, that artwork effectively fixes the minimum
+practical button size unless you redraw or explicitly scale the icon smaller. Small glyph artwork
+with padding around it tolerates button-size changes better.
+
+When shrinking a button that uses an `icon:`, render or inspect the icon at its native size first.
+Use the top-level `vector:` field instead when the graphic should resize with the button.
+
 ## Timed actions and animation
 
 A GUI script gets periodic callbacks by registering a repeating action in the root `autoexecs` block.

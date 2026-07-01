@@ -21,6 +21,24 @@ the UI and is bounded by the ~20 s suspension limit. See
 [`tools/jsconsole-bridge-mcp/README.md`](../../tools/jsconsole-bridge-mcp/README.md) and
 [`vibe-coding.md`](vibe-coding.md).
 
+### Bridge modal wedge
+
+The bridge tick itself runs as a synchronous Cushy action. If an eval triggers a reload or
+`displayCushy(...)` path that opens a native modal dialog before the bridge writes `response.json`,
+the tick is blocked inside that modal loop and cannot re-enter to process later bridge requests.
+Known triggers include script startup code that calls `display(...)` and load-time GUI/render errors
+reported as modal dialogs, such as invalid pre-multiplied `#AARRGGBB` IVG colors.
+
+Agent-visible symptom: `sp_eval` times out repeatedly, and `sp_status` shows `last request seq`
+advancing while `last reply seq` stays frozen. The eval's side effects may already have happened;
+the missing piece is the reply write. Recovery is manual: dismiss the dialog in Synplant, then run
+`bridge off` and `bridge on` in the JS Console so the host sees a fresh announcement before more
+evals.
+
+Avoid bridge-driving reloads that are likely to show dialogs. Run CushyLint and static IVG checks
+before loading, and keep explicit `display(...)` prompts out of package startup and `initGUI` paths
+while developing over the bridge.
+
 ### GUI render checks
 
 The bridge verifies JavaScript behavior, not pixels. These signals are useful for logic and routing
@@ -94,6 +112,13 @@ The product schema is [`Synplant Resources/Synplant2.schema`](../../Synplant%20R
 package `.schema` headers include it. The first run also compiles the schema, so it is slower than later runs. A CushyLint pass
 confirms `.cushy` syntax and schema conformance only — never runtime behavior; verify that with the
 live bridge and by looking at the real window, and do not claim a pass you did not actually run.
+
+For colors, CushyLint checks that a field has the right shape, not that every referenced IVG source
+will rasterize at load. The schema's `<color>` accepts `0xAARRGGBB` with pre-multiplied alpha, and
+the IVG docs describe `#AARRGGBB` the same way: each RGB byte must be no greater than the alpha byte.
+An invalid value is a runtime renderer error, not proof that CushyLint is broken. Prefer six-digit
+opaque RGB colors, `rgb(...)`/`hsv(...)`, or correctly pre-multiplied eight-digit colors; then reload
+and inspect the actual window.
 
 CushyLint reads the current file from disk. Synplant may still be using cached resources from before
 your latest edit while the window is open. If CushyLint says the file is valid but Synplant still
@@ -202,6 +227,18 @@ line lets package-local file references resolve through the package's parent dir
 resources such as `rectDropShadow` resolve. Declare these resource roots in the schema, not only
 through a CushyLint command-line argument, so editor integrations resolve includes and file references
 consistently.
+
+Adding a custom GUI action is a two-file edit. Define the JavaScript function or action descriptor
+on the script object, and add the same action string to the package-local `<actions>` rule:
+
+```schema
+<actions> = <synplant2Action>
+        | { action: "myScript.newAction" }
+```
+
+Without the schema entry, CushyLint rejects `.cushy` references to that action because `<action>` is
+checked against the package's `<actions>` rule. Keep the JavaScript object name, `.cushy` action
+prefix, and `.schema` action prefix in sync.
 
 ## What validation does and does not prove
 
