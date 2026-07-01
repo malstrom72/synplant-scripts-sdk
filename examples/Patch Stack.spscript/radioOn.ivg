@@ -1,0 +1,8 @@
+format IVG-2 requires:ImpD-1
+bounds 0,0,18,18
+fill none
+pen #13A088 width:1.8
+ELLIPSE 9,9,6
+pen none
+fill #13A088
+ELLIPSE 9,9,3

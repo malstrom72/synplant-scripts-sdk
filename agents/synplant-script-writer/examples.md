@@ -17,6 +17,10 @@ Starting points by task:
   with progress feedback.
 - **Auditioning sound** — [`examples/Tuning Fork.spscript`](../../examples/Tuning%20Fork.spscript):
   a preview patch toggled with `setPreview`.
+- **Live patch generator GUI** — [`examples/Patch Stack.spscript`](../../examples/Patch%20Stack.spscript):
+  a non-modal tool that writes generated patches live with stable `patchId` ownership, tracks
+  `patch.identity` echoes, handles save/metadata refreshes, and exposes a re-apply flow when host
+  undo or external edits cannot restore the script's private slot state.
 - **Browsing/applying resources** — [`examples/Skin Chooser.spscript`](../../examples/Skin%20Chooser.spscript):
   listing a directory and presenting a scrollable grid.
 - **Extending Synplant's own interface** — [`examples/Mods/`](../../examples/Mods): Favorite Button,

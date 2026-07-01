@@ -1,0 +1,62 @@
+/**
+ * Patch Stack bulb diagram (static, parameterised) -- a pan "dial".
+ *
+ * Fixed dial chrome: a bright outer ring (bezel), L/R labels and a centre hub. Each layer is a
+ * numbered colour node on a stem. Dynamism comes from `bindings:` (re-read live by the vector view):
+ * each position resolves to the active slot's colour + number, or to a transparent colour / empty
+ * string when empty or muted, so that position's stem, node and number all vanish.
+ *
+ * @param {color}  discColor - filled dial face (define)
+ * @param {color}  ringColor - outer dial ring (define)
+ * @param {color}  dialColor - L/R labels (define)
+ * @param {color}  down  / @param {string} down_n  - bind patchStack.bulbDown  / .bulbDownNum  (centre)
+ * @param {color}  left  / @param {string} left_n  - bind patchStack.bulbLeft  / .bulbLeftNum  (9 o'clock)
+ * @param {color}  right / @param {string} right_n - bind patchStack.bulbRight / .bulbRightNum (3 o'clock)
+ */
+
+format IVG-2 requires:ImpD-1
+bounds 0,0,88,88
+
+// Dial face disc.
+pen none
+fill $discColor
+ELLIPSE 44,44,40.5
+
+// Outer dial ring -- bright bezel so the dark face reads as a screen, not a hole in the panel.
+fill none
+pen $ringColor width:2.5
+ELLIPSE 44,44,40
+
+// L / R labels.
+font sans-serif size:9 color:$dialColor
+TEXT at:31,31 anchor:center L
+TEXT at:57,31 anchor:center R
+
+// Stems from the hub to each node (transparent = invisible).
+pen $down width:3 caps:round
+PATH svg:[M44,45.5 L44,70]
+pen $left width:3 caps:round
+PATH svg:[M44,45.5 L16,45.5]
+pen $right width:3 caps:round
+PATH svg:[M44,45.5 L72,45.5]
+
+// Centre seed -- a small warm pod that covers the stem junction and nods to Synplant's seed.
+pen none
+fill #7A4E3B
+ELLIPSE 44,45.5,4
+fill #A9714F
+ELLIPSE 42.6,44.1,1.4
+
+// Layer nodes (transparent = invisible).
+fill $down
+ELLIPSE 44,70,6.5
+fill $left
+ELLIPSE 16,45.5,6.5
+fill $right
+ELLIPSE 72,45.5,6.5
+
+// Layer numbers (the binding is "0" when inactive; guard so nothing is drawn then).
+font sans-serif size:10 color:#ffffff
+if {$down_n > 0} [ TEXT at:44,73.5 anchor:center $down_n ]
+if {$left_n > 0} [ TEXT at:16,49 anchor:center $left_n ]
+if {$right_n > 0} [ TEXT at:72,49 anchor:center $right_n ]

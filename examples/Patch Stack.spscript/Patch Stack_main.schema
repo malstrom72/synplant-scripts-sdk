@@ -1,0 +1,15 @@
+include: ../../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
+resources: ../
+resources: ../../references/synplant-scripts-sdk/Synplant Resources
+
+<actions> = <synplant2Action>
+	| { action: "patchStack.initGUI", params: { *: <int> } }
+	| { action: "patchStack.refreshFromPatch" }
+	| { action: "patchStack.slotOpen", params: <int> }
+	| { action: "patchStack.slotPrev", params: <int> }
+	| { action: "patchStack.slotNext", params: <int> }
+	| { action: "patchStack.slotRandom", params: <int> }
+	| { action: "patchStack.slotClear", params: <int> }
+	| { action: "patchStack.slotEnable", params: <int> }
+	| { action: "patchStack.slotMain", params: <int> }
+	| { action: "patchStack.reapply" }

@@ -1,0 +1,302 @@
+@include scriptSupport.makaron
+@define script=patchStack
+@define scriptName=Patch Stack
+@define windowWidth=400
+@define windowHeight=400
+
+// Petrol palette
+@define backgroundColor=#9BBFB7
+@define frameColor=#163330
+@define titleColor=#E6F2EE
+@define slotColor=#E3EFEB
+@define smallFont={ ivgfont: "sans-serif", size: 11, color: "#5C7E77" }
+@define capFont={ ivgfont: "sans-serif", size: 10, color: "#5C7E77" }
+// Labels in the transparent global section sit on the darker window background.
+@define globalLabelFont={ ivgfont: "sans-serif", size: 11, color: "#33564E" }
+@define buttonFont={ ivgfont: "sans-serif", size: 12, color: "#2A4F49" }
+@define knobFillColor=#DCEBE5
+@define knobFrameColor=#AFCBC2
+@define knobDialColor=#163330
+// Global (bottom) knobs + bulb sit on the bare window bg, so they get a darker frame to pop.
+@define globalKnobFrameColor=#4F756A
+@define buttonFrameColor=#6E8C7F
+@define buttonFillColor=#FFFFFF
+@define buttonDownFillColor=#D8E6DF
+@define layer1Color=#1CB89B
+@define layer2Color=#E78A3C
+@define layer3Color=#C75F95
+@define badgeFont={ ivgfont: "sans-serif", size: 12, color: "white" }
+@define nameFont={ ivgfont: "sans-serif", size: 14, color: "#173A35" }
+
+transitions: {
+	open: { time: 0.1, scale: 90, opacity: 0 }
+	close: { time: 0.1, scale: 90, opacity: 0 }
+}
+
+autoexecs: {
+	@bringWindowToFront(@script)
+	{
+		action: "@script.initGUI"
+		params: { : }
+		onReload: true
+	}
+	{
+		action: "@script.refreshFromPatch"
+		onChanged: patch.identity
+	}
+}
+
+@begin navButton(x, w, action, iconName, hint, i)
+	{
+		type: "button"
+		rounded: { 5, 5 }
+		bounds: { @x, 53, @w, 22 }
+		action: "@action"
+		params: @i
+		hint: "@hint"
+		mask: "click"
+		standard: { frame: "@buttonFrameColor", fill: "@buttonFillColor", icon: { ivgFile: "Patch Stack.spscript/@iconName" } }
+		down: { fill: "@buttonDownFillColor" }
+	}
+@end
+
+@begin slot(top, i, num, colorName)
+	{
+		type: "group"
+		bounds: { 8, @top, 384, 82 }
+		views: {
+			{
+				type: "rectangle"
+				rounded: { 10, 10 }
+				bounds: { 0, 0, 384, 82 }
+				fill: "@slotColor"
+			}
+			{
+				type: "rectangle"
+				rounded: { 11, 11 }
+				bounds: { 8, 10, 22, 22 }
+				fill: "@(@colorName)"
+			}
+			{
+				type: "caption"
+				bounds: { 8, 10, 22, 22 }
+				align: "middle center"
+				font: @badgeFont
+				text: "@num"
+			}
+			{
+				type: "caption"
+				bounds: { 38, 9, 195, 18 }
+				align: "middle left"
+				ellipsis: "right"
+				font: @nameFont
+				text: "[var]@script.names.@i[/var]"
+			}
+			{
+				type: "caption"
+				bounds: { 38, 30, 195, 13 }
+				align: "middle left"
+				font: @smallFont
+				text: "[var]@script.positions.@i[/var]"
+			}
+			@navButton(8, 32, @script.slotOpen, iconOpen, open, @i)
+			@navButton(49, 32, @script.slotPrev, iconPrev, prev, @i)
+			@navButton(90, 32, @script.slotNext, iconNext, next, @i)
+			@navButton(131, 32, @script.slotRandom, iconRnd, random, @i)
+			@navButton(172, 32, @script.slotClear, iconClear, clear, @i)
+			{
+				type: "caption"
+				bounds: { 245, 11, 32, 14 }
+				align: "middle right"
+				font: @buttonFont
+				text: "Main"
+			}
+			{
+				type: "button"
+				bounds: { 281, 9, 18, 18 }
+				action: "@script.slotMain"
+				params: @i
+				hint: "Use this layer for global EQ, pan and reverb; with three layers it stays centered"
+				mask: "click"
+				standard: { icon: { ivgFile: "Patch Stack.spscript/radioOff" } }
+				checked: { icon: { ivgFile: "Patch Stack.spscript/radioOn" } }
+			}
+			{
+				type: "caption"
+				bounds: { 312, 11, 22, 14 }
+				align: "middle right"
+				font: @buttonFont
+				text: "On"
+			}
+			{
+				type: "button"
+				bounds: { 337, 9, 34, 18 }
+				action: "@script.slotEnable"
+				params: @i
+				hint: "Enable or mute this layer"
+				mask: "click"
+				standard: { icon: { ivgFile: "Patch Stack.spscript/checkOff" } }
+				checked: { icon: { ivgFile: "Patch Stack.spscript/checkOn" } }
+			}
+			{
+				type: "knob"
+				bounds: { 274, 32, 32, 32 }
+				variable: @script.levels.@i
+				range: { 0.0, 1.0 }
+				default: 0.5
+				sweep: { -135, 270 }
+				hint: "Layer level = [var]@script.levelTexts.@i[/var]"
+				cap: { color: "@knobFillColor", frame: { color: "@knobFrameColor", stroke: 1.5 }, dial: { color: "@knobDialColor", stroke: 2, caps: "round" } }
+			}
+			{
+				type: "knob"
+				bounds: { 338, 32, 32, 32 }
+				variable: @script.transposes.@i
+				range: { -24, 24 }
+				default: 0
+				sweep: { -135, 270 }
+				hint: "Transpose layer = [var]@script.transposeTexts.@i[/var]"
+				cap: { color: "@knobFillColor", frame: { color: "@knobFrameColor", stroke: 1.5 }, dial: { color: "@knobDialColor", stroke: 2, caps: "round" } }
+			}
+			{
+				type: "caption"
+				bounds: { 265, 66, 50, 12 }
+				align: "middle center"
+				font: @capFont
+				text: "level [var]@script.levelTexts.@i[/var]"
+			}
+			{
+				type: "caption"
+				bounds: { 329, 66, 50, 12 }
+				align: "middle center"
+				font: @capFont
+				text: "semi [var]@script.transposeTexts.@i[/var]"
+			}
+		}
+	}
+@end
+
+@window((w-(@windowWidth))/2, (h-(@windowHeight))/2, @windowWidth, @windowHeight, "@scriptName", @backgroundColor, @frameColor, @titleColor, @script, @<
+	@slot(14, 0, 1, layer1Color)
+	@slot(100, 1, 2, layer2Color)
+	@slot(186, 2, 3, layer3Color)
+	{
+		type: "group"
+		bounds: { 8, 272, 384, 92 }
+		views: {
+			{
+				type: "knob"
+				bounds: { 48, 16, 44, 44 }
+				variable: @script.spreadKnob
+				range: { 0.0, 1.0 }
+				default: 0.5
+				sweep: { -135, 270 }
+				hint: "Spread = [var]@script.spreadText[/var]"
+				cap: { color: "@knobFillColor", frame: { color: "@globalKnobFrameColor", stroke: 2 }, dial: { color: "@knobDialColor", stroke: 2, caps: "round" } }
+			}
+			{
+				type: "caption"
+				bounds: { 38, 62, 64, 14 }
+				align: "middle center"
+				font: @globalLabelFont
+				text: "spread [var]@script.spreadText[/var]"
+			}
+			{
+				type: "vector"
+				bounds: { 148, 2, 88, 88 }
+				file: "Patch Stack.spscript/bulb"
+				defines: {
+					"discColor": "#0D100F"
+					"ringColor": "#DCEBE5"
+					"dialColor": "#9DBFB4"
+				}
+				bindings: {
+					"down": @script.bulbDown
+					"left": @script.bulbLeft
+					"right": @script.bulbRight
+					"down_n": @script.bulbDownNum
+					"left_n": @script.bulbLeftNum
+					"right_n": @script.bulbRightNum
+				}
+			}
+			{
+				type: "knob"
+				bounds: { 292, 16, 44, 44 }
+				variable: @script.detuneKnob
+				range: { 0.0, 1.0 }
+				default: 0.0
+				sweep: { -135, 270 }
+				hint: "Detune = [var]@script.detuneText[/var]"
+				cap: { color: "@knobFillColor", frame: { color: "@globalKnobFrameColor", stroke: 2 }, dial: { color: "@knobDialColor", stroke: 2, caps: "round" } }
+			}
+			{
+				type: "caption"
+				bounds: { 282, 62, 64, 14 }
+				align: "middle center"
+				font: @globalLabelFont
+				text: "detune [var]@script.detuneText[/var]"
+			}
+		}
+	}
+	// Out-of-sync overlay: shown when the live patch was changed outside the panel. The translucent
+	// scrim greys the whole window, the full-bounds nop `click` view swallows every click so the locked
+	// controls beneath can't clobber the live patch, and the notice card + Re-apply button sit on top.
+	{
+		type: "group"
+		visibility: @script.outOfSyncVisible
+		bounds: { 0, 0, @windowWidth, @windowHeight }
+		views: {
+			{
+				type: "rectangle"
+				bounds: { 0, 0, @windowWidth, @windowHeight }
+				// Colours are pre-multiplied #AARRGGBB (alpha first); each of R/G/B must be <= A. A=0xA6
+				// (~65%) black scrim to dim the locked controls beneath.
+				fill: "#A6000000"
+			}
+			{
+				type: "click"
+				bounds: { 0, 0, @windowWidth, @windowHeight }
+				action: "nop"
+				hint: "Patch Stack is out of sync with the patch - re-apply to resume editing"
+			}
+			{
+				type: "rectangle"
+				rounded: { 12, 12 }
+				bounds: { 48, 168, 304, 112 }
+				fill: "@slotColor"
+			}
+			{
+				type: "caption"
+				bounds: { 64, 182, 272, 20 }
+				align: "middle center"
+				font: @nameFont
+				text: "Out of sync"
+			}
+			{
+				type: "caption"
+				bounds: { 56, 206, 288, 16 }
+				align: "middle center"
+				font: @smallFont
+				text: "The patch was changed outside Patch Stack."
+			}
+			{
+				type: "caption"
+				bounds: { 56, 223, 288, 16 }
+				align: "middle center"
+				font: @smallFont
+				text: "Re-apply to restore your stack."
+			}
+			{
+				type: "button"
+				rounded: { 6, 6 }
+				bounds: { 150, 246, 100, 26 }
+				action: "@script.reapply"
+				hint: "Rebuild the stack from the slots and overwrite the live patch"
+				mask: "click"
+				standard: { frame: "@buttonFrameColor", fill: "@buttonFillColor", font: @buttonFont }
+				down: { fill: "@buttonDownFillColor" }
+				caption: "Re-apply"
+			}
+		}
+	}
+@>)

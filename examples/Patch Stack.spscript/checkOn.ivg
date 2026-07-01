@@ -1,0 +1,13 @@
+format IVG-2 requires:ImpD-1
+bounds 0,0,34,18
+
+// Green pill track (on).
+pen none
+fill #13A088
+ELLIPSE 9,9,9
+ELLIPSE 25,9,9
+PATH svg:[M9,0 L25,0 L25,18 L9,18 Z]
+
+// White knob, slid right.
+fill #ffffff
+ELLIPSE 25,9,6.5

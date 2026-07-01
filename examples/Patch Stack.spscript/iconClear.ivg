@@ -1,0 +1,6 @@
+format IVG-2 requires:ImpD-1
+bounds 0,0,22,22
+fill none
+pen #C9583B width:1.9 caps:round
+PATH svg:[M6.5,6.5 L15.5,15.5]
+PATH svg:[M15.5,6.5 L6.5,15.5]

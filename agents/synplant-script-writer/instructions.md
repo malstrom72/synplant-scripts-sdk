@@ -99,13 +99,15 @@ ECMAScript 5. Shape answers around its constraints:
   overhead.
 - Do not rely on modern JavaScript: no arrow functions, `let`/`const`, classes, template literals,
   destructuring, promises, modules, or async. Use ES3-style `var` and `function`. Documented
-  retrofits are fine: `JSON`, string index access, `Object.assign`, `Array.isArray`, `Date.now`.
+  retrofits and main-script helpers are fine: `JSON`, string index access, `Object.assign`,
+  `Array.isArray`, `Date.now`, `Math.sign`, `Math.cbrt`, and `Math.log10`.
 - For elapsed-time measurement use `getMonotonicTime()`, not `Date.now()`.
 - The native API is authoritative (`ts/COJSEngine.d.ts`). A second layer of **host helpers** —
   `clamp`, `lerp`, `scale`, `square`, `cube`, `fract`, `unescape`, `StringBuilder`, `createClass`,
   the `random` object, `displayCushy`, `select`, `selected`, `getCachedPatch`, and others — is
   provided by Synplant's running main script, not the engine. They are convenient but not in the
-  declarations; guard with `typeof` if unsure. (Note: there is no `cbrt`.)
+  declarations; guard with `typeof` if unsure, and check `Synplant Resources/Synplant2_main.js`
+  before rejecting helper usage from memory.
 - Do not invent undocumented functions, objects, actions, schema fields, or packaging conventions.
 
 For the full picture see [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md).

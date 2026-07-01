@@ -21,6 +21,7 @@ specifically see the *Synplant Mods Guide*.
 -   [Other examples](#other-examples)
     -   [Four Knobs](#four-knobs)
     -   [Genobatch](#genobatch)
+    -   [Patch Stack](#patch-stack)
     -   [Tuning Fork](#tuning-fork)
     -   [Inverse Plant](#inverse-plant)
     -   [Tween Branches](#tween-branches)
@@ -96,6 +97,16 @@ progress display and an error report.
 
 Shows: iterating files with `dir`, running the `papageno` engine repeatedly, long-running work with
 its own progress display, and structured result reporting.
+
+### Patch Stack
+
+`Patch Stack.spscript` — **GUI script.** Builds a layered patch from up to three source patches and
+writes the generated result directly to the live patch while the window stays open.
+
+Shows: live patch ownership with a stable `patchId`, marking generated writes as `modified`, tracking
+the identity returned by `setElement`, save/metadata echo handling, private-state undo/redo limits,
+package names and local resource paths with spaces, package-local IVG assets, and layered grafting
+composition.
 
 ### Tuning Fork
 

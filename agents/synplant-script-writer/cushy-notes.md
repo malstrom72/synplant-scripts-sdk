@@ -258,6 +258,10 @@ averages rather than tracing every tick.
 - Most features (shapes, paths, masks, gradients, opacity, blends, image transforms, text) are
   practical — measure at the real UI size before assuming something is too expensive. Layering static
   and dynamic content into separate vector views can help, or may be unnecessary; measure.
+- IVG text anchoring is geometric, not guaranteed optical centering. In small circles, badges, and
+  compact buttons, render the real GUI and apply a small visual offset if the text looks high or low;
+  when moving the surrounding shape, move labels by the same visual baseline rule, not necessarily to
+  the exact numeric center.
 
 ### JavaScript data and memory
 
@@ -291,6 +295,24 @@ averages rather than tracing every tick.
 - `saveUndo` captures Synplant document state, not your script's JavaScript state. After undo/redo,
   derive script state from the patch where possible (e.g. re-read on `getElementId('patch')` change)
   rather than assuming your cached GUI state still matches.
+- For live-edit GUI scripts that repeatedly replace the same conceptual patch with
+  `setElement('patch', patch)`, distinguish document identity from patch ownership:
+  `patch.id` corresponds to `getElementId('patch')` / Cushy `patch.identity` and changes when the
+  document patch changes; store the identity returned by `setElement('patch', patch)` if the script
+  needs to recognize its own latest write. `patch.patchId` is the audio-smoothing identity; keep it
+  stable across incremental writes while editing the same conceptual patch so held notes can smooth
+  instead of retriggering. Set `patch.modified = true` before writing a changed patch when the user
+  should be prompted to save the result.
+- Saving or refreshing patch metadata can produce a new `patch.identity` even when the live patch is
+  still script-owned. A practical guard is to treat identity changes with the script's stable
+  `patchId` and `modified === false` as save/metadata echoes: update cached name/path/identity and
+  keep the GUI in sync. Treat this as observed live-edit behavior, not a formal file-format
+  guarantee.
+- If a GUI script has private state that cannot be reconstructed from the generated patch, host undo
+  can restore an older document state without restoring the script's JavaScript model. Auto-resync
+  only when the live `patch.identity` matches the latest identity written by the current model, or
+  when the script can fully rebuild its model from the live patch. Otherwise show an out-of-sync or
+  re-apply affordance instead of pretending the controls still describe the patch.
 - To make a GUI recover its own controls after undo/redo when generation is many-to-one, memoize the
   inputs that produced an output and key them by a compact content signature of the generated patch or
   patch region.

@@ -43,6 +43,12 @@ Package-local resources are still resolved from the schema's `resources:` roots,
 to it through the package folder, for example `ivgFile: "My Script.spscript/Icon"` or
 `file: "My Script.spscript/Icon"`, not just `"Icon"`.
 
+Package directory names and package-local launcher/layout filenames may contain spaces. Use the exact
+package path in `displayCushy`, `file:`, and `ivgFile:` references, for example
+`displayCushy('Patch Stack.spscript/Patch Stack_main', 'script', true)`. Keep JavaScript globals,
+Cushy action names, and schema action names identifier-safe, e.g. a visible package named
+`Patch Stack` with an internal object/action prefix such as `patchStack`.
+
 ### GUI startup pattern
 
 - Open the window from the launcher with `displayCushy('<Name>.spscript/<Name>_main', 'script', true)`.

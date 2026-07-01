@@ -88,7 +88,15 @@ product schema and any package-local `.schema`. The intended command form is:
 CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 ```
 
-Pass a directory path with a trailing slash so companion `.schema` files resolve.
+From a separate script project that keeps the SDK under `references/`, call the SDK runner and pass
+the package directory as an absolute path:
+
+```sh
+references/synplant-scripts-sdk/CushyLint/CushyLint "/abs/path/to/scripts/My Script.spscript/"
+```
+
+Pass the package directory, not an individual `.cushy` file, and keep the trailing slash so companion
+`.schema` files resolve.
 
 If CushyLint prints `rule view is missing` and `rule actions is missing` during `Checking Schema
 references...`, cites `cushy.schema` line numbers instead of your `.cushy`, and ends with
