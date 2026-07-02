@@ -31,12 +31,14 @@ layout and ask how they want to proceed before creating files.
 Before changing the live Synplant Scripts install, identify the exact live scripts folder first:
 prefer `DIRS.SCRIPTS` via the bridge, or have the user open **Open Scripts Folder**. On macOS the
 standard path is
-`/Library/Application Support/Sonic Charge/Synplant Scripts`, but do not treat similarly named folders
-or symlinks as substitutes. If that exact path does not exist and the bridge cannot confirm
-`DIRS.SCRIPTS`, stop and ask the user instead of relinking anything. Once the exact live folder is
-known, check whether that exact path is already a symlink with `ls -ld` and `readlink`, and ask the
-user before modifying it. This file defines the agent role and working rules; it is not the project
-bootstrap checklist.
+`/Library/Application Support/Sonic Charge/Synplant Scripts`; on Windows it may be under
+`C:\Program Files\Sonic Charge\Synplant Scripts`, and
+`tools/locate-scripts-folder.ps1 -Verify` can provide a candidate before the bridge exists. Do not
+treat similarly named folders, locator guesses, or symlinks as substitutes for the exact live folder.
+If that exact path does not exist and the bridge cannot confirm `DIRS.SCRIPTS`, stop and ask the user
+instead of relinking anything. Once the exact live folder is known, check whether that exact path is
+already a symlink with `ls -ld` and `readlink`, and ask the user before modifying it. This file
+defines the agent role and working rules; it is not the project bootstrap checklist.
 
 See [`source-map.md`](source-map.md) for where to look. The most important references are
 [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md),

@@ -65,9 +65,9 @@ original schema paths are correct at the SDK root, not under `scripts/`. In the 
 layout, rewrite `scripts/JS Console.spscript/JSConsole.schema` to:
 
 ```schema
-include: ../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
+include: ../../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
 resources: ../
-resources: ../references/synplant-scripts-sdk/Synplant Resources
+resources: ../../references/synplant-scripts-sdk/Synplant Resources
 ```
 
 Do not copy `Synplant Resources/` into `scripts/` to satisfy copied SDK schema paths. If CushyLint or
@@ -95,6 +95,17 @@ similarly named folder under Sonic Charge's Application Support directory, ignor
 exactly the folder Synplant reported. Do not relink a similarly named folder or local artifact just
 because the standard folder is missing.
 
+On Windows, before the bridge is installed, the SDK helper can usually locate the same folder from
+the Sonic Charge registry keys:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File references/synplant-scripts-sdk/tools/locate-scripts-folder.ps1 -Verify
+```
+
+Treat that output as a high-confidence candidate to confirm with the user, not as a replacement for
+`DIRS.SCRIPTS` / **Open Scripts Folder**. The folder may be under `C:\Program Files\Sonic Charge\`,
+which normally requires elevation to write.
+
 - Single-file scripts go in directly as `MyUtility.js`.
 - GUI scripts go in as `MyTool.spscript/` package folders.
 - Mods go in a `Mods/` subfolder; every `.js` there runs at startup.
@@ -106,6 +117,10 @@ elevated permissions, so ask the user before doing it, and first check whether t
 already a symlink to another workspace (on macOS, inspect that exact folder with `ls -ld` and
 `readlink`).
 
+If the live scripts folder is in a location that needs elevation to write, such as Windows
+`C:\Program Files\...`, proactively offer the development-link workflow before the first copy. A
+one-time elevated junction/symlink avoids repeated elevated installs while iterating.
+
 ## The live bridge
 
 The SDK's `JS Console.spscript` contains a file bridge, and
@@ -115,7 +130,14 @@ Wire it up so you can verify against the live engine. The bridge brokers files i
 folder setup is needed.
 
 1. Install the SDK's `JS Console.spscript` into the folder Synplant reads (it must be **this SDK's**
-   bridged copy — a plain console has no `bridge on`).
+   bridged copy — a plain console has no `bridge on`). If any existing bridge is already working, get
+   the exact target from `sp_eval("DIRS.SCRIPTS")`; otherwise use **Open Scripts Folder** or the
+   Windows locator above and confirm the target with the user. Then copy the bridged console:
+
+   ```sh
+   node references/synplant-scripts-sdk/tools/install-jsconsole.js "/ABS/PATH/TO/Synplant Scripts"
+   ```
+
 2. Register the MCP server for the assistant.
    - **Claude Code:** a project-root `.mcp.json` registers it:
 

@@ -42,7 +42,17 @@ during the first setup. Re-link by removing the existing symlink and creating th
 symlink removes only the link, never its target.
 
 On Windows, confirm the folder with **Open Scripts Folder**, then copy it into your project, move the
-original aside, and create a directory junction:
+original aside, and create a directory junction. Before the bridge is installed, the SDK helper can
+usually locate the same folder from the Sonic Charge registry keys:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\locate-scripts-folder.ps1 -Verify
+```
+
+Treat that output as a candidate to confirm, not as a substitute for the exact folder opened by
+Synplant. The live folder may be under `C:\Program Files\Sonic Charge\Synplant Scripts`, which
+normally requires elevation to modify; a one-time junction avoids repeated elevated copies while
+iterating.
 
 ```bat
 xcopy "<Synplant Scripts folder>" "C:\path\to\my-synplant-scripts\scripts\" /E /I

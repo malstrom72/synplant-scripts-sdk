@@ -76,9 +76,13 @@ When Synplant starts and a `Mods` folder exists, **every `.js` file directly ins
 automatically**, in alphabetical order. There is no separate "enable" step — presence in the folder
 is what activates a Mod. Removing the file (and reloading) removes the Mod.
 
-> If there is no `Mods` folder, the modding machinery is not installed at all: the
-> `handleCushyPreparation` hook and the global `mods` object are simply absent. Adding the folder and
-> reloading activates them.
+> If there is no `Mods` folder, the global `mods` namespace is not installed and Mod files are not
+> loaded. Adding the folder and reloading activates normal Mod loading.
+
+After the `Mods` folder exists and a Mod has loaded once, ordinary edits are picked up by a normal
+reload (`performCushyAction('reload')` or the JS Console reload button). A full reset/relaunch is
+only needed for cases where the Mod machinery was not active yet, such as creating the `Mods` folder
+for the first time.
 
 ## How Mods work
 
@@ -220,7 +224,9 @@ pattern:
             checked: function () { /* is current patch already a favorite? */ },
             execute: function () {
                 var patch = getElement('patch');
-                save(favoriteFolder + splitPath(patch.path)[1] + '.synplant', marshal('patch', patch, true));
+                if (patch.path === null) { return; } // no backing .synplant file to favorite
+                var name = splitPath(patch.path)[1];
+                save(favoriteFolder + name + '.synplant', marshal('patch', patch, true));
                 displayHint(translate('Added to Favorites folder'));
             },
             enabled: function () { /* only when a saved, unmodified patch is current */ },
@@ -279,4 +285,10 @@ Four Mods ship as examples and are good reading:
 -   **Persist under `DIRS.DOCUMENTS`.** That is the folder a script may write to without a permission
     prompt (see the JS Reference, File Access and Permissions).
 -   **Reload to iterate.** Reloading the GUI re-runs the built-in layouts and therefore re-applies
-    patchers. A full engine reset clears Mods until the next startup re-reads the `Mods` folder.
+    patchers. Once the `Mods` folder exists and Mod loading is active, edit the Mod file, run
+    `performCushyAction('reload')`, and re-test; no reset/relaunch is needed for ordinary edits. A
+    full engine reset clears Mods until the next startup re-reads the `Mods` folder.
+-   **Use the bridge up to modal boundaries.** The JS Console bridge can test pure Mod logic and even
+    confirm that a function changed after reload by inspecting `mods.myMod.action.execute.toString()`.
+    Native modals such as `browse(...)` and `display(...)` block the bridge tick, and visual menu
+    placement still has to be checked in the actual Synplant window.

@@ -284,9 +284,9 @@ The same rule applies to SDK packages copied into project `scripts/`. For exampl
 header to:
 
 ```schema
-include: ../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
+include: ../../references/synplant-scripts-sdk/Synplant Resources/Synplant2.schema
 resources: ../
-resources: ../references/synplant-scripts-sdk/Synplant Resources
+resources: ../../references/synplant-scripts-sdk/Synplant Resources
 ```
 
 Do not make `scripts/Synplant Resources/` to satisfy the copied schema's original SDK-relative paths.

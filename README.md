@@ -119,7 +119,8 @@ Synplant's interface and scripting are built from several Sonic Charge technolog
 ## Getting started
 
 1. Find your Synplant Scripts folder via Synplant's script menu → **Open Scripts Folder** (it is the
-   `DIRS.SCRIPTS` location).
+   `DIRS.SCRIPTS` location). On Windows, before the bridge is installed, you can usually locate the
+   same folder with `tools\locate-scripts-folder.ps1 -Verify`; confirm the result before writing.
 2. Put a single-file script (`MyScript.js`) or a GUI package directory (`MyScript.spscript/`) inside
    it. It appears in the script menu.
 3. For a GUI package, the entry `MyScript.js` opens the window:
@@ -151,6 +152,10 @@ For quicker round-trips, keep your scripts in a project folder and point Synplan
 it with a symbolic link, so the files you edit are the ones Synplant loads. See
 [Development Scripts Folder](docs/Development%20Scripts%20Folder.md) for macOS and Windows commands,
 including re-linking an existing symlink and agent-friendly macOS elevation.
+
+On Windows the live folder may be under `C:\Program Files\Sonic Charge\`, which usually requires
+elevation for every copy. In that case, consider the development-link workflow before the first
+manual install so later edits are elevation-free.
 
 ## Cushy
 
@@ -203,6 +208,16 @@ To use it: install `JS Console.spscript` into your Synplant Scripts folder, open
 `bridge on`, and point your MCP client at the server (the project-scoped
 [`.mcp.json`](.mcp.json) registers it automatically for compatible clients). See the
 [bridge README](tools/jsconsole-bridge-mcp/README.md) for details.
+
+To copy this SDK's bridged JS Console into a confirmed scripts folder:
+
+```sh
+node tools/install-jsconsole.js "/path/to/Synplant Scripts"
+```
+
+With no argument, the helper prints the SDK source path and platform-specific target hints. On
+Windows, use `tools\locate-scripts-folder.ps1 -Verify` or **Open Scripts Folder** to confirm the
+target first.
 
 ## TypeScript
 

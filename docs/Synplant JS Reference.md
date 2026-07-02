@@ -310,7 +310,9 @@ contains audio extensions a sample preview is enabled; if it is only `"synplant"
 browser is used. That browser includes Factory Patches / User Patches navigation shortcuts and lets
 the user audition the selected patch by playing MIDI before loading it. `defaultFileName` (save
 browser only) should omit the extension. If `initialDir` is `null`, a directory is chosen
-automatically from the first extension.
+automatically from the first extension. In a save browser with a recognized single file type, the
+returned path normally already includes that extension; do not blindly append the extension again
+without checking the returned path.
 
 See also: [dir](#dir), [load](#load), [save](#save).
 
@@ -692,7 +694,8 @@ See also: [The DNA / Genome Model](#the-dna--genome-model).
 
     function splitPath(path: string) : [string, string, string]
 
-Splits a path into `[directory, name, extension]`.
+Splits a path into `[directory, name, extension]`. The extension includes the leading dot:
+`splitPath('/a/b/foo.synplant')` returns `['/a/b/', 'foo', '.synplant']`.
 
 See also: [fullPath](#fullpath).
 
@@ -733,7 +736,7 @@ See also: [readClipboard](#readclipboard).
     {
         implementation: Integer     // engine implementation id
         name:           string
-        path:           string|null // source file; filename takes priority over name when updating
+        path:           string|null // source file; null for unsaved/host-loaded patches
         modified:       boolean
         id:             Integer     // identity, auto-incremented on any modification
         patchId:        Integer|null// audio-smoothing id; null → assigned on setElement
@@ -747,7 +750,11 @@ See also: [readClipboard](#readclipboard).
     }
 
 `control` keys are the 14 [control parameter](#parameter-constants) names; `genome` keys are the 48
-gene names. Both hold normalized 0..1 values.
+gene names. Both hold normalized 0..1 values. `patch.path` is the authoritative source file path for
+a saved patch; if it is `null`, the patch has no backing `.synplant` file path in the current
+context. Use `patch.name` for display text, or when intentionally proposing a name for a new file, but
+do not treat it as a substitute for `patch.path` when updating or deriving from an existing saved
+file path.
 
 ### Branch object
 

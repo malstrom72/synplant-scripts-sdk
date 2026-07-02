@@ -40,6 +40,7 @@ declare type BrowserType = "open" | "save" | "folder"
 	If fileTypes contains audio file extensions, a sample preview is enabled
 	If fileTypes are only "synplant" and / or "synp", the patch browser will be used, with Factory/User shortcuts and MIDI preview
 	defaultFileName is only used for save browser, do *not* include file extension
+	For a save browser with a recognized single file type, the returned path normally already includes the extension
 	If initialDir is null, a directory is chosen automatically based on the first extension in fileTypes
 */
 declare function browse(browserType?: BrowserType, fileTypes?: string | string[], initialDir?: string, defaultFileName?: string): string | null
@@ -72,7 +73,7 @@ declare function copyFile(fromPath: string, toPath: string): void;
 declare function eraseFile(path: string): void;
 declare function moveFile(fromPath: string, toPath: string): void;
 declare function makeDir(path: string): void;
-declare function splitPath(path: string): [string, string, string];
+declare function splitPath(path: string): [string, string, string];	// extension includes leading dot, e.g. ".synplant"
 declare function fullPath(base?: string, relative?: string): string;
 declare function load(filePath: string, encoding: 'binary'): Byte[];
 declare function load(filePath: string, encoding?: 'utf-8' | 'iso-8859-1'): string;

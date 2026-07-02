@@ -85,6 +85,27 @@ Copy the `JS Console.spscript` folder (at the repo root) into your Synplant Scri
 folder. The quickest way to find that folder is the script menu in Synplant →
 **Open Scripts Folder** (it is `DIRS.SCRIPTS`).
 
+On Windows, before the bridge exists, the SDK helper can usually locate the same folder from the
+Sonic Charge registry keys:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\locate-scripts-folder.ps1 -Verify
+```
+
+Treat that output as a candidate to confirm, not as a replacement for `DIRS.SCRIPTS` /
+**Open Scripts Folder**. If the target is under `C:\Program Files\Sonic Charge\`, copying the console
+may need elevation; for repeated development, consider linking the live scripts folder to a project
+`scripts` folder first.
+
+Once the target is confirmed, copy the SDK's bridged console with:
+
+```sh
+node tools/install-jsconsole.js "<Synplant Scripts folder>"
+```
+
+The helper refuses to run unless the source console contains the bridge commands, which avoids
+accidentally installing a plain JS Console copy.
+
 ### 2. Register the MCP server
 
 This repo ships a project-scoped [`.mcp.json`](../../.mcp.json) at its root, so
