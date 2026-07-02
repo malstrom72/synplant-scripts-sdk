@@ -122,6 +122,9 @@ has to write one position and visible flag per marker instead of one value per c
   engine and clears globals. Do not drive a full reset over the bridge — it tears the bridge down.
 - If interaction objects are kept across reloads they may retain old methods and closures. For
   development, recreate interaction objects on each reload and carry over only persistent user state.
+- Any field added to a persisted script global must be backfilled in code that runs on every reload,
+  not only in the `if (!this.myState)` first-run initializer. Existing sessions keep the old object
+  shape across a normal reload, so new fields otherwise stay `undefined`.
 - Launching a package over the bridge is asynchronous at the Cushy boundary: `displayCushy(...)`
   returns before the package's `_main.js` runs. Do not assert the package global in the same
   `sp_eval`; check it in a follow-up eval. Inspect which script window is open with
@@ -309,13 +312,17 @@ averages rather than tracing every tick.
   keep the GUI in sync. Treat this as observed live-edit behavior, not a formal file-format
   guarantee.
 - If a GUI script has private state that cannot be reconstructed from the generated patch, host undo
-  can restore an older document state without restoring the script's JavaScript model. Auto-resync
-  only when the live `patch.identity` matches the latest identity written by the current model, or
-  when the script can fully rebuild its model from the live patch. Otherwise show an out-of-sync or
-  re-apply affordance instead of pretending the controls still describe the patch.
-- To make a GUI recover its own controls after undo/redo when generation is many-to-one, memoize the
-  inputs that produced an output and key them by a compact content signature of the generated patch or
-  patch region.
+  can restore an older document state without restoring the script's JavaScript model. Observed host
+  behavior is that undo/redo restores the original `patch.identity` for a state the script previously
+  wrote, rather than minting a fresh identity. For in-session recovery, keep a bounded
+  `identity -> model snapshot` map for your own writes; on `patch.identity` changes, restore the
+  snapshot when the live identity is in that map. Reserve the out-of-sync / re-apply affordance for
+  identities the script never wrote and cannot reconstruct.
+- Bound the identity map and evict oldest entries by insertion order. Continuous gestures can write
+  many identities; snapshots stay cheap when they share immutable source objects by reference and copy
+  only the private model fields needed to regenerate the patch. This history is in-memory: it survives
+  a normal Cushy reload if stored on a guarded global, but it is gone after an engine reset, window
+  close, or new session.
 - Keep numeric fingerprints inside 32-bit integer operations. JavaScript numbers are doubles;
   repeated multiplication by large constants can lose low bits before the next bitwise coercion. For
   compact content signatures, prefer a shift/add step that truncates every round, such as

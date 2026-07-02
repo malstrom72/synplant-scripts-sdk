@@ -104,9 +104,9 @@ its own progress display, and structured result reporting.
 writes the generated result directly to the live patch while the window stays open.
 
 Shows: live patch ownership with a stable `patchId`, marking generated writes as `modified`, tracking
-the identity returned by `setElement`, save/metadata echo handling, private-state undo/redo limits,
-package names and local resource paths with spaces, package-local IVG assets, and layered grafting
-composition.
+the identity returned by `setElement`, identity-keyed undo/redo reconciliation for private script
+state, save/metadata echo handling, package names and local resource paths with spaces, package-local
+IVG assets, and layered grafting composition.
 
 ### Tuning Fork
 

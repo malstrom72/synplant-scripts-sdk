@@ -5,9 +5,11 @@
 // continuous knobs create one undo step per gesture. A stable stack patch id keeps edits smooth.
 //
 // Reconciliation: patch.identity changes from our own writes, host undo/redo, saves, loads, and main
-// UI edits. We track the latest identity we wrote. If the host returns to that identity, we are in
-// sync; if a save/metadata echo keeps the same patchId and clears modified, we stay in sync. Other
-// changes show out-of-sync because the slot model cannot be reconstructed from the generated patch.
+// UI edits. We keep a bounded identity->slot-model history for every patch this panel writes during
+// the current engine session. If host undo/redo returns to one of those identities, we restore the
+// matching private model and stay in sync; save/metadata echoes with the same patchId also stay in
+// sync. Unknown identities show out-of-sync because the slot model cannot be reconstructed from the
+// generated patch.
 //
 // Vendors the grafting helpers from snippets/grafting.js. ES3 style.
 
@@ -28,7 +30,13 @@ if (!this.patchStack) {
 		stackSeedId: null,
 		lastPatchId: 0,
 		livePatchId: 0, // latest patch.identity written by Patch Stack and matching the current slot model
-		outOfSync: false // true once the live patch has been changed outside the panel (undo/redo, load, main-UI edit)
+		outOfSync: false, // true once the live patch has been changed outside the panel (undo/redo, load, main-UI edit)
+		// identity -> slot-model snapshot for every patch this panel has written this session. Host undo/redo
+		// restore the exact patch.identity we wrote (verified: they do not mint fresh ids), so on a returning
+		// identity we can restore the matching UI instead of detaching. In-memory only: after save/reload it
+		// is gone and identities are re-minted, which is fine -- there is nothing to reconcile against then.
+		history: {},
+		historyOrder: [] // insertion order of history keys, for bounded eviction (identities are monotonic)
 	};
 }
 
@@ -49,10 +57,15 @@ if (!this.patchStack) {
 	// keep the flag a real boolean for the writeLive/refresh logic below).
 	if (me.outOfSync === undefined) { me.outOfSync = false; }
 	if (me.livePatchId === undefined) { me.livePatchId = 0; }
+	// Reconciliation history added after the persisted object existed: a reload starts with an empty map
+	// (nothing to reconcile against yet -- the first write repopulates it) rather than reading undefined.
+	if (!me.history) { me.history = {}; }
+	if (!me.historyOrder) { me.historyOrder = []; }
 	if (!(me.spread >= 0 && me.spread <= 1)) { me.spread = 0.5; }
 	if (!(me.detune >= 0 && me.detune <= 1)) { me.detune = 0.0; }
 
 	var SLOT_COUNT = 3;
+	var HISTORY_LIMIT = 64; // bound the identity->snapshot reconciliation map (see me.history)
 	// In Synplant's bulb at rotation 0, branch 6 renders at the TOP (12 o'clock); branch 0 is bottom.
 	// Placement uses branch 0 for the single/center slot and branches 3/9 for left/right spread.
 	var CENTER_BRANCH = 0;          // straight down / center pan
@@ -360,6 +373,40 @@ if (!this.patchStack) {
 		me.current = base;
 	}
 
+	// --- reconciliation snapshots -------------------------------------------------------------
+	// Capture the slot model that produced the current stack, keyed later by the written patch identity.
+	// slot.patch is a loaded source patch that buildStack never mutates (it clonePatch-es the base), so we
+	// SHARE the reference rather than deep-copying the large patch object -- the snapshot stays cheap.
+	// A slot's own enumerable fields are exactly the freshSlot() shape, so a whole-slot shallow copy is
+	// equivalent to listing them and stays in sync if freshSlot gains a field. Object.assign is available
+	// here (also used by the public-interface block below). The copy shares the immutable `patch` reference.
+	function snapshotState() {
+		var slots = [];
+		for (var i = 0; i < SLOT_COUNT; ++i) { slots.push(Object.assign({}, me.slots[i])); }
+		return { slots: slots, mainIndex: me.mainIndex, spread: me.spread, detune: me.detune,
+			stackPatchId: me.stackPatchId, stackSeedId: me.stackSeedId };
+	}
+	// Restore a snapshot into the live model and deterministically rebuild me.current so later scalar edits
+	// mutate the right object. Does NOT setElement: the host already holds the restored patch.
+	function restoreState(snap) {
+		for (var i = 0; i < SLOT_COUNT; ++i) { Object.assign(me.slots[i], snap.slots[i]); }
+		me.mainIndex = snap.mainIndex;
+		me.spread = snap.spread;
+		me.detune = snap.detune;
+		me.stackPatchId = snap.stackPatchId;
+		me.stackSeedId = snap.stackSeedId;
+		buildStack();
+	}
+	// Memoize the current slot model under a written identity, evicting the oldest when the map is full.
+	function recordHistory(id) {
+		if (me.history[id] === undefined) { me.historyOrder.push(id); }
+		me.history[id] = snapshotState();
+		while (me.historyOrder.length > HISTORY_LIMIT) {
+			var old = me.historyOrder.shift();
+			if (old !== id) { delete me.history[old]; }
+		}
+	}
+
 	// Write the current stack to the live patch in place (stable id => smooth, no retrigger).
 	// setElement copies our object into the engine, so me.current stays ours.
 	function writeLive() {
@@ -368,6 +415,7 @@ if (!this.patchStack) {
 			me.livePatchId = setElement('patch', me.current);
 			me.lastPatchId = me.livePatchId;
 			me.outOfSync = false;
+			recordHistory(me.livePatchId);
 		}
 	}
 
@@ -523,16 +571,24 @@ if (!this.patchStack) {
 			}
 		},
 		// Fires on `onChanged: patch.identity`. Our own setElement writes echo back through here, but
-		// writeLive already stored that id in lastPatchId, so they match and no-op. If host redo returns
-		// to Patch Stack's latest written identity, drop the overlay automatically. Other identities mean
-		// the live patch was changed outside the panel (host undo, external load, main-UI edit). The
-		// stack's source-slot identity can't be read back from older grafted results, so when a stack is
-		// live we detach into the out-of-sync state until the user re-applies or loads/clears a slot.
+		// writeLive already stored that id in lastPatchId, so they match and no-op. If host undo/redo
+		// returns to any identity in our history, restore the matching slot model. Unknown identities mean
+		// the live patch was changed outside the panel (main-UI edit, external load, or history eviction),
+		// so we detach until the user re-applies or loads/clears a slot.
 		refreshFromPatch: function () {
 			var id = getElementId('patch');
 			if (id === me.lastPatchId) { return; }
 			me.lastPatchId = id;
 			if (me.current && id === me.livePatchId) {
+				me.outOfSync = false;
+				return;
+			}
+			// Host undo/redo restore the exact identity we wrote (not a fresh id), so any identity in our
+			// history is a state this panel authored: restore its slot model and follow the patch instead of
+			// detaching. Only identities we never wrote (main-UI edit, external load) fall through to below.
+			if (me.current && me.history[id] !== undefined) {
+				restoreState(me.history[id]);
+				me.livePatchId = id;
 				me.outOfSync = false;
 				return;
 			}
