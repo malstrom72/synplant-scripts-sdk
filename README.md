@@ -49,6 +49,17 @@ Synplant internals — see [Script types](#script-types) below.
 | [IVG Documentation](docs/IVG%20Documentation.md) / [ImpD Documentation](docs/ImpD%20Documentation.md) | Vector graphics drawn inside views, and the imperative data format they build on |
 | [ivgfont Documentation](docs/ivgfont%20Documentation.md) | The `.ivgfont` font format |
 
+## Prerequisites
+
+For everyday scripting work, no extra tools are required beyond what is bundled here except
+**[Node.js](https://nodejs.org/)** for JavaScript validation. `tools/validate-js.sh` runs ESLint via
+`npx` when no local `node_modules/.bin/eslint` is present, using
+`tools/eslint.synplant.config.mjs` to catch modern JavaScript syntax, undeclared globals, and a few
+NuXJS-incompatible constructs before a script reaches Synplant.
+
+SDK maintenance and full example validation may also use the bundled CushyLint and IVG2PNG binaries;
+they are prebuilt for macOS/Windows and auto-build from source if needed.
+
 ## AI-assisted workflow
 
 For agent-based script development, see

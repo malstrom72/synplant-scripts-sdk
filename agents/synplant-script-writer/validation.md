@@ -4,6 +4,24 @@ Two kinds of checking matter for Synplant scripts: **static** checks (JavaScript
 schema conformance) and **live** checks (does it actually behave in Synplant). The live bridge is the
 strongest tool available and should be the primary verification.
 
+## All examples at once
+
+To validate every bundled example package (Cushy schema, JavaScript, and static IVG) in one command,
+use the aggregate runner:
+
+```sh
+tools/validate-examples.sh
+```
+
+It runs CushyLint over every `*.spscript` package under `examples/` plus `JS Console.spscript`, then
+delegates to `tools/validate-js.sh` and `tools/validate-static-ivg.sh`. It runs all three sections
+even if one fails, so a single run surfaces every problem, and exits non-zero if anything fails. Use
+this as the regression gate after changing an example or the shared schema; use the per-language
+tools below when working on a single script.
+
+The same aggregate runner runs in CI on every push to `main` and on pull requests via
+[`.github/workflows/validate-examples.yml`](../../.github/workflows/validate-examples.yml).
+
 ## Live verification (preferred)
 
 When the bridge MCP server is configured and the JS Console is open with `bridge on`, verify against
@@ -69,15 +87,61 @@ Save the returned JSON array to a temporary file, then run:
 node tools/check-genome-param-ids.js /path/to/live-genes.json
 ```
 
-## JavaScript syntax
+## JavaScript validation
 
 Synplant's engine is ECMAScript 3 with a few additions (string indexing, `JSON`, `Object.assign`,
 `Array.isArray`, `Date.now`). Generated `.js` must be written as Synplant scripts, not modern
 browser/Node code. Reject `let`/`const`, arrow functions, classes, template literals, destructuring,
-modules, and async. If you have a linter available, an ESLint pass configured for ES5 script syntax is
-a reasonable static gate (it accepts the trailing-commas/reserved-word-property style the engine
-tolerates while rejecting ES6+). A syntax pass does not prove runtime correctness — confirm that with
-the bridge.
+modules, and async.
+
+The lightweight static gate is:
+
+```sh
+tools/validate-js.sh
+```
+
+It runs ESLint with [`tools/eslint.synplant.config.mjs`](../../tools/eslint.synplant.config.mjs). The
+config uses ECMAScript 5 script syntax. Synplant is ES3-based, but the shipped examples use ES5-era
+syntax that NuXJS accepts in practice, such as trailing commas in object literals and reserved words
+as property names. ESLint with `ecmaVersion: 5` is therefore a practical gate: it rejects modern ES6+
+syntax while accepting the syntax style already used by this SDK.
+
+With no arguments, the wrapper changes to the SDK root and validates `JS Console.spscript` plus
+`examples/`. Validate a specific bundled package, directory, or file with an absolute path:
+
+```sh
+tools/validate-js.sh "$(pwd)/examples/Patch Stack.spscript/"
+tools/validate-js.sh "$(pwd)/examples/Patch Stack.spscript/Patch Stack_main.js"
+```
+
+From a separate script project that keeps the SDK under `references/`, call the SDK runner and pass
+the script directory as an absolute path:
+
+```sh
+references/synplant-scripts-sdk/tools/validate-js.sh "/abs/path/to/scripts"
+references/synplant-scripts-sdk/tools/validate-js.sh "/abs/path/to/scripts/My Script.spscript/"
+```
+
+The wrapper keeps the caller's working directory when paths are supplied, so files outside the SDK
+checkout are validated instead of being ignored by ESLint's flat-config base path.
+
+This catches modern syntax (`let`, `const`, arrow functions, classes, template literals,
+destructuring, modules, async functions), `with`, getter/setter object literal syntax, and
+undeclared/misspelled globals outside the Synplant API/helper allowlist. The allowlist is grounded in
+[`ts/COJSEngine.d.ts`](../../ts/COJSEngine.d.ts), the JS Reference's host-helper section, and
+`Synplant Resources/Synplant2_main.js`; it includes the main-script `Math.sign`, `Math.cbrt`, and
+`Math.log10` helpers as valid `Math` members.
+
+ESLint is still static and untyped. It cannot reliably prove that a variable holds a string before
+`Math.round(value)`, so manually review GUI-variable setters and other string inputs for the shipped
+engine coercion bug. Coerce first with unary plus:
+
+```js
+Math.round(+value)
+```
+
+A clean JavaScript pass confirms the files parse as Synplant-style scripts and avoid known static
+gotchas; it does not prove runtime behavior. Confirm that with the bridge.
 
 ## `.cushy` validation with CushyLint
 
