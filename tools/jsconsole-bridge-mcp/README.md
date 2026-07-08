@@ -50,18 +50,22 @@ Files (all JSON):
 
 - `request.json` — `{ seq, code }`, written by this server (temp file + atomic rename).
 - `response.json` — `{ seq, ok, value, output, error }`, written by the bridge.
-- `bridge.json` — `{ ready, protocol }`, written by the bridge on `bridge on`. The
-  server uses this file's mtime for the "announced N s ago" status (the bridge
-  measures time with `getMonotonicTime()`, not a wall clock, so it writes no epoch).
+- `bridge.json` — `{ ready, protocol, time, owner }`, written by the bridge on
+  `bridge on` (`owner` is a token identifying the instance that currently holds the
+  bridge). The server uses this file's mtime for the "announced N s ago" status.
 
 Requests and replies are paired by a strictly increasing `seq` (epoch-ms based,
 so it keeps climbing across restarts). The bridge ignores any `seq` it has already
 handled.
 
-> **One Synplant instance only.** The folder is a single fixed machine-global path,
-> so the bridge assumes exactly one live bridge per machine: one running Synplant,
-> one JS Console, `bridge on`. Two instances with the bridge enabled would race
-> over the same files — enable `bridge on` in only one at a time.
+> **One active bridge at a time (single owner).** The folder is a single fixed
+> machine-global path, so only one Synplant instance can serve the bridge at a time.
+> `bridge on` records an `owner` token in `bridge.json`. If another instance already
+> owns it, `bridge on` pops an OK/Cancel dialog offering to take over; taking over
+> writes the new owner, and the previous owner sees the changed token on its next
+> tick and stands down — so two engines never handle the same request. To move the
+> bridge to a different instance, run `bridge on` (and click OK) in that instance's
+> JS Console window.
 
 ## Tools
 

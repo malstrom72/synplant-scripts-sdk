@@ -172,11 +172,15 @@ folder setup is needed.
    Run the Synplant bridge smoke test now. Check sp_status, then evaluate 1 + 1 over the bridge.
    ```
 
-   `sp_status` should report `attached: yes`, and `sp_eval` of `1 + 1` should return `2`.
+   `sp_status` probes the bridge and should report `bridge: LIVE`, and `sp_eval` of `1 + 1` should
+   return `2`.
 
 Do not claim the bridge tools are available until the MCP client has actually loaded them — verify
-that `sp_status`/`sp_eval` exist before relying on them. The bridge assumes **one** running Synplant
-with one JS Console and `bridge on`.
+that `sp_status`/`sp_eval` exist before relying on them. Only one Synplant instance can serve the
+bridge at a time: `bridge on` claims an `owner` token in `bridge.json`, and if another instance
+already owns it you get an OK/Cancel take-over prompt in that window (the previous owner then stands
+down on its next tick). To drive a specific instance, make sure it is the current owner by running
+`bridge on` in its JS Console.
 
 ## Reloading while iterating
 

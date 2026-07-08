@@ -19,7 +19,7 @@ if (!globals.jsConsole) {
 		knownGlobals: { },
 		heapKiBUsed: '0',
 		heapItemCount: '0',
-		bridge: { on: false, lastSeq: 0, base: '' }
+		bridge: { on: false, lastSeq: 0, base: '', token: '', isOwner: false }
 	}
 }
 
@@ -238,6 +238,14 @@ Object.assign(jsConsole, {
 		paired with the host by a monotonic `seq`; a request is evaluated only when
 		its seq advances past the last one handled. The bridgeTick autoexec polls
 		request.json (see JSConsole_main.cushy).
+
+		Only one Synplant instance may serve the bridge at a time. bridge.json
+		records an `owner` token identifying the instance that currently holds it. If
+		`bridge on` finds the file already owned by another instance, it asks the user
+		(OK/Cancel) whether to take over; taking over just writes this instance's token
+		as the new owner. Each tick, an owner that no longer sees its own token in
+		bridge.json stands down -- so the instance that was taken over stops serving,
+		and requests are never handled by two engines at once.
 	*/
 	bridgeDefaultBase: function() {
 		/*
@@ -248,10 +256,65 @@ Object.assign(jsConsole, {
 		*/
 		return DIRS.DOCUMENTS + 'jsconsole-bridge' + DIR_SLASH;
 	},
+	bridgeToken: function() {
+		var jc = this;
+		if (!jc.bridge.token) {
+			jc.bridge.token = 'jc-' + Math.floor(Date.now()).toString(36) + '-'
+				+ (random.integer() >>> 0).toString(36);
+		}
+		return jc.bridge.token;
+	},
+	bridgeReadPresence: function() {
+		try {
+			return JSON.parse(this.realLoad(this.bridge.base + 'bridge.json'));
+		} catch (e) {
+			return null;
+		}
+	},
+	bridgeClaim: function() {
+		var jc = this;
+		try {
+			jc.realSave(jc.bridge.base + 'bridge.json', JSON.stringify({
+				ready: true, protocol: 1, time: Math.floor(Date.now()), owner: jc.bridge.token
+			}));
+		} catch (e) { }
+	},
+	bridgeOwnedByOther: function(info) {
+		// True when bridge.json names a DIFFERENT instance as the current owner.
+		return !!(info && info.ready && info.owner && info.owner !== this.bridge.token);
+	},
 	bridgeOn: function() {
 		var jc = this;
 		var base = jc.bridgeDefaultBase();
 		jc.bridge.base = base;
+		jc.bridgeToken();
+		/*
+			Synplant's script API can create folders (makeDir), so create the base if
+			the host has not yet -- otherwise the presence read/claim below has nowhere
+			to land.
+		*/
+		try {
+			if (fileInfo(base) === null) {
+				makeDir(base);
+			}
+		} catch (e) { }
+		/*
+			Single-owner: only one instance serves the bridge. If bridge.json is
+			already owned by another instance, ask the user whether to take it over
+			rather than silently co-handling every request (which would run each eval
+			in both engines and race over response.json).
+		*/
+		if (jc.bridgeOwnedByOther(jc.bridgeReadPresence())) {
+			var answer = display(
+				"Another Synplant instance is currently serving the JS Console bridge.\n\n"
+					+ "Take it over? The other instance will stop serving the bridge.",
+				'warning', 'ok cancel');
+			if (answer != 'ok') {
+				print("Bridge left with the other instance.");
+				return;
+			}
+			print("Taking over the bridge from the other instance.");
+		}
 		jc.bridge.lastSeq = 0;
 		try {
 			var req = JSON.parse(jc.realLoad(base + 'request.json'));
@@ -259,33 +322,49 @@ Object.assign(jsConsole, {
 				jc.bridge.lastSeq = req.seq;	// skip any stale request from a previous session
 			}
 		} catch (e) { }
-		jc.bridge.on = true;
 		/*
-			Write a presence file. Synplant's script API can create folders
-			(makeDir), so create the base if the host has not yet, then announce
-			readiness for `bridge.json`-based status checks from the host.
+			Claim ownership. Writing bridge.json also announces readiness for the
+			host's `bridge.json`-based status checks and stamps this instance's token
+			as the current owner.
 		*/
-		try {
-			if (fileInfo(base) === null) {
-				makeDir(base);
-			}
-		} catch (e) { }
-		try {
-			jc.realSave(base + 'bridge.json', JSON.stringify({ ready: true, protocol: 1 }));
-		} catch (e) { }
+		jc.bridgeClaim();
+		jc.bridge.isOwner = true;
+		jc.bridge.on = true;
 		print("Bridge ON.");
 		print("Folder: " + base);
 	},
+	bridgeRelease: function() {
+		var jc = this;
+		// If we currently own the bridge, clear the owner in bridge.json so another
+		// instance can take over cleanly. Used by both `bridge off` and window
+		// shutdown (closing the window must release the claim, otherwise the stale
+		// token makes the next `bridge on` elsewhere prompt to take over a dead owner).
+		if (jc.bridge.on && jc.bridge.isOwner && jc.bridge.base) {
+			try {
+				jc.realSave(jc.bridge.base + 'bridge.json', JSON.stringify({
+					ready: false, protocol: 1, time: Math.floor(Date.now()), owner: null
+				}));
+			} catch (e) { }
+		}
+		jc.bridge.on = false;
+		jc.bridge.isOwner = false;
+	},
 	bridgeOff: function() {
-		this.bridge.on = false;
+		this.bridgeRelease();
 		print("Bridge OFF.");
 	},
 	bridgeStatus: function() {
 		var jc = this;
 		print("Bridge is " + (jc.bridge.on ? "ON" : "OFF") + ".");
-		print("Base: " + (this.bridge.base || this.bridgeDefaultBase()));
+		print("Base: " + (jc.bridge.base || jc.bridgeDefaultBase()));
 		if (jc.bridge.on) {
+			print("Owner: this instance (" + jc.bridge.token + ").");
 			print("Last handled seq: " + jc.bridge.lastSeq);
+		} else {
+			var info = jc.bridgeReadPresence();
+			if (jc.bridgeOwnedByOther(info)) {
+				print("Another instance currently owns the bridge (owner " + info.owner + ").");
+			}
 		}
 	},
 	bridgeStringify: function(v) {
@@ -342,6 +421,16 @@ Object.assign(jsConsole, {
 			}
 			var base = jc.bridge.base;
 			if (!base) {
+				return;
+			}
+			/*
+				If another instance has taken ownership (its token is now in
+				bridge.json), stand down instead of co-handling requests.
+			*/
+			if (jc.bridgeOwnedByOther(jc.bridgeReadPresence())) {
+				print("Bridge stood down: another instance has taken over.");
+				jc.bridge.isOwner = false;
+				jc.bridge.on = false;
 				return;
 			}
 			var text;
@@ -406,6 +495,7 @@ Object.assign(jsConsole, {
 	reload: function() { performCushyAction('reload'); print("ok"); },
 	reset: function() { performCushyAction('reload', 'reset'); },
 	shutdown: function() {
+		this.bridgeRelease();	// release any bridge claim we own so another instance can take it cleanly
 		print = this.realPrint;
 		handleCushyTrace = this.lastCushyTracer;
 		print("SHUTTING DOWN");

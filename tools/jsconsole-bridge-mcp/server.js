@@ -11,7 +11,8 @@
 //
 //   <base>/request.json    we write (temp file + rename):  { seq, code }
 //   <base>/response.json   the bridge overwrites:          { seq, ok, value, output, error }
-//   <base>/bridge.json     the bridge writes on `bridge on`: { ready, protocol, time }
+//   <base>/bridge.json     the bridge writes on `bridge on`: { ready, protocol, time, owner }
+//                          (`owner` is a token identifying the instance that holds the bridge)
 //
 // This host owns the directory: it `mkdir -p`s <base> on startup, writes requests
 // atomically, and pairs replies by a strictly increasing `seq`. We base `seq` on

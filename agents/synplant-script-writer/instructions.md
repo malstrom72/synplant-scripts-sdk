@@ -82,7 +82,14 @@ When the bridge tools (`sp_status`, `sp_eval`) are available:
 
 The bridge brokers files in a folder under `DIRS.DOCUMENTS` (the Sonic Charge user-documents folder),
 which Synplant scripts may write to without a permission prompt — so it needs no special folder
-setup. It assumes **one** running Synplant with one JS Console and `bridge on`. See
+setup. **One active bridge at a time (single owner):** the folder is machine-global, so only one
+Synplant instance can serve it. `bridge on` records an `owner` token in `bridge.json`; if another
+instance already owns it, `bridge on` pops an OK/Cancel dialog in that window asking whether to take
+over. Taking over writes the new owner, and the previous owner detects the change on its next tick and
+stands down — so requests are never handled by two engines at once. `sp_status`/`sp_eval` always talk
+to whichever instance currently owns the folder. If you have several Synplant instances open, make
+sure the one you intend to drive is the current owner by running `bridge on` (and clicking OK) in its
+JS Console window; that hand-off is a GUI action you cannot perform over the bridge. See
 [`vibe-coding.md`](vibe-coding.md) for project setup and bridge bootstrap.
 
 ## Engine and language constraints
