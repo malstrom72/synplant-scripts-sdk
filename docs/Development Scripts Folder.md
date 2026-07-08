@@ -36,6 +36,22 @@ osascript -e 'do shell script "rm -f \"/Library/Application Support/Sonic Charge
 The `with administrator privileges` clause runs the whole shell script as root from one GUI prompt,
 so both the `rm` and `ln -s` operations are covered.
 
+**Cold start (the folder does not exist yet).** On a never-used Synplant install there is no
+`Synplant Scripts` folder — Synplant only surfaces its script menu once the folder exists — so there
+is nothing to copy or back up. Skip the `cp -R` and `mv ... .backup` steps entirely: create your
+project `scripts/` folder and link the standard location straight to it. There is also no `rm` to do,
+since nothing is there to remove:
+
+```sh
+mkdir -p "/path/to/my-synplant-scripts/scripts"
+osascript -e "do shell script \"ln -s '/path/to/my-synplant-scripts/scripts' '/Library/Application Support/Sonic Charge/Synplant Scripts'\" with administrator privileges"
+```
+
+Note the `-e` argument is double-quoted so your shell expands the project path before `osascript`
+sees it, while the paths inside use single quotes so their spaces survive. Prefer a project **outside**
+`~/Documents`/Desktop/Downloads: Synplant reading scripts through a link into those folders can raise a
+one-time "wants to access Documents" prompt.
+
 If `ls -ld` or `readlink` shows that the exact live folder opened by Synplant is already a symlink to
 another workspace, do not repeat the `mv ... .backup` step. The original folder was already preserved
 during the first setup. Re-link by removing the existing symlink and creating the new one; `rm` on a
