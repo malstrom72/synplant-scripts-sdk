@@ -55,17 +55,22 @@ on memory.
 
 When the bridge tools (`sp_status`, `sp_eval`) are available:
 
-- Call `sp_status` first; it should report `attached: yes`. If it reports `attached: no`, the JS
-  Console is not open with `bridge on`, or the MCP client has not loaded the server yet — report that
-  plainly and ask the user to complete the missing step.
+- Call `sp_status` first; it probes the bridge and reports `bridge: LIVE` or `bridge: NOT
+  RESPONDING`. `NOT RESPONDING` almost always means the JS Console is not open, or `bridge on` was
+  not typed **this session** — a leftover `bridge.json` presence file does not mean the bridge is
+  live. Report that plainly and ask the user to complete the missing step before suspecting anything
+  more exotic.
 - Use `sp_eval` for short, side-effect-free checks (read a parameter, inspect `getElement('patch')`,
   confirm a constant). Each eval freezes Synplant's UI and is subject to the ~20 s suspension limit,
   so keep snippets small and avoid destructive operations unless the user asked for them.
 - `sp_eval` runs in the shared global JavaScript scope. Wrap multi-statement snippets in an IIFE so
   temporary `var`s do not leak or shadow host globals. Avoid evals that can open modal dialogs during
   reload/startup; a modal can block the bridge tick from writing replies until the dialog is
-  dismissed. If `sp_status` shows `last request seq` advancing while `last reply seq` is frozen,
-  dismiss any Synplant dialog, then run `bridge off` / `bridge on`.
+  dismissed. When an eval times out or `last reply seq` is frozen, **do not assume a modal — that is
+  the least common cause.** Diagnose in order of likelihood: 1) is the JS Console window open? 2) was
+  `bridge on` typed **this session** (a stale `bridge.json` does not count)? 3) is Synplant running?
+  Only if the bridge *was* working and just stopped is a modal likely — then dismiss it and run
+  `bridge off` / `bridge on`. `sp_status` distinguishes these by probing (LIVE vs NOT RESPONDING).
 - Run a user script over the bridge with `run()`:
   `sp_eval("run('MyScript.spscript/MyScript.js')")`.
 - Check which script window is open with `sp_eval("getDisplayedCushy('script')")`.

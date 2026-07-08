@@ -72,8 +72,10 @@ handled.
   `var`s do not leak into the shared global space or shadow host names like
   `save`, `load`, or `print`. Avoid evals that may open modal dialogs during a
   reload or `displayCushy(...)` call. Default timeout `20000` ms.
-- **`sp_status()`** — report whether a bridge is attached (via `bridge.json`) and
-  the last request/reply sequence numbers.
+- **`sp_status()`** — check whether the bridge is actually **responding**. It probes
+  (a trivial eval with a short timeout) and reports `bridge: LIVE` or `bridge: NOT
+  RESPONDING`, rather than trusting the `bridge.json` presence file, which lingers
+  after the console is closed. See [When the bridge doesn't respond](#when-the-bridge-doesnt-respond).
 
 ## Install
 
@@ -129,7 +131,7 @@ protocol described above.
 ## Usage
 
 1. Open Synplant, open the **JS Console** from the script menu, type `bridge on`.
-2. From the MCP client, call `sp_status` to confirm `attached: yes`, then `sp_eval`
+2. From the MCP client, call `sp_status` to confirm `bridge: LIVE`, then `sp_eval`
    with a snippet, e.g. `getElement('patch').genome.flt_freq`.
 
 You'll see each command echo as `BRIDGE> …` in the JS Console window.
@@ -170,23 +172,28 @@ Do **not** drive a full reset (`performCushyAction('reload', 'reset')`) over the
 bridge — it wipes JS memory, tearing down the JS Console and the bridge. After that
 you must re-enable `bridge on` from the JS Console window. Do resets from the GUI.
 
-## Modal dialogs can block replies
+## When the bridge doesn't respond
 
-The bridge tick runs on Synplant's UI thread. If an eval opens a synchronous modal
-dialog before the bridge writes `response.json`, the current tick cannot return
-and the bridge cannot process later requests. Common triggers are `display(...)`
-from a script's startup/reload path, or a runtime Cushy/IVG load error dialog such
-as an invalid pre-multiplied `#AARRGGBB` color.
+`sp_eval` timing out, or `sp_status` reporting `bridge: NOT RESPONDING`, means the
+bridge isn't answering. **Diagnose in order of likelihood — a modal dialog is the
+*least* common cause, not the first thing to check:**
 
-The host-side symptom is repeated `sp_eval` timeouts. `sp_status` usually shows
-`last request seq` advancing while `last reply seq` stays frozen. The eval's side
-effects may already have happened; only the reply is blocked.
+1. **Is the JS Console window open in Synplant?** If it was closed, reopen it.
+2. **Was `bridge on` typed in it _this session_?** A `bridge.json` presence file is
+   written once on `bridge on` and lingers afterward, so it does **not** prove the
+   bridge is live — that is exactly why `sp_status` probes instead of trusting it.
+   Re-type `bridge on`.
+3. **Is Synplant running at all?**
+4. **Only if the bridge _was_ working and just stopped** is a modal dialog the likely
+   cause. The bridge tick runs on Synplant's UI thread, so a synchronous modal
+   (`display(...)` from a startup/reload path, or a Cushy/IVG load-error dialog such
+   as an invalid pre-multiplied `#AARRGGBB` color) freezes the tick until dismissed.
+   The tell is `last reply seq` frozen *below* `last request seq` after it had been
+   advancing. Dismiss the dialog in Synplant, then run `bridge off` / `bridge on`.
 
-Recovery:
-
-1. Dismiss the modal dialog in Synplant.
-2. In the JS Console, run `bridge off`, then `bridge on` to re-announce readiness.
-3. Re-run `sp_status` before sending another eval.
+`sp_status` distinguishes these cases: it probes the bridge (a trivial eval with a
+short timeout) and reports `LIVE` or `NOT RESPONDING` rather than trusting the
+presence file. Re-run it before sending another eval.
 
 When iterating on GUI packages, run CushyLint and static IVG checks first, then use
 normal reload evals only after the package is unlikely to throw a load-time modal.
