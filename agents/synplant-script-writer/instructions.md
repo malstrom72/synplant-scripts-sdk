@@ -28,17 +28,29 @@ as a reference checkout, unless the user is deliberately contributing SDK exampl
 running from the SDK checkout, point the user to [`vibe-coding.md`](vibe-coding.md)'s recommended
 layout and ask how they want to proceed before creating files.
 
-Before changing the live Synplant Scripts install, identify the exact live scripts folder first:
-prefer `DIRS.SCRIPTS` via the bridge, or have the user open **Open Scripts Folder**. On macOS the
-standard path is
+Before changing the live Synplant Scripts install, identify the exact live scripts folder. **Check
+the standard path on disk first** — do not lead with `DIRS.SCRIPTS` or **Open Scripts Folder** on a
+cold bootstrap. There is no bridge yet, so `DIRS.SCRIPTS` is unavailable, and Synplant does not
+surface its script menu — including **Open Scripts Folder** — until the folder exists, so neither can
+point at a folder that is not there. On macOS the standard path is
 `/Library/Application Support/Sonic Charge/Synplant Scripts`; on Windows it may be under
-`C:\Program Files\Sonic Charge\Synplant Scripts`, and
-`tools/locate-scripts-folder.ps1 -Verify` can provide a candidate before the bridge exists. Do not
-treat similarly named folders, locator guesses, or symlinks as substitutes for the exact live folder.
-If that exact path does not exist and the bridge cannot confirm `DIRS.SCRIPTS`, stop and ask the user
-instead of relinking anything. Once the exact live folder is known, check whether that exact path is
-already a symlink with `ls -ld` and `readlink`, and ask the user before modifying it. This file
-defines the agent role and working rules; it is not the project bootstrap checklist.
+`C:\Program Files\Sonic Charge\Synplant Scripts`, and `tools/locate-scripts-folder.ps1 -Verify` can
+provide a candidate before the bridge exists.
+
+- **Standard path missing** → a fresh install with no `Synplant Scripts` folder yet (the absent script
+  menu confirms it). This is expected — **not** a blocker and **not** "Synplant not installed." Treat
+  it as the first-ever-install case: offer the user the choice of creating the folder at the standard
+  location or linking it to project `scripts/` (see the cold-start step in
+  [`vibe-coding.md`](vibe-coding.md)). Do not scan the disk for similarly named folders and do not
+  relink one just because the standard folder is missing.
+- **Standard path exists** → confirm it is the exact folder Synplant reads (`DIRS.SCRIPTS` over a
+  working bridge, or **Open Scripts Folder**, are usable now). Do not treat similarly named folders,
+  locator guesses, or symlinks as substitutes for the exact live folder. Check whether that exact path
+  is already a symlink with `ls -ld` and `readlink`, and ask the user before modifying it.
+
+Only stop and ask if you genuinely cannot tell whether Synplant is installed at all, or the standard
+path resolves to an existing but unexpected target. This file defines the agent role and working
+rules; it is not the project bootstrap checklist.
 
 See [`source-map.md`](source-map.md) for where to look. The most important references are
 [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md),

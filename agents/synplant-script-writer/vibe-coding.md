@@ -88,12 +88,20 @@ Use the SDK checkout as the source of truth for docs, examples, schemas, resourc
 
 ## Installing scripts in Synplant
 
-Synplant runs scripts from the **Synplant Scripts** folder — open it from Synplant's script menu with
-**Open Scripts Folder**. Inside Synplant, `DIRS.SCRIPTS` is the absolute path to this folder.
-`DIRS.SCRIPTS` / **Open Scripts Folder** is authoritative. If a filesystem search finds a different
-similarly named folder under Sonic Charge's Application Support directory, ignore it unless it is
-exactly the folder Synplant reported. Do not relink a similarly named folder or local artifact just
-because the standard folder is missing.
+Synplant runs scripts from the **Synplant Scripts** folder. Inside Synplant, `DIRS.SCRIPTS` is the
+absolute path to it, and **Open Scripts Folder** in Synplant's script menu opens it — but **do not
+lead with either on a cold bootstrap.** There is no bridge yet, so `DIRS.SCRIPTS` is unavailable, and
+Synplant does not surface its script menu (including **Open Scripts Folder**) until the folder exists.
+**Check the standard path on disk first** (macOS
+`/Library/Application Support/Sonic Charge/Synplant Scripts`; on Windows use the locator below):
+
+- **Missing** → a fresh install with no `Synplant Scripts` folder yet. This is expected, not a
+  blocker; go to the [first-ever install](#the-live-bridge) cold-start step below and offer to create
+  or link the folder. Do not treat it as "Synplant not installed," and do not relink a similarly named
+  folder just because the standard folder is missing.
+- **Exists** → `DIRS.SCRIPTS` / **Open Scripts Folder** are now the authoritative confirmation of the
+  exact folder. If a filesystem search finds a different similarly named folder under Sonic Charge's
+  Application Support directory, ignore it unless it is exactly the folder Synplant reported.
 
 On Windows, before the bridge is installed, the SDK helper can usually locate the same folder from
 the Sonic Charge registry keys:
