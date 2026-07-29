@@ -7,7 +7,8 @@ the source of truth.
 - [`vibe-coding.md`](vibe-coding.md) is a practical project-setup and AI-assisted workflow guide.
 - [`source-map.md`](source-map.md) maps where to find authoritative references.
 - [`packaging.md`](packaging.md) covers the three script shapes (`.js`, `.spscript`, Mods).
-- [`validation.md`](validation.md) covers CushyLint and live-bridge verification.
+- [`validation.md`](validation.md) covers CushyLint, live-bridge verification, and the native
+  IVG2PNG authoring/validation loop for icons and vector assets.
 - [`examples.md`](examples.md) is a task-to-example index.
 - [`cushy-notes.md`](cushy-notes.md) collects practical Cushy gotchas and patterns.
 

@@ -199,6 +199,11 @@ button, then test again.
 
 ## Static IVG validation
 
+**Use IVG2PNG throughout icon and vector authoring, not only before shipping.** Render the actual
+`.ivg` after each meaningful design change so proportions, strokes, and transparency are visible.
+Do not build an SVG approximation just to preview an IVG or rely on generic image tools:
+ImageMagick installations without a reliable SVG delegate can silently drop stroked paths.
+
 CushyLint validates that referenced `.ivg` files exist, but it does not parse or rasterize the IVG
 source inside them. Run the static IVG renderer before trusting a new external icon or vector:
 
@@ -249,6 +254,22 @@ tools/IVG2PNG/IVG2PNG --fonts IVG/fonts --background "#202020" "path/to/MyGlyph_
 For comparing variants, render each variant as its own `_test.ivg` strip with neighboring cells or
 surrounding UI color included. Inspecting the generated PNG inside the assistant only verifies it for
 the assistant; if the user needs to see the result, open or share the rendered PNG explicitly.
+
+### Starting from SVG
+
+The pinned IVG snapshot includes `IVG/tools/svg2ivg.js` and its supported-feature reference at
+[`IVG/docs/SVG Support.md`](../../IVG/docs/SVG%20Support.md). Run the converter with Node.js:
+
+```sh
+node IVG/tools/svg2ivg.js input.svg output.ivg
+```
+
+Treat the result as a draft. The converter emits an IVG-1 header and deliberately explicit,
+frequently nested `context` blocks with repeated paint settings; SDK-authored icons commonly use a
+shorter IVG-2 form. Tidy the generated source by hand, preserve its meaning, and render the result
+with IVG2PNG. For a simple glyph, IVG's `path svg:[...]` accepts SVG path data verbatim, so copying
+the path data into a small hand-written IVG wrapper may be clearer. The converter is most useful for
+SVG transforms, gradients, and groups.
 
 ## Package schema header
 

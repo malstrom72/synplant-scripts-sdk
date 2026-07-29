@@ -57,8 +57,8 @@ For everyday scripting work, no extra tools are required beyond what is bundled 
 `tools/eslint.synplant.config.mjs` to catch modern JavaScript syntax, undeclared globals, and a few
 NuXJS-incompatible constructs before a script reaches Synplant.
 
-SDK maintenance and full example validation may also use the bundled CushyLint and IVG2PNG binaries;
-they are prebuilt for macOS/Windows and auto-build from source if needed.
+GUI scripting and IVG icon authoring may also use the bundled CushyLint and IVG2PNG binaries; they
+are prebuilt for macOS/Windows and auto-build from source if needed.
 
 ## AI-assisted workflow
 
@@ -183,6 +183,12 @@ The `IVG` directory is a curated vendored snapshot of the upstream
 [IVG repository](https://github.com/malstrom72/IVG). A prebuilt `IVG2PNG` binary for macOS and
 Windows is included in `tools/IVG2PNG/`, so no compiler is needed for normal use.
 
+Use IVG2PNG as the preview loop while authoring a single icon or vector asset, not only as a bulk
+validator. Render the actual `.ivg` after each meaningful change; do not substitute an SVG
+approximation or a generic image renderer that may silently omit stroked paths. The
+[single-file recipe](agents/synplant-script-writer/validation.md#static-ivg-validation) covers
+background colors, scaled glyph previews, and comparison strips.
+
 To render all static `.ivg` resources in this SDK:
 
 ```sh
@@ -196,6 +202,20 @@ or GUI variables, filesystem `include` files, or helper files with no top-level 
 as skipped by this static renderer pass. If the prebuilt binary cannot run on your platform, the
 scripts automatically rebuild `IVG2PNG` from source using `tools/build-ivg2png.sh` (macOS/Linux) or
 `tools\build-ivg2png.cmd` (Windows, requires MSVC).
+
+### svg2ivg
+
+The curated IVG snapshot also includes the pinned upstream SVG converter:
+
+```sh
+node IVG/tools/svg2ivg.js input.svg output.ivg
+```
+
+See [SVG Support](IVG/docs/SVG%20Support.md) for the supported subset. Treat converted output as a
+draft: `svg2ivg` emits a verbose IVG-1 representation, while hand-written SDK icons commonly use a
+compact IVG-2 form. Tidy the result and verify it with IVG2PNG. For simple shapes, SVG path data can
+be copied verbatim into IVG's `path svg:[...]`; the converter earns its keep on transforms,
+gradients, and groups.
 
 ## Live scripting bridge
 
@@ -232,9 +252,10 @@ For everyday scripting (writing `.cushy` and `.js` files, running CushyLint, and
 IVG resources), no extra tools are needed beyond what is in this repository; the CushyLint and
 IVG2PNG binaries are prebuilt for macOS and Windows.
 
-[Node.js](https://nodejs.org/) (version 18 or newer) is needed only for two optional tasks: running
-the JS Console MCP bridge server in [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp), and
-compiling TypeScript against `ts/COJSEngine.d.ts`.
+[Node.js](https://nodejs.org/) (version 18 or newer) is needed only for three optional tasks:
+running the JS Console MCP bridge server in
+[`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp), compiling TypeScript against
+`ts/COJSEngine.d.ts`, and converting SVG drafts with `IVG/tools/svg2ivg.js`.
 
 [Python 3](https://www.python.org/) is needed only for SDK maintenance: `tools/bootstrap-docling.sh`
 installs [Docling](https://github.com/DS4SD/docling) into a local virtual environment, and
