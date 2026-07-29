@@ -3,7 +3,7 @@
 For quicker round-trips, keep your scripts in a project folder and point Synplant's Scripts folder at
 it with a symbolic link, so the files you edit are the ones Synplant loads. This pairs well with the
 [live scripting bridge](../README.md#live-scripting-bridge): edit a file, then reload over the bridge
-with `sp_eval("performCushyAction('reload')")`.
+with `sp_reload`, passing an `until` expression that observes the edited code.
 
 Confirm the exact folder with **Open Scripts Folder** first, and copy its current contents into your
 project so nothing already installed is lost. On macOS the folder is normally:

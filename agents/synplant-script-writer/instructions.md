@@ -86,11 +86,13 @@ When the bridge tools (`sp_status`, `sp_eval`) are available:
 - Run a user script over the bridge with `run()`:
   `sp_eval("run('MyScript.spscript/MyScript.js')")`.
 - Check which script window is open with `sp_eval("getDisplayedCushy('script')")`.
-- Re-run edited script files and rebuild without leaving the bridge:
-  `sp_eval("performCushyAction('reload')")`. A normal reload keeps the engine and globals alive, so
-  the bridge survives it — this is the edit → reload → re-test loop. Do **not** drive a full reset
-  (`performCushyAction('reload', 'reset')`) over the bridge: it wipes JS memory and tears the bridge
-  down, after which it must be re-enabled with `bridge on`.
+- Re-run edited script files and rebuild without leaving the bridge with `sp_reload`, passing an
+  `until` expression that becomes true once the change is loaded. The `reload` action is
+  asynchronous, so `sp_eval("performCushyAction('reload')")` returning does not mean the script
+  rerun is finished, and an immediate probe may still see the old code. A normal reload keeps the
+  engine and globals alive, so the bridge survives it — this is the edit → reload → re-test loop.
+  Do **not** drive a full reset (`performCushyAction('reload', 'reset')`) over the bridge: it wipes JS
+  memory and tears the bridge down, after which it must be re-enabled with `bridge on`.
 
 The bridge brokers files in a folder under `DIRS.DOCUMENTS` (the Sonic Charge user-documents folder),
 which Synplant scripts may write to without a permission prompt — so it needs no special folder

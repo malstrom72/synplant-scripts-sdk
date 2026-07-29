@@ -536,6 +536,11 @@ See also: [composeNumbstrict](#composenumbstrict).
 Invokes a built-in Cushy/host action (e.g. `"reload"`, `"register"`, `"launch"`) with an optional
 Numbstrict parameter string. Returns whether the action succeeded.
 
+The `"reload"` and `"reset"` actions themselves are **asynchronous**: the script rerun they trigger
+is not finished when this function returns, so code running immediately afterwards may still see the
+old scripts. `"reload"` always succeeds, so its boolean return is not a completion signal. Poll for
+an observable effect instead of assuming the new code is live.
+
 See also: [getCushyVariable](#getcushyvariable), [setCushyVariable](#setcushyvariable).
 
 ### print

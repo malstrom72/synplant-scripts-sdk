@@ -76,6 +76,12 @@ handled.
   `var`s do not leak into the shared global space or shadow host names like
   `save`, `load`, or `print`. Avoid evals that may open modal dialogs during a
   reload or `displayCushy(...)` call. Default timeout `20000` ms.
+- **`sp_reload([until], [timeout_ms])`** — rerun edited script files and, when
+  `until` is supplied, poll that JavaScript expression until the new code is
+  observably live. The `reload` action is asynchronous, so prefer this over a bare
+  `sp_eval("performCushyAction('reload')")`. Without `until`, the tool invokes the
+  reload but warns that it cannot determine when the rerun has finished. Default
+  timeout `10000` ms.
 - **`sp_status()`** — check whether the bridge is actually **responding**. It probes
   (a trivial eval with a short timeout) and reports `bridge: LIVE` or `bridge: NOT
   RESPONDING`, rather than trusting the `bridge.json` presence file, which lingers
@@ -161,16 +167,23 @@ sp_eval("getDisplayedCushy('script')")
 
 The console's `reload` / `reset` are JS Console *commands*, not globals, so
 `sp_eval("reload")` just throws `ReferenceError`. To rerun the script files and
-rebuild the GUI from the host — the edit → reload → re-test loop — evaluate the
-underlying action instead:
+rebuild the GUI from the host — the edit → reload → re-test loop — use `sp_reload`
+with an expression that observes your change:
 
 ```js
-sp_eval("performCushyAction('reload')")
+sp_reload({ until: "typeof myScript.newAction !== 'undefined'" })
 ```
 
 A normal reload reruns the JavaScript files but keeps the engine and globals alive.
 It does not close the current script window, so **the bridge survives its own
-reload** and keeps working. The call returns `true`.
+reload** and keeps working.
+
+The `reload` action is asynchronous: its script rerun is not finished when
+`performCushyAction('reload')` returns, so an eval sent immediately afterwards can
+still observe the old code. Reload also always returns `true`; that value is not a
+completion signal. If no useful predicate is available, a bare
+`sp_eval("performCushyAction('reload')")` can still invoke it, but callers must not
+assume the new code is live yet.
 
 Do **not** drive a full reset (`performCushyAction('reload', 'reset')`) over the
 bridge — it wipes JS memory, tearing down the JS Console and the bridge. After that

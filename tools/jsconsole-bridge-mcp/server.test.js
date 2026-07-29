@@ -111,7 +111,7 @@ test('initialize echoes protocol version and advertises tools', async function (
 
 	const list = await s.request('tools/list');
 	const names = list.result.tools.map(function (x) { return x.name; }).sort();
-	assert.deepEqual(names, ['sp_eval', 'sp_status']);
+	assert.deepEqual(names, ['sp_eval', 'sp_reload', 'sp_status']);
 });
 
 test('sp_eval round-trips a value and captured output', async function (t) {
@@ -153,6 +153,88 @@ test('sp_eval times out when no bridge replies', async function (t) {
 	const r = await s.request('tools/call', { name: 'sp_eval', arguments: { code: '1', timeout_ms: 300 } });
 	assert.equal(r.result.isError, true);
 	assert.match(r.result.content[0].text, /timed out/);
+});
+
+test('sp_reload polls until the third probe reports ready', async function (t) {
+	const base = freshBase();
+	let probes = 0;
+	const fb = startFakeBridge(base, function (req) {
+		if (req.code === "performCushyAction('reload')") {
+			return { value: 'true' };
+		}
+		probes++;
+		return { value: probes === 3 ? '"SP_READY"' : '"SP_WAIT"' };
+	});
+	const s = startServer(base);
+	t.after(function () { fb.stop(); s.kill(); cleanup(base); });
+
+	await s.request('initialize', { capabilities: {} });
+	const r = await s.request('tools/call', {
+		name: 'sp_reload',
+		arguments: { until: 'myScript.version === 2', timeout_ms: 2000 }
+	});
+	assert.equal(r.result.isError, false);
+	assert.equal(probes, 3);
+	assert.match(r.result.content[0].text, /reload complete after \d+ms/);
+	assert.match(r.result.content[0].text, /predicate satisfied/);
+});
+
+test('sp_reload timeout points to diagnostics, not a reset', async function (t) {
+	const base = freshBase();
+	const fb = startFakeBridge(base, function (req) {
+		return { value: req.code === "performCushyAction('reload')" ? 'true' : '"SP_WAIT"' };
+	});
+	const s = startServer(base);
+	t.after(function () { fb.stop(); s.kill(); cleanup(base); });
+
+	await s.request('initialize', { capabilities: {} });
+	const r = await s.request('tools/call', {
+		name: 'sp_reload',
+		arguments: { until: 'false', timeout_ms: 350 }
+	});
+	assert.equal(r.result.isError, true);
+	assert.match(r.result.content[0].text, /did not become true within 350ms/);
+	assert.match(r.result.content[0].text, /sp_errors \/ sp_console/);
+	assert.doesNotMatch(r.result.content[0].text, /full reset|performCushyAction\(.+reset/);
+});
+
+test('sp_reload without until warns that the new code may not be live', async function (t) {
+	const base = freshBase();
+	const fb = startFakeBridge(base, function () { return { value: 'true' }; });
+	const s = startServer(base);
+	t.after(function () { fb.stop(); s.kill(); cleanup(base); });
+
+	await s.request('initialize', { capabilities: {} });
+	const r = await s.request('tools/call', { name: 'sp_reload', arguments: {} });
+	assert.equal(r.result.isError, false);
+	assert.match(r.result.content[0].text, /asynchronous/);
+	assert.match(r.result.content[0].text, /may not be live yet/);
+	assert.match(r.result.content[0].text, /Pass `until`/);
+});
+
+test('sp_reload wraps a throwing until predicate and treats it as not ready', async function (t) {
+	const base = freshBase();
+	let sawWrappedProbe = false;
+	const fb = startFakeBridge(base, function (req) {
+		if (req.code === "performCushyAction('reload')") {
+			return { value: 'true' };
+		}
+		sawWrappedProbe = /try\{return \(missingScript\.ready\)/.test(req.code)
+			&& /catch\(e\)\{return "SP_WAIT";\}/.test(req.code);
+		return { value: '"SP_WAIT"' };
+	});
+	const s = startServer(base);
+	t.after(function () { fb.stop(); s.kill(); cleanup(base); });
+
+	await s.request('initialize', { capabilities: {} });
+	const r = await s.request('tools/call', {
+		name: 'sp_reload',
+		arguments: { until: 'missingScript.ready', timeout_ms: 350 }
+	});
+	assert.equal(sawWrappedProbe, true);
+	assert.equal(r.result.isError, true);
+	assert.match(r.result.content[0].text, /did not become true/);
+	assert.doesNotMatch(r.result.content[0].text, /ReferenceError/);
 });
 
 test('sp_status probes liveness, not just the presence file', async function (t) {

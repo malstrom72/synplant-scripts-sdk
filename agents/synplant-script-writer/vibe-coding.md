@@ -243,11 +243,13 @@ down on its next tick). To drive a specific instance, make sure it is the curren
 ## Reloading while iterating
 
 Synplant caches resources, including script JavaScript, while the window is open. Over the bridge,
-re-run edited files and rebuild with `sp_eval("performCushyAction('reload')")` — a normal reload keeps
-the engine and globals alive, so the bridge survives it. In the JS Console window directly, use the
-reload button (or `reload`); a `reset` performs a full engine reset that clears globals and tears down
-the bridge. Closing Synplant's window destroys the whole environment. GUI scripts must survive being
-re-run, because an end user changing the zoom scale also forces a reload.
+re-run edited files and rebuild with `sp_reload`, passing an `until` expression that observes the
+change. The reload action is asynchronous, so a bare `sp_eval("performCushyAction('reload')")`
+returning does not mean the new code is live. A normal reload keeps the engine and globals alive, so
+the bridge survives it. In the JS Console window directly, use the reload button (or `reload`); a
+`reset` performs a full engine reset that clears globals and tears down the bridge. Closing
+Synplant's window destroys the whole environment. GUI scripts must survive being re-run, because an
+end user changing the zoom scale also forces a reload.
 
 If CushyLint validates a fixed file but Synplant still shows the old parse error, assume Synplant is
 still serving a cached resource and reload before chasing a new theory. The bridge is excellent for

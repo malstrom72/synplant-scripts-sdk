@@ -111,9 +111,11 @@ has to write one position and visible flag per marker instead of one value per c
 - All loaded scripts share one JavaScript global space while the Synplant window is open. This is why
   the JS Console and the bridge can inspect another script's globals, and why script-named namespaces
   matter.
-- Over the bridge, a normal reload is `sp_eval("performCushyAction('reload')")`: it flushes cached
-  resources, rebuilds the open GUI, and reruns JavaScript without replacing the engine. It does not
-  close the current script window, so the bridge survives it.
+- Over the bridge, use `sp_reload` with an `until` expression that observes the edited code. A normal
+  reload flushes cached resources, rebuilds the open GUI, and reruns JavaScript without replacing the
+  engine. The `reload` action is asynchronous: the rerun is not finished when
+  `performCushyAction('reload')` returns, its always-true boolean is not a completion signal, and an
+  immediate follow-up eval may still see the old code. The bridge survives a normal reload.
 - Synplant caches `.cushy`, JavaScript, IVG, and other script resources while the window is open.
   CushyLint reads fresh files from disk, but Synplant may still show an old parse error from its
   cache until a normal reload. If the on-disk file validates but Synplant still reports a stale error,

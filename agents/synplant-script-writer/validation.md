@@ -30,8 +30,8 @@ the running engine:
 - `sp_status` → expect `attached: yes`.
 - `sp_eval("run('My Script.spscript/My Script.js')")` to launch a script (or toggle its window).
 - `sp_eval("getDisplayedCushy('script')")` to see which script window is open.
-- `sp_eval("performCushyAction('reload')")` to re-run edited files and rebuild — the bridge survives a
-  normal reload. Do not drive a full reset over the bridge.
+- `sp_reload` with an `until` expression to re-run edited files and wait until the change is live —
+  the bridge survives a normal reload. Do not drive a full reset over the bridge.
 - Read state and parameters directly, e.g. `sp_eval("getElement('patch').genome.flt_freq")`.
 
 Keep eval snippets small and side-effect-free unless the user asked for a change; each eval freezes
@@ -194,8 +194,8 @@ and inspect the actual window.
 
 CushyLint reads the current file from disk. Synplant may still be using cached resources from before
 your latest edit while the window is open. If CushyLint says the file is valid but Synplant still
-shows an older parse error, run `sp_eval("performCushyAction('reload')")` or use the JS Console reload
-button, then test again.
+shows an older parse error, use `sp_reload` with an observable `until` expression or use the JS
+Console reload button, then test again.
 
 ## Static IVG validation
 
