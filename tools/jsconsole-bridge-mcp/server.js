@@ -1,24 +1,29 @@
 #!/usr/bin/env node
 //
-// Synplant JSConsole bridge — MCP server
-// ======================================
+// JSConsole bridge — MCP server
+// =============================
 //
-// Drives the file bridge built into "JS Console.spscript" so an MCP client (e.g.
-// Claude Code) can evaluate JavaScript against a *live* Synplant engine and read
-// the result back, with no GUI automation.
+// Drives the file bridge built into the product's JS Console script package so an
+// MCP client (e.g. Claude Code) can evaluate JavaScript against a *live* engine and
+// read the result back, with no GUI automation.
 //
-// Protocol (must match "JS Console.spscript/JSConsole_main.js"):
+// This file is shared verbatim between the Microtonic and Synplant Scripts SDKs.
+// Everything that differs between the two products lives in the PRODUCT block
+// below; keep the rest of this file (and server.test.js) byte-identical in both
+// repos.
+//
+// Protocol (must match <PRODUCT.consolePackage>/JSConsole_main.js):
 //
 //   <base>/request.json    we write (temp file + rename):  { seq, code }
 //   <base>/response.json   the bridge overwrites:          { seq, ok, value, output, error }
 //   <base>/bridge.json     the bridge writes on `bridge on`: { ready, protocol, time, owner }
-//                          (`owner` is a token identifying the instance that holds the bridge)
+//                          (`time` is epoch ms; `owner` is a token identifying the
+//                          instance that currently holds the bridge)
 //
-// This host owns the directory: it `mkdir -p`s <base> on startup, writes requests
-// atomically, and pairs replies by a strictly increasing `seq`. We base `seq` on
-// epoch ms so it keeps climbing across restarts of this server. (Synplant's own
-// script API can also create the folder via makeDir, but the host creating it
-// keeps the protocol robust whichever side starts first.)
+// The bridge never deletes files, so this host owns the directory: it `mkdir -p`s
+// <base> on startup, writes requests atomically, and pairs replies by a strictly
+// increasing `seq`. We base `seq` on epoch ms so it keeps climbing across restarts
+// of this server.
 //
 // Transport is MCP stdio: newline-delimited JSON-RPC 2.0 on stdin/stdout.
 // stdout MUST carry only protocol messages — all diagnostics go to stderr.
@@ -30,13 +35,50 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const SERVER_NAME = 'synplant-jsconsole-bridge';
+// ---------------------------------------------------------------------------
+// BEGIN PRODUCT CONFIGURATION — the only part of this file that differs between
+// the Microtonic and Synplant Scripts SDKs.
+// ---------------------------------------------------------------------------
+const PRODUCT = {
+	name: 'Synplant',
+	serverName: 'synplant-jsconsole-bridge',
+	toolPrefix: 'sp',                       // tools are <prefix>_eval / _status / _reload
+	consoleName: 'JS Console',              // how the console window is named in the UI
+	consolePackage: 'JS Console.spscript',
+	scriptExtension: '.spscript',
+	evalExample: "getElement('patch').genome.flt_freq",
+	reloadExample: "typeof patchStack.slotLink !== 'undefined'",
+	// Must match jsConsole.bridgeDefaultBase() in JSConsole_main.js, which uses
+	// DIRS.DOCUMENTS + 'jsconsole-bridge/'. DIRS.DOCUMENTS is "<home>/Documents/Sonic
+	// Charge/" on macOS and Windows; Synplant grants scripts deep read-write access
+	// there, so the bridge never triggers a file-permission prompt. The bridge can
+	// also create this folder itself (makeDir); this server creates it too so either
+	// side may start first. It must never resolve to the same folder as another
+	// product's bridge: two consoles open at once would then share request.json /
+	// response.json. Override with BRIDGE_BASE if user documents live elsewhere.
+	defaultBase: function () {
+		return path.join(os.homedir(), 'Documents', 'Sonic Charge', 'jsconsole-bridge');
+	}
+};
+// ---------------------------------------------------------------------------
+// END PRODUCT CONFIGURATION
+// ---------------------------------------------------------------------------
+
+const SERVER_NAME = PRODUCT.serverName;
 const SERVER_VERSION = '1.0.0';
 const DEFAULT_PROTOCOL = '2024-11-05';
-const DEFAULT_TIMEOUT_MS = 20000; // a single eval may run up to ~20s in Synplant
+const DEFAULT_TIMEOUT_MS = 20000; // a single eval may run up to ~20s in the engine
 const POLL_INTERVAL_MS = 50;
 const RELOAD_POLL_MS = 150;
 const RELOAD_DEFAULT_TIMEOUT_MS = 10000;
+
+const EVAL_TOOL = PRODUCT.toolPrefix + '_eval';
+const STATUS_TOOL = PRODUCT.toolPrefix + '_status';
+const RELOAD_TOOL = PRODUCT.toolPrefix + '_reload';
+const READY_TOKEN = PRODUCT.toolPrefix.toUpperCase() + '_READY';
+const WAIT_TOKEN = PRODUCT.toolPrefix.toUpperCase() + '_WAIT';
+const CONSOLE = PRODUCT.consoleName;
+const PRODUCT_NAME = PRODUCT.name;
 
 function log() {
 	console.error('[' + SERVER_NAME + ']', ...arguments);
@@ -50,13 +92,7 @@ function bridgeBase() {
 	if (process.env.BRIDGE_BASE) {
 		return withSlash(process.env.BRIDGE_BASE.replace(/\\/g, '/'));
 	}
-	// Default to a subfolder of DIRS.DOCUMENTS — the Sonic Charge user-documents
-	// folder, which Synplant grants scripts deep read-write access to (so the
-	// bridge avoids file-permission prompts). DIRS.DOCUMENTS is "<home>/Documents/
-	// Sonic Charge/" on both macOS and Windows. The JS Console and this server must
-	// resolve to the same folder; override with BRIDGE_BASE if your install differs.
-	const dir = path.join(os.homedir(), 'Documents', 'Sonic Charge', 'jsconsole-bridge');
-	return withSlash(dir.replace(/\\/g, '/'));
+	return withSlash(PRODUCT.defaultBase().replace(/\\/g, '/'));
 }
 
 const BASE = bridgeBase();
@@ -99,12 +135,12 @@ function readJson(p) {
 }
 
 //
-// Tool: sp_eval — write a request atomically, poll for the matching reply.
+// Tool: <prefix>_eval — write a request atomically, poll for the matching reply.
 //
-async function spEval(args) {
+async function bridgeEval(args) {
 	const code = args && typeof args.code === 'string' ? args.code : null;
 	if (code === null) {
-		throw new Error('sp_eval requires a string "code" argument');
+		throw new Error(EVAL_TOOL + ' requires a string "code" argument');
 	}
 	const timeout = args && typeof args.timeout_ms === 'number' ? args.timeout_ms : DEFAULT_TIMEOUT_MS;
 	const seq = nextSeq();
@@ -129,12 +165,12 @@ async function spEval(args) {
 	}
 	throw new Error('timed out after ' + timeout + 'ms with no reply — the bridge is not '
 		+ 'responding.' + detail + ' Check, in order of likelihood: '
-		+ '1) the JS Console window is open in Synplant; '
+		+ '1) the ' + CONSOLE + ' window is open in ' + PRODUCT_NAME + '; '
 		+ '2) you typed `bridge on` in it this session (a leftover bridge.json does not mean it is live); '
-		+ '3) Synplant is running. '
+		+ '3) ' + PRODUCT_NAME + ' is running. '
 		+ 'Only if it was working and just stopped: a modal dialog may be blocking the bridge tick — '
-		+ 'dismiss it in Synplant, then `bridge off` / `bridge on`. '
-		+ 'Run sp_status to probe the connection.');
+		+ 'dismiss it in ' + PRODUCT_NAME + ', then `bridge off` / `bridge on`. '
+		+ 'Run ' + STATUS_TOOL + ' to probe the connection.');
 }
 
 function formatEval(resp) {
@@ -149,20 +185,20 @@ function formatEval(resp) {
 }
 
 //
-// Tool: sp_reload — invoke the asynchronous reload action, then poll an observable
-// effect until the edited scripts are actually live.
+// Tool: <prefix>_reload — invoke the asynchronous reload action, then poll an
+// observable effect until the edited scripts are actually live.
 //
 // performCushyAction itself is synchronous; `reload` is the asynchronous part. Its
 // boolean result is only an invocation result (and reload always succeeds), so it
 // cannot tell callers when the script rerun has finished.
 //
-async function spReload(args) {
+async function bridgeReload(args) {
 	const until = args && typeof args.until === 'string' && args.until !== '' ? args.until : null;
 	const timeout = args && typeof args.timeout_ms === 'number'
 		? args.timeout_ms
 		: RELOAD_DEFAULT_TIMEOUT_MS;
 
-	const issued = await spEval({ code: "performCushyAction('reload')" });
+	const issued = await bridgeEval({ code: "performCushyAction('reload')" });
 	if (!issued.ok) {
 		throw new Error('reload could not be invoked: ' + issued.error);
 	}
@@ -177,8 +213,8 @@ async function spReload(args) {
 
 	// A predicate that touches a not-yet-defined global may throw. Treat that as
 	// "not ready" so callers do not have to make every natural probe defensive.
-	const probe = '(function(){try{return (' + until + ') ? "SP_READY" : "SP_WAIT";}'
-		+ 'catch(e){return "SP_WAIT";}})()';
+	const probe = '(function(){try{return (' + until + ') ? "' + READY_TOKEN + '" : "'
+		+ WAIT_TOKEN + '";}catch(e){return "' + WAIT_TOKEN + '";}})()';
 	const started = Date.now();
 	const deadline = started + timeout;
 	while (Date.now() < deadline) {
@@ -187,8 +223,8 @@ async function spReload(args) {
 		if (remaining <= 0) {
 			break;
 		}
-		const r = await spEval({ code: probe, timeout_ms: Math.min(5000, remaining) });
-		if (r.ok && String(r.value).indexOf('SP_READY') >= 0) {
+		const r = await bridgeEval({ code: probe, timeout_ms: Math.min(5000, remaining) });
+		if (r.ok && String(r.value).indexOf(READY_TOKEN) >= 0) {
 			return {
 				text: 'reload complete after ' + (Date.now() - started)
 					+ 'ms (predicate satisfied).',
@@ -198,49 +234,51 @@ async function spReload(args) {
 	}
 	throw new Error('reload was invoked but the `until` predicate did not become true within '
 		+ timeout + 'ms. The predicate may be wrong, or the script may have failed to parse — '
-		+ 'check sp_errors / sp_console before assuming the reload did not happen.');
+		+ 'check the ' + CONSOLE + ' output before assuming the reload did not happen.');
 }
 
 //
-// Tool: sp_status — report whether the bridge is actually responding.
+// Tool: <prefix>_status — report whether the bridge is actually responding.
 //
 // The bridge.json presence file only proves the bridge was enabled at *some* point:
-// it is written once on `bridge on` and never updated, so it lingers after the JS
-// Console is closed or Synplant quits. Presence is therefore NOT liveness. To report
-// the truth we actively probe — send a trivial eval and see if a reply comes back.
+// it is written on `bridge on` and not refreshed while running, so it lingers after
+// the console is closed or the product quits. Presence is therefore NOT liveness.
+// To report the truth we actively probe — send a trivial eval and see if a reply
+// comes back.
 //
 const PROBE_TIMEOUT_MS = 1500;
 
-async function spStatus() {
+async function bridgeStatus() {
 	const lines = ['base: ' + BASE];
 	if (!fs.existsSync(BASE)) {
-		lines.push('folder: missing (will be created on first sp_eval)');
+		lines.push('folder: missing (will be created on first ' + EVAL_TOOL + ')');
 		return { text: lines.join('\n'), isError: false };
 	}
 	const presence = readJson(PRESENCE_PATH);
 
 	let live = false;
 	try {
-		await spEval({ code: '1', timeout_ms: PROBE_TIMEOUT_MS });
+		await bridgeEval({ code: '1', timeout_ms: PROBE_TIMEOUT_MS });
 		live = true;
 	} catch (e) { /* no reply within the probe window */ }
 
 	if (live) {
 		lines.push('bridge: LIVE — responded to a probe.');
 	} else if (presence && presence.ready) {
+		// bridge.json carries the bridge's own epoch-ms `time` stamp.
 		let announced = '';
-		try {
-			const ageMs = Date.now() - fs.statSync(PRESENCE_PATH).mtimeMs;
+		if (typeof presence.time === 'number') {
+			const ageMs = Date.now() - presence.time;
 			announced = ' (bridge.json announced ' + Math.round(ageMs / 1000) + 's ago)';
-		} catch (e) { /* mtime unavailable, omit */ }
+		}
 		lines.push('bridge: NOT RESPONDING' + announced + '.');
 		lines.push('  A presence file exists but no reply came back. Most likely, in order: '
-			+ '1) the JS Console window is not open; 2) `bridge on` was not typed in it this session; '
-			+ '3) Synplant is not running; 4) a modal dialog is blocking the bridge tick (dismiss it, '
+			+ '1) the ' + CONSOLE + ' window is not open; 2) `bridge on` was not typed in it this session; '
+			+ '3) ' + PRODUCT_NAME + ' is not running; 4) a modal dialog is blocking the bridge tick (dismiss it, '
 			+ 'then `bridge off` / `bridge on`).');
 	} else {
-		lines.push('bridge: NOT RESPONDING and no presence file — open the JS Console in Synplant '
-			+ 'and type `bridge on`.');
+		lines.push('bridge: NOT RESPONDING and no presence file — open the ' + CONSOLE + ' window in '
+			+ PRODUCT_NAME + ' and type `bridge on`.');
 	}
 	const req = readJson(REQUEST_PATH);
 	const resp = readJson(RESPONSE_PATH);
@@ -251,23 +289,23 @@ async function spStatus() {
 
 const TOOLS = [
 	{
-		name: 'sp_eval',
-		description: 'Evaluate JavaScript against the live Synplant engine via the JS Console '
-			+ 'file bridge and return the result. The JS Console window must be open with the '
-			+ 'bridge enabled (type `bridge on` in it). Code runs in the shared JS global space, '
-			+ 'so it can read and drive Synplant\'s running scripts. Keep snippets short: each '
-			+ 'eval freezes the UI and is subject to Synplant\'s ~20s suspension limit. Wrap '
-			+ 'multi-statement snippets in an IIFE to avoid leaking vars or shadowing host '
-			+ 'globals such as save, load, or print. Avoid evals that may open modal dialogs '
-			+ 'during reload/displayCushy; a modal blocks the bridge tick until dismissed.',
+		name: EVAL_TOOL,
+		description: 'Evaluate JavaScript against the live ' + PRODUCT_NAME + ' engine via the '
+			+ CONSOLE + ' file bridge and return the result. The ' + CONSOLE + ' window must be '
+			+ 'open with the bridge enabled (type `bridge on` in it). Code runs in the shared JS '
+			+ 'global space, so it can read and drive scripts running in the main GUI layer. Keep '
+			+ 'snippets short: each eval freezes the UI and is subject to ' + PRODUCT_NAME + '\'s '
+			+ '~20s suspension limit. Wrap multi-statement snippets in an IIFE to avoid leaking '
+			+ 'vars or shadowing host globals such as save, load, or print. Avoid evals that may '
+			+ 'open modal dialogs during reload or startup; a modal blocks the bridge tick until '
+			+ 'dismissed.',
 		inputSchema: {
 			type: 'object',
 			properties: {
 				code: {
 					type: 'string',
-					description: 'JavaScript to evaluate, e.g. "getElement(\'patch\').genome.flt_freq" '
-						+ 'or "BRANCH_COUNT". The value of the final expression is returned; print() '
-						+ 'output is captured too.'
+					description: 'JavaScript to evaluate, e.g. "' + PRODUCT.evalExample + '". '
+						+ 'The value of the final expression is returned; print() output is captured too.'
 				},
 				timeout_ms: {
 					type: 'number',
@@ -278,30 +316,31 @@ const TOOLS = [
 		}
 	},
 	{
-		name: 'sp_status',
-		description: 'Check whether the JS Console bridge is actually responding. It probes live '
-			+ '(sends a trivial eval and waits briefly), reporting LIVE or NOT RESPONDING rather '
-			+ 'than trusting the bridge.json presence file, which lingers after the console is '
-			+ 'closed. Use it before evaluating, and when an sp_eval times out: NOT RESPONDING '
-			+ 'almost always means the JS Console is closed or `bridge on` was not typed this '
-			+ 'session, not a modal dialog.',
+		name: STATUS_TOOL,
+		description: 'Check whether the ' + CONSOLE + ' bridge is actually responding. It probes '
+			+ 'live (sends a trivial eval and waits briefly), reporting LIVE or NOT RESPONDING '
+			+ 'rather than trusting the bridge.json presence file, which lingers after the console '
+			+ 'is closed. Use it before evaluating, and when an ' + EVAL_TOOL + ' times out: NOT '
+			+ 'RESPONDING almost always means the ' + CONSOLE + ' window is closed or `bridge on` '
+			+ 'was not typed this session, not a modal dialog.',
 		inputSchema: { type: 'object', properties: {} }
 	},
 	{
-		name: 'sp_reload',
-		description: 'Re-run edited script files in the live Synplant engine and wait until the new '
-			+ 'code is actually live. Use this after editing a .spscript instead of evaluating '
-			+ 'performCushyAction(\'reload\') yourself: the reload action is asynchronous, so an '
-			+ 'eval sent straight after a bare reload can still see the old code. Pass `until` with '
-			+ 'a JavaScript expression that becomes true once your change is loaded. A normal reload '
-			+ 'keeps the engine, globals, and this bridge alive.',
+		name: RELOAD_TOOL,
+		description: 'Re-run edited script files in the live ' + PRODUCT_NAME + ' engine and wait '
+			+ 'until the new code is actually live. Use this after editing a '
+			+ PRODUCT.scriptExtension + ' instead of evaluating performCushyAction(\'reload\') '
+			+ 'yourself: the reload action is asynchronous, so an eval sent straight after a bare '
+			+ 'reload can still see the old code. Pass `until` with a JavaScript expression that '
+			+ 'becomes true once your change is loaded. A normal reload keeps the engine, globals, '
+			+ 'and this bridge alive.',
 		inputSchema: {
 			type: 'object',
 			properties: {
 				until: {
 					type: 'string',
-					description: 'JavaScript expression polled until truthy, e.g. '
-						+ '"typeof patchStack.slotLink !== \'undefined\'". Strongly recommended; '
+					description: 'JavaScript expression polled until truthy, e.g. "'
+						+ PRODUCT.reloadExample + '". Strongly recommended; '
 						+ 'without it the tool cannot tell when the reload finished.'
 				},
 				timeout_ms: {
@@ -314,15 +353,15 @@ const TOOLS = [
 ];
 
 async function handleToolCall(name, args) {
-	if (name === 'sp_eval') {
-		const resp = await spEval(args || {});
+	if (name === EVAL_TOOL) {
+		const resp = await bridgeEval(args || {});
 		return formatEval(resp);
 	}
-	if (name === 'sp_status') {
-		return await spStatus();
+	if (name === STATUS_TOOL) {
+		return await bridgeStatus();
 	}
-	if (name === 'sp_reload') {
-		return await spReload(args || {});
+	if (name === RELOAD_TOOL) {
+		return await bridgeReload(args || {});
 	}
 	throw new Error('unknown tool: ' + name);
 }
@@ -395,8 +434,8 @@ function main() {
 	ensureBase();
 	log('ready. bridge folder:', BASE);
 
-	// Don't exit while a tool call is still in flight (an sp_eval may be mid-poll
-	// when stdin closes). Real clients keep stdin open; this matters for graceful
+	// Don't exit while a tool call is still in flight (an eval may be mid-poll when
+	// stdin closes). Real clients keep stdin open; this matters for graceful
 	// shutdown and for piped/test invocations.
 	let pending = 0;
 	let endReceived = false;
@@ -444,4 +483,10 @@ function main() {
 	});
 }
 
-main();
+// Exported so server.test.js can be shared verbatim and parameterised by PRODUCT.
+// Requiring this file does not start the server or touch the bridge folder.
+module.exports = { PRODUCT: PRODUCT };
+
+if (require.main === module) {
+	main();
+}
