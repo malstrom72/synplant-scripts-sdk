@@ -4,9 +4,14 @@ A tiny [Model Context Protocol](https://modelcontextprotocol.io) server that let
 an MCP client (e.g. Claude Code) evaluate JavaScript against a **live** Synplant
 engine and read the result back — no GUI automation, no screen reading.
 
-It drives the file bridge built into `JS Console.spscript`. You type `bridge on`
-in the JS Console; this server writes JS requests to a shared folder and reads the
+It drives the file bridge built into `JS Console.spscript`. You type `bridge on` in the
+JS Console window; this server writes JS requests to a shared folder and reads the
 replies the bridge writes back.
+
+`server.js` and `server.test.js` are shared verbatim with the sibling Microtonic
+Scripts SDK. Everything product-specific (names, tool prefix, default folder) lives
+in the `PRODUCT` block near the top of `server.js`; keep the rest of both files
+identical across the two repos.
 
 ## How it fits together
 
@@ -17,9 +22,10 @@ MCP client  ──sp_eval(code)──▶  this server  ──request.json──�
 MCP client  ◀──value/output──   this server  ◀─response.json──  JS Console bridge
 ```
 
-Because every Synplant script shares one JS global space, code you `sp_eval` can
-read and drive a script running in the main GUI layer while the JS Console runs in
-the dev layer — it's a real debugger into the running instrument.
+Because every Synplant script shares one JS global space, code you `sp_eval`
+can read and drive a script running in the **main GUI layer** while the
+JS Console runs in the dev layer — it's a real debugger into the running
+instrument.
 
 ## Shared folder
 
@@ -44,27 +50,30 @@ This server `mkdir -p`s the folder on startup; the bridge also creates it on
 resolve to the **same** folder: the server derives it from `os.homedir()`, the
 bridge from `DIRS.DOCUMENTS`. If your install puts user documents somewhere
 non-standard, set the `BRIDGE_BASE` environment variable (it must match
-`jsConsole.bridgeBase()` in `JSConsole_main.js`).
+`jsConsole.bridgeDefaultBase()` in `JSConsole_main.js`). The folder must never be
+shared with another product's bridge (for example Microtonic's): two consoles open
+at once would then share `request.json` / `response.json`.
 
 Files (all JSON):
 
 - `request.json` — `{ seq, code }`, written by this server (temp file + atomic rename).
 - `response.json` — `{ seq, ok, value, output, error }`, written by the bridge.
 - `bridge.json` — `{ ready, protocol, time, owner }`, written by the bridge on
-  `bridge on` (`owner` is a token identifying the instance that currently holds the
-  bridge). The server uses this file's mtime for the "announced N s ago" status.
+  `bridge on` (`time` is epoch ms; `owner` is a token identifying the instance that
+  currently holds the bridge). The server uses `time` for the "announced N s ago"
+  status.
 
 Requests and replies are paired by a strictly increasing `seq` (epoch-ms based,
-so it keeps climbing across restarts). The bridge ignores any `seq` it has already
-handled.
+so it keeps climbing across restarts). The bridge ignores any `seq` it has
+already handled.
 
 > **One active bridge at a time (single owner).** The folder is a single fixed
-> machine-global path, so only one Synplant instance can serve the bridge at a time.
-> `bridge on` records an `owner` token in `bridge.json`. If another instance already
-> owns it, `bridge on` pops an OK/Cancel dialog offering to take over; taking over
-> writes the new owner, and the previous owner sees the changed token on its next
-> tick and stands down — so two engines never handle the same request. To move the
-> bridge to a different instance, run `bridge on` (and click OK) in that instance's
+> path, so only one Synplant instance can serve the bridge at a time. `bridge on`
+> records an `owner` token in `bridge.json`. If another instance already owns it,
+> `bridge on` pops an OK/Cancel dialog offering to take over; taking over writes
+> the new owner, and the previous owner sees the changed token on its next tick and
+> stands down — so two engines never handle the same request. To move the bridge to
+> a different instance, run `bridge on` (and click OK) in that instance's
 > JS Console window.
 
 ## Tools
@@ -75,13 +84,13 @@ handled.
   per-call suspension limit. Wrap multi-statement snippets in an IIFE so local
   `var`s do not leak into the shared global space or shadow host names like
   `save`, `load`, or `print`. Avoid evals that may open modal dialogs during a
-  reload or `displayCushy(...)` call. Default timeout `20000` ms.
+  reload or startup. Default timeout `20000` ms.
 - **`sp_reload([until], [timeout_ms])`** — rerun edited script files and, when
   `until` is supplied, poll that JavaScript expression until the new code is
-  observably live. The `reload` action is asynchronous, so prefer this over a bare
-  `sp_eval("performCushyAction('reload')")`. Without `until`, the tool invokes the
-  reload but warns that it cannot determine when the rerun has finished. Default
-  timeout `10000` ms.
+  observably live. The `reload` action is asynchronous, so prefer this over a
+  bare `sp_eval("performCushyAction('reload')")`. Without `until`, the tool
+  invokes the reload but warns that it cannot determine when the rerun has
+  finished. Default timeout `10000` ms.
 - **`sp_status()`** — check whether the bridge is actually **responding**. It probes
   (a trivial eval with a short timeout) and reports `bridge: LIVE` or `bridge: NOT
   RESPONDING`, rather than trusting the `bridge.json` presence file, which lingers
@@ -97,16 +106,17 @@ Copy the `JS Console.spscript` folder (at the repo root) into your Synplant Scri
 folder. The quickest way to find that folder is the script menu in Synplant →
 **Open Scripts Folder** (it is `DIRS.SCRIPTS`).
 
-On Windows, before the bridge exists, the SDK helper can usually locate the same folder from the
-Sonic Charge registry keys:
+On Windows, before the bridge exists, the SDK helper can usually locate the same
+folder from the Sonic Charge registry keys:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\locate-scripts-folder.ps1 -Verify
 ```
 
-Treat that output as a candidate to confirm, not as a replacement for `DIRS.SCRIPTS` /
-**Open Scripts Folder**. If the target is under `C:\Program Files\Sonic Charge\`, copying the console
-may need elevation; for repeated development, consider linking the live scripts folder to a project
+Treat that output as a candidate to confirm, not as a replacement for
+`DIRS.SCRIPTS` / **Open Scripts Folder**. If the target is under
+`C:\Program Files\Sonic Charge\`, copying the console may need elevation; for
+repeated development, consider linking the live scripts folder to a project
 `scripts` folder first.
 
 Once the target is confirmed, copy the SDK's bridged console with:
@@ -115,17 +125,18 @@ Once the target is confirmed, copy the SDK's bridged console with:
 node tools/install-jsconsole.js "<Synplant Scripts folder>"
 ```
 
-The helper refuses to run unless the source console contains the bridge commands, which avoids
-accidentally installing a plain JS Console copy.
+The helper refuses to run unless the source console contains the bridge commands,
+which avoids accidentally installing a plain JS Console copy.
 
 ### 2. Register the MCP server
 
 This repo ships a project-scoped [`.mcp.json`](../../.mcp.json) at its root, so
 opening the project in Claude Code offers the server automatically — approve the
-one-time prompt and you're done. The `server.js` path is resolved relative to the
-repo root.
+one-time prompt and you're done. No per-developer setup; the `server.js` path is
+resolved relative to the repo root.
 
-To register it manually instead (e.g. from outside the repo):
+To register it manually instead (e.g. from outside the repo, or for a single
+user), use:
 
 ```sh
 claude mcp add synplant-bridge -- node /ABS/PATH/TO/synplant-scripts-sdk/tools/jsconsole-bridge-mcp/server.js
@@ -133,16 +144,16 @@ claude mcp add synplant-bridge -- node /ABS/PATH/TO/synplant-scripts-sdk/tools/j
 
 ### Other MCP clients
 
-`.mcp.json` is Claude Code's convention. The bridge itself is client-agnostic — the
-`request.json` / `response.json` protocol is just files. Point any MCP client at
-`node tools/jsconsole-bridge-mcp/server.js`, or write your own host against the file
-protocol described above.
+`.mcp.json` is Claude Code's convention. The bridge itself is client-agnostic —
+the `request.json` / `response.json` protocol is just files. Point any MCP client
+at `node tools/jsconsole-bridge-mcp/server.js`, or write your own host against
+the file protocol described above.
 
 ## Usage
 
-1. Open Synplant, open the **JS Console** from the script menu, type `bridge on`.
-2. From the MCP client, call `sp_status` to confirm `bridge: LIVE`, then `sp_eval`
-   with a snippet, e.g. `getElement('patch').genome.flt_freq`.
+1. Open Synplant, open the **JS Console** from the script menu, and type `bridge on`.
+2. From the MCP client, call `sp_status` to confirm `bridge: LIVE`, then
+   `sp_eval` with a snippet, e.g. `getElement('patch').genome.flt_freq`.
 
 You'll see each command echo as `BRIDGE> …` in the JS Console window.
 
@@ -156,8 +167,11 @@ sp_eval("run('Four Knobs.spscript/Four Knobs.js')")
 ```
 
 For GUI packages the entry `.js` normally calls `displayCushy(...)`, which opens the
-package window on its layer. To check which script window is open, read the relevant
-layer:
+package window on its layer.
+
+## Checking the currently open script
+
+To check which script window is open, read the relevant layer:
 
 ```js
 sp_eval("getDisplayedCushy('script')")
@@ -167,23 +181,23 @@ sp_eval("getDisplayedCushy('script')")
 
 The console's `reload` / `reset` are JS Console *commands*, not globals, so
 `sp_eval("reload")` just throws `ReferenceError`. To rerun the script files and
-rebuild the GUI from the host — the edit → reload → re-test loop — use `sp_reload`
-with an expression that observes your change:
+rebuild the GUI from the host — the edit → reload → re-test loop — use
+`sp_reload` with an expression that observes your change:
 
 ```js
 sp_reload({ until: "typeof myScript.newAction !== 'undefined'" })
 ```
 
-A normal reload reruns the JavaScript files but keeps the engine and globals alive.
-It does not close the current script window, so **the bridge survives its own
-reload** and keeps working.
+A normal reload reruns the JavaScript files but keeps the engine and globals
+alive. It does not close the current script window, so **the bridge survives its
+own reload** and keeps working.
 
 The `reload` action is asynchronous: its script rerun is not finished when
-`performCushyAction('reload')` returns, so an eval sent immediately afterwards can
-still observe the old code. Reload also always returns `true`; that value is not a
-completion signal. If no useful predicate is available, a bare
-`sp_eval("performCushyAction('reload')")` can still invoke it, but callers must not
-assume the new code is live yet.
+`performCushyAction('reload')` returns, so an eval sent immediately afterwards
+can still observe the old code. Reload also always returns `true`; that value is
+not a completion signal. If no useful predicate is available, a bare
+`sp_eval("performCushyAction('reload')")` can still invoke it, but callers must
+not assume the new code is live yet.
 
 Do **not** drive a full reset (`performCushyAction('reload', 'reset')`) over the
 bridge — it wipes JS memory, tearing down the JS Console and the bridge. After that
@@ -203,10 +217,11 @@ bridge isn't answering. **Diagnose in order of likelihood — a modal dialog is 
 3. **Is Synplant running at all?**
 4. **Only if the bridge _was_ working and just stopped** is a modal dialog the likely
    cause. The bridge tick runs on Synplant's UI thread, so a synchronous modal
-   (`display(...)` from a startup/reload path, or a Cushy/IVG load-error dialog such
-   as an invalid pre-multiplied `#AARRGGBB` color) freezes the tick until dismissed.
-   The tell is `last reply seq` frozen *below* `last request seq` after it had been
-   advancing. Dismiss the dialog in Synplant, then run `bridge off` / `bridge on`.
+   (`display(...)` from a startup/reload path, or a Cushy/IVG load-error dialog
+   such as an invalid pre-multiplied `#AARRGGBB` color) freezes the tick until
+   dismissed. The tell is `last reply seq` frozen *below* `last request seq` after it
+   had been advancing (a `sp_eval` timeout reports both numbers). Dismiss the
+   dialog in Synplant, then run `bridge off` / `bridge on`.
 
 `sp_status` distinguishes these cases: it probes the bridge (a trivial eval with a
 short timeout) and reports `LIVE` or `NOT RESPONDING` rather than trusting the
