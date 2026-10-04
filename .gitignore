@@ -7,3 +7,5 @@ docs-outline.md
 
 # reference material (private; do not publish)
 /inspiration
+CushyLint/build/*.tmp
+CushyLint/build/*.tmp.exe
