@@ -1,3 +1,8 @@
+# ==== BEGIN PRODUCT CONFIGURATION ====
+# The help text, the -Identifier default and the variables below are the only parts of this file
+# that differ between the Microtonic and Synplant SDKs. Everything below the END marker is shared
+# and must stay byte-identical in both repositories.
+
 <#
 .SYNOPSIS
     Print the absolute path of the Synplant Scripts folder without a running Synplant.
@@ -22,11 +27,13 @@
     Product identifier / registry sub-key. Defaults to "Synplant2".
 
 .PARAMETER Verify
-    Also check that the resolved folder and its Mods/ subfolder exist.
+    Also check that the resolved folder exists, and report whether its Mods/ subfolder exists.
 
 .OUTPUTS
-    The resolved absolute path on stdout. Diagnostics go to stderr. Exit code 0 if a path was
-    resolved, 1 if not.
+    The resolved absolute path on stdout, also when -Verify finds it missing, so a cold-start
+    bootstrap still gets the candidate to create or link. Diagnostics go to stderr. Exit code 0 if
+    a path was resolved (and, with -Verify, exists), 1 if no path could be resolved, 2 if -Verify
+    found that the resolved folder does not exist yet.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File locate-scripts-folder.ps1 -Verify
@@ -37,6 +44,13 @@ param(
     [string]$Identifier = 'Synplant2',
     [switch]$Verify
 )
+
+$ProductName = 'Synplant'
+$ConsoleName = 'JS Console'
+$ScriptsFolderName = 'Synplant Scripts'
+# Subfolders that -Verify reports on (informational only; their absence is not an error).
+$ExpectedSubfolders = @('Mods')
+# ==== END PRODUCT CONFIGURATION ====
 
 function Write-Diag([string]$message) {
     [Console]::Error.WriteLine($message)
@@ -63,7 +77,7 @@ function Resolve-Windows([string]$id) {
         $setupPath = Get-SetupPath $regPath
         if ($setupPath) {
             Write-Diag "found SetupPath in $regPath : $setupPath"
-            return (Join-Path $setupPath 'Synplant Scripts')
+            return (Join-Path $setupPath $ScriptsFolderName)
         }
     }
 
@@ -81,26 +95,37 @@ if ($onWindows) {
     if (-not $scriptsPath) {
         Write-Diag "Could not read SetupPath from the registry (HKLM\SOFTWARE\Sonic Charge\$Identifier or _Default)."
         Write-Diag 'The engine may fall back to the plugin binary directory, which this tool cannot know.'
-        Write-Diag 'Use Open Scripts Folder in Synplant, or read DIRS.SCRIPTS over the JS Console bridge.'
+        Write-Diag "Use Open Scripts Folder in $ProductName (available once the folder exists), or read DIRS.SCRIPTS over the $ConsoleName bridge."
         exit 1
     }
 } elseif ($onMac) {
-    $scriptsPath = '/Library/Application Support/Sonic Charge/Synplant Scripts'
+    $scriptsPath = "/Library/Application Support/Sonic Charge/$ScriptsFolderName"
     Write-Diag 'macOS: reporting the documented standard location. Confirm before writing.'
 } else {
     Write-Diag 'Unsupported platform.'
     exit 1
 }
 
+$exitCode = 0
 if ($Verify) {
     if (Test-Path -LiteralPath $scriptsPath -PathType Container) {
-        $modsPath = Join-Path $scriptsPath 'Mods'
-        $hasMods = Test-Path -LiteralPath $modsPath -PathType Container
-        Write-Diag ("verified folder exists; Mods/ present: " + $(if ($hasMods) { 'yes' } else { 'no' }))
+        $details = @()
+        foreach ($subfolder in $ExpectedSubfolders) {
+            $present = Test-Path -LiteralPath (Join-Path $scriptsPath $subfolder) -PathType Container
+            $details += ("$subfolder/ present: " + $(if ($present) { 'yes' } else { 'no' }))
+        }
+        if ($details.Count -gt 0) {
+            Write-Diag ('verified folder exists; ' + ($details -join '; '))
+        } else {
+            Write-Diag 'verified folder exists.'
+        }
     } else {
-        Write-Diag "WARNING: resolved path does not exist yet: $scriptsPath"
+        Write-Diag "NOT FOUND: resolved path does not exist yet: $scriptsPath"
+        Write-Diag "On a fresh $ProductName install this is expected: create the folder or link it to a project"
+        Write-Diag 'scripts folder (one elevated step), as described in the SDK''s first-ever install / cold-start docs.'
+        $exitCode = 2
     }
 }
 
 Write-Output $scriptsPath
-exit 0
+exit $exitCode
