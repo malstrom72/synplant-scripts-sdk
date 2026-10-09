@@ -51,14 +51,35 @@ Synplant internals; see [Script types](#script-types) below.
 
 ## Prerequisites
 
-For everyday scripting work, no extra tools are required beyond what is bundled here except
-**[Node.js](https://nodejs.org/)** for JavaScript validation. `tools/validate-js.sh` runs ESLint via
-`npx` when no local `node_modules/.bin/eslint` is present, using
-`tools/eslint.synplant.config.mjs` to catch modern JavaScript syntax, undeclared globals, and a few
-NuXJS-incompatible constructs before a script reaches Synplant.
+Writing `.cushy` and `.js` files, running CushyLint and rendering IVG icons with IVG2PNG need nothing
+beyond what is bundled in this repository. The CushyLint and IVG2PNG binaries are prebuilt for Windows
+and macOS and used as-is (on macOS, CushyLint's binaries are built for Apple silicon; see the C++
+compiler note below for Intel Macs).
 
-GUI scripting and IVG icon authoring may also use the bundled CushyLint and IVG2PNG binaries; they
-are prebuilt for macOS/Windows and auto-build from source if needed.
+[Node.js](https://nodejs.org/) (version 18 or newer) is needed for these tasks:
+
+- JavaScript validation: `tools/validate-js.sh` runs ESLint via `npx` when no local
+  `node_modules/.bin/eslint` is present, using `tools/eslint.synplant.config.mjs` to catch syntax the
+  engine does not support, undeclared globals, and a few NuXJS-incompatible constructs before a script
+  reaches Synplant. The engine is ECMAScript 3 with some ECMAScript 5 features, so ESLint parses scripts
+  as ECMAScript 5 and additionally rejects getter/setter literals and `with`.
+- The JS Console MCP bridge server in [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp)
+  (see [Live scripting bridge](#live-scripting-bridge)).
+- Compiling TypeScript against `ts/COJSEngine.d.ts`, and converting SVG drafts with
+  `IVG/tools/svg2ivg.js`.
+
+[Python 3](https://www.python.org/) is needed only for SDK maintenance: `tools/bootstrap-docling.sh`
+installs [Docling](https://github.com/DS4SD/docling) into a local virtual environment, and
+`tools/convert-user-guide.sh` uses it to convert `docs/Synplant User Guide.pdf` to Markdown.
+
+[Pandoc](https://pandoc.org/) is needed only for SDK maintenance: `tools/regenerate-doc-html.sh`
+uses it to regenerate the checked-in HTML copies of Markdown reference docs.
+
+A C++ compiler (Xcode Command Line Tools on macOS, MSVC on Windows) is needed only when a prebuilt
+binary cannot run on your machine, in which case CushyLint and the validation scripts build it from
+source on first use. That happens on Linux, after the bundled sources are updated, and on Intel Macs:
+CushyLint's `PikaCmd` and `MakaronCmd` in `CushyLint/build/` are built for Apple silicon only, while
+`IVG2PNG` is a universal binary.
 
 ## AI-assisted workflow
 
@@ -245,27 +266,6 @@ The authoritative form of the scripting API is the TypeScript declaration file
 [`ts/COJSEngine.d.ts`](ts/COJSEngine.d.ts). Synplant's own interface is written in TypeScript compiled
 to the ECMAScript subset the engine runs, and script authors can target the same definitions for
 editor completion and type checking.
-
-## Prerequisites
-
-For everyday scripting (writing `.cushy` and `.js` files, running CushyLint, and rendering static
-IVG resources), no extra tools are needed beyond what is in this repository; the CushyLint and
-IVG2PNG binaries are prebuilt for macOS and Windows.
-
-[Node.js](https://nodejs.org/) (version 18 or newer) is needed only for three optional tasks:
-running the JS Console MCP bridge server in
-[`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp), compiling TypeScript against
-`ts/COJSEngine.d.ts`, and converting SVG drafts with `IVG/tools/svg2ivg.js`.
-
-[Python 3](https://www.python.org/) is needed only for SDK maintenance: `tools/bootstrap-docling.sh`
-installs [Docling](https://github.com/DS4SD/docling) into a local virtual environment, and
-`tools/convert-user-guide.sh` uses it to convert `docs/Synplant User Guide.pdf` to Markdown.
-
-[Pandoc](https://pandoc.org/) is needed only for SDK maintenance: `tools/regenerate-doc-html.sh`
-uses it to regenerate the checked-in HTML copies of Markdown reference docs.
-
-A C++ compiler (Xcode/`g++` on macOS, MSVC on Windows) is needed only if the prebuilt `IVG2PNG`
-binary cannot run on your platform and `tools/validate-static-ivg.*` has to rebuild it from source.
 
 ## A note on compatibility
 
