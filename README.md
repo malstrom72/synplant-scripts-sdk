@@ -119,14 +119,22 @@ Synplant's interface and scripting are built from several Sonic Charge technolog
 
 ## Repository structure
 
+- [`agents/`](agents): the agent instruction package for AI assistants working with this SDK (see
+  [AI-assisted workflow](#ai-assisted-workflow)).
 - [`docs/`](docs): all documentation (see the table above).
 - [`JS Console.spscript/`](JS%20Console.spscript): an in-app JavaScript console used for development,
   with a file bridge that an external tool can drive.
+- [`tools/`](tools): the JavaScript, example and static IVG validators, the prebuilt `IVG2PNG`
+  renderer and its build scripts, `install-jsconsole.js`, `locate-scripts-folder.ps1`, and utilities
+  for maintaining the generated documentation.
 - [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp): a small
   [Model Context Protocol](https://modelcontextprotocol.io) server that evaluates JavaScript against a
   live Synplant engine through the JS Console bridge (see [Live scripting bridge](#live-scripting-bridge)).
-- [`IVG/`](IVG): a curated vendored snapshot of the IVG source, renderer tools, fonts, tests, and
+  [`.mcp.json`](.mcp.json) registers it for compatible clients.
+- [`IVG/`](IVG): a curated vendored snapshot of the IVG source, renderer tools, fonts, and
   documentation used by the static IVG validation tools.
+- [`Synplant Resources/`](Synplant%20Resources): a copy of Synplant's built-in resources (Cushy, IVG,
+  JavaScript, Makaron and schema files, fonts and images) for reference. The validators also check it.
 - `examples/`: complete, working example scripts, indexed by the
   [Script Examples](docs/Synplant%20Script%20Examples.md) document.
 - `snippets/`: stable, copyable source snippets for script authors. Copy these into your script's
@@ -217,8 +225,8 @@ tools/validate-static-ivg.sh        # macOS / Linux
 tools\validate-static-ivg.cmd       # Windows
 ```
 
-The rendered PNGs are written to a temp directory by default (`/tmp/synplant-static-ivg-validation`
-on macOS/Linux, `%TEMP%\synplant-static-ivg-validation` on Windows). IVG files that depend on Cushy
+The rendered PNGs are written to `synplant-static-ivg-validation` in the temp directory by default
+(`$TMPDIR`, else `/tmp`, on macOS/Linux and `%TEMP%` on Windows). IVG files that depend on Cushy
 or GUI variables, filesystem `include` files, or helper files with no top-level `bounds` are reported
 as skipped by this static renderer pass. If the prebuilt binary cannot run on your platform, the
 scripts automatically rebuild `IVG2PNG` from source using `tools/build-ivg2png.sh` (macOS/Linux) or
