@@ -30,6 +30,7 @@ Keep your own scripts in a separate project and use the SDK as a reference check
 ```text
 my-synplant-scripts/
   AGENTS.md
+  CLAUDE.md
   .mcp.json
   scripts/
     MyUtility.js
@@ -74,7 +75,12 @@ Do not copy `Synplant Resources/` into `scripts/` to satisfy copied SDK schema p
 an editor is looking for `scripts/Synplant Resources/`, the copied package schema is wrong; update the
 schema paths instead.
 
-## Minimal project `AGENTS.md`
+## Minimal project `AGENTS.md` and `CLAUDE.md`
+
+Create both files. Codex and most other agents read `AGENTS.md`; Claude Code reads `CLAUDE.md`, which
+imports `AGENTS.md` so the instructions live in one place.
+
+`AGENTS.md`:
 
 ```md
 # Project Agent Instructions
@@ -84,6 +90,16 @@ For Synplant scripting work, follow:
 `references/synplant-scripts-sdk/agents/synplant-script-writer/instructions.md`
 
 Use the SDK checkout as the source of truth for docs, examples, schemas, resources, and validation.
+```
+
+`CLAUDE.md`:
+
+```md
+# Project Claude Instructions
+
+Follow [`AGENTS.md`](AGENTS.md):
+
+@AGENTS.md
 ```
 
 ## Installing scripts in Synplant

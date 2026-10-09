@@ -593,10 +593,11 @@ reads it on open and writes it on drag, but persistence is the script's responsi
   (U+0020–U+007E) in GUI-variable return values and captions; characters like the em-dash `—` render
   as replacement boxes. Use `-` or `...` instead.
 
-Use `tools/validate-static-ivg.sh` / `tools\validate-static-ivg.cmd` for static `.ivg` files. For
+Use `tools/validate-static-ivg.sh` / `tools\validate-static-ivg.cmd` for static `.ivg` files, passing
+your package folder (without a path it checks only the SDK's own resources and examples). For
 dynamic IVG or IVG that uses filesystem `include`, make a temporary self-contained `_test.ivg` copy
-with representative hardcoded values, add explicit `bounds`, and render it with
-`tools/IVG2PNG/IVG2PNG --fonts IVG/fonts`.
+with representative hardcoded values, add explicit `bounds`, and pass it to the same validator or
+render it with `tools/IVG2PNG/IVG2PNG --fonts IVG/fonts`.
 Use `--background "#202020"` or another realistic color for transparent or stroke-only artwork. See
 [`validation.md`](validation.md#static-ivg-validation) for the full PNG-check workflow and
 [`docs/IVG Documentation.md`](../../docs/IVG%20Documentation.md) for the IVG language.
