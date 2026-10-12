@@ -27,7 +27,7 @@ The same aggregate runner runs in CI on every push to `main` and on pull request
 When the bridge MCP server is configured and the JS Console is open with `bridge on`, verify against
 the running engine:
 
-- `sp_status` → expect `attached: yes`.
+- `sp_status` → expect `bridge: LIVE`.
 - `sp_eval("run('My Script.spscript/My Script.js')")` to launch a script (or toggle its window).
 - `sp_eval("getDisplayedCushy('script')")` to see which script window is open.
 - `sp_reload` with an `until` expression to re-run edited files and wait until the change is live —
@@ -205,30 +205,39 @@ Do not build an SVG approximation just to preview an IVG or rely on generic imag
 ImageMagick installations without a reliable SVG delegate can silently drop stroked paths.
 
 CushyLint validates that referenced `.ivg` files exist, but it does not parse or rasterize the IVG
-source inside them. Run the static IVG renderer before trusting a new external icon or vector:
+source inside them. Run the static IVG validator on your package before trusting a new icon or
+vector. From a project root that has the SDK under `references/`:
 
 ```sh
-tools/validate-static-ivg.sh        # macOS / Linux
-tools\validate-static-ivg.cmd       # Windows
+references/synplant-scripts-sdk/tools/validate-static-ivg.sh "scripts/My Script.spscript"     # macOS / Linux
+references\synplant-scripts-sdk\tools\validate-static-ivg.cmd "scripts\My Script.spscript"    # Windows
 ```
 
-The validator renders self-contained static `.ivg` files under `Synplant Resources` and `examples`
-to PNG using `tools/IVG2PNG/`. Files that depend on GUI/Cushy variables are reported as
-dynamic and skipped. Files that use filesystem IVG `include` statements are also skipped: `IVG2PNG`
-parses `include`, but this command-line executor does not provide a filesystem include loader, so
-`include support.ivg` reports `Could not include file`. Helper files with no top-level `bounds` are
-skipped too. A failure here catches IVG syntax and renderer errors that a `.cushy` schema pass cannot
-see. By default output goes to `/tmp/synplant-static-ivg-validation` on macOS/Linux or
-`%TEMP%\synplant-static-ivg-validation` on Windows; pass a directory path to override it.
+Usage is `validate-static-ivg [--out <dir>] [<path> ...]`. Each path is an `.ivg` file or a folder
+searched recursively, relative to the current directory. Without paths it checks the SDK's own
+`Synplant Resources` and `examples`. PNGs and logs go to `--out`, by default
+`synplant-static-ivg-validation` in the temp folder (`$TMPDIR`, else `/tmp`, on macOS/Linux;
+`%TEMP%` on Windows).
+
+The validator renders each self-contained static `.ivg` to PNG with `tools/IVG2PNG/`, rebuilding
+it first if the prebuilt binary cannot run on this machine. Files that depend on GUI/Cushy variables
+are reported as dynamic and skipped. Files that use filesystem IVG `include` statements are also
+skipped: `IVG2PNG` parses `include`, but this command-line executor does not provide a filesystem
+include loader, so `include support.ivg` reports `Could not include file`. Helper files with no
+top-level `bounds` are skipped too. A failure here catches IVG syntax and renderer errors that a
+`.cushy` schema pass cannot see.
 
 Inline Cushy `code:` snippets still need manual review or extraction before `IVG2PNG` can render
 them. If an IVG source depends on runtime variables or filesystem includes, create a temporary
 self-contained `_test.ivg` copy, substitute representative hardcoded values, inline or simplify
-dependencies as needed, and render that test file directly:
+dependencies as needed, and render that test file directly. From the SDK root (prefix the tool and
+font paths with `references/synplant-scripts-sdk/` from a project; use `IVG2PNG.exe` on Windows):
 
 ```sh
 tools/IVG2PNG/IVG2PNG --fonts IVG/fonts "path/to/MyFile_test.ivg" "/tmp/MyFile_test.png"
 ```
+
+Or pass the test file to `validate-static-ivg`, which finds the renderer and fonts for you.
 
 The test IVG must open with `format` and `bounds` so the renderer knows the canvas size:
 

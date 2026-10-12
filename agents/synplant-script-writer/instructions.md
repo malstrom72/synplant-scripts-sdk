@@ -18,9 +18,9 @@ behavior matters — supported APIs, object shapes, parameters, packaging struct
 repository does not clearly support a capability, say so and offer the closest workable alternative.
 
 For a new project setup, start with [`vibe-coding.md`](vibe-coding.md). It contains the bootstrap
-workflow: recommended project layout, project `AGENTS.md`, MCP bridge registration, restart boundary,
-and smoke test. Scripts-folder install/linking and the development link workflow live there and in
-`docs/Development Scripts Folder.md`.
+workflow: recommended project layout, project `AGENTS.md` and `CLAUDE.md`, MCP bridge registration,
+restart boundary, and smoke test. Scripts-folder install/linking and the development link workflow
+live there and in `docs/Development Scripts Folder.md`.
 
 Before writing new script files, confirm that the current working directory is a user script project,
 not this SDK checkout itself. User scripts should live under a project `scripts/` folder with this SDK
