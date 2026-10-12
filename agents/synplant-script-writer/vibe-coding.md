@@ -237,9 +237,9 @@ folder setup is needed.
      Otherwise add it to `~/.codex/config.toml` (ask the user before editing a file outside the
      workspace), then reopen Codex.
 3. Open Synplant, open the JS Console, type `bridge on`.
-4. Restart or reopen the MCP client after registering the server. The `sp_status` and `sp_eval`
-   tools are unavailable until the client has loaded the MCP server, so the smoke test normally
-   happens in this second session, not during the initial bootstrap.
+4. Restart or reopen the MCP client after registering the server. The `sp_status`, `sp_eval` and
+   `sp_reload` tools are unavailable until the client has loaded the MCP server, so the smoke test
+   normally happens in this second session, not during the initial bootstrap.
 5. Resume the assistant session and run the smoke test:
 
    ```text
@@ -250,11 +250,11 @@ folder setup is needed.
    return `2`.
 
 Do not claim the bridge tools are available until the MCP client has actually loaded them — verify
-that `sp_status`/`sp_eval` exist before relying on them. Only one Synplant instance can serve the
-bridge at a time: `bridge on` claims an `owner` token in `bridge.json`, and if another instance
-already owns it you get an OK/Cancel take-over prompt in that window (the previous owner then stands
-down on its next tick). To drive a specific instance, make sure it is the current owner by running
-`bridge on` in its JS Console.
+that `sp_status`/`sp_eval`/`sp_reload` exist before relying on them. Only one Synplant instance can
+serve the bridge at a time: `bridge on` claims an `owner` token in `bridge.json`, and if another
+instance already owns it you get an OK/Cancel take-over prompt in that window (the previous owner
+then stands down on its next tick). To drive a specific instance, make sure it is the current owner
+by running `bridge on` in its JS Console.
 
 ## Reloading while iterating
 

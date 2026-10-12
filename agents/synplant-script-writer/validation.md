@@ -176,9 +176,9 @@ relative command-line args are resolved from the tool directory, not from your s
 directory. Paths written inside a package-local `.schema` file are still relative to that `.schema`
 file.
 
-The `CushyLint` runner builds its `PikaCmd` engine from the vendored source
-([`CushyLint/support/PikaCmd/`](../../CushyLint/support/PikaCmd)) on first run, so a C++ compiler is
-needed the first time on a platform without the prebuilt binary (an arm64-macOS binary is included).
+`CushyLint/build/` ships prebuilt `PikaCmd` and `MakaronCmd` binaries for Windows and for Apple
+silicon Macs. On other platforms (Intel Macs, Linux) the runner builds them from the vendored source
+([`CushyLint/support/`](../../CushyLint/support)) on first run, so a C++ compiler is needed then.
 The product schema is [`Synplant Resources/Synplant2.schema`](../../Synplant%20Resources/Synplant2.schema)
 (which pulls in the standard host actions from [`CushyLint/chimera.schema`](../../CushyLint/chimera.schema));
 package `.schema` headers include it. The first run also compiles the schema, so it is slower than later runs. A CushyLint pass
