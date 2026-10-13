@@ -65,7 +65,7 @@ against a **live** Synplant engine and read the result back. This is the stronge
 prefer verifying an API, constant, parameter, or patch shape against the running engine over relying
 on memory.
 
-When the bridge tools (`sp_status`, `sp_eval`) are available:
+When the bridge tools (`sp_status`, `sp_eval`, `sp_reload`) are available:
 
 - Call `sp_status` first; it probes the bridge and reports `bridge: LIVE` or `bridge: NOT
   RESPONDING`. `NOT RESPONDING` almost always means the JS Console is not open, or `bridge on` was
