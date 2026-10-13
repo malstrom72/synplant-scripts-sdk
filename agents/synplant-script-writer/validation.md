@@ -152,11 +152,11 @@ product schema and any package-local `.schema`. The intended command form is:
 CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 ```
 
-From a separate script project that keeps the SDK under `references/`, call the SDK runner and pass
-the package directory as an absolute path:
+From a separate script project that keeps the SDK under `references/`, call the SDK runner from the
+project root and pass the package directory:
 
 ```sh
-references/synplant-scripts-sdk/CushyLint/CushyLint "/abs/path/to/scripts/My Script.spscript/"
+references/synplant-scripts-sdk/CushyLint/CushyLint "scripts/My Script.spscript/"
 ```
 
 Pass the package directory, not an individual `.cushy` file, and keep the trailing slash so companion
@@ -170,11 +170,9 @@ views and action/parameter references are not validated. Point CushyLint at the 
 with a trailing slash, or otherwise make sure the package `.schema` is loaded. A correct run ends
 with `Validation OK` and no schema-internal missing-rule errors.
 
-The `CushyLint/CushyLint` wrapper changes directory into `CushyLint/` before running the checker. If
-you pass extra command-line `.schema` files or resource directories, pass them as absolute paths;
-relative command-line args are resolved from the tool directory, not from your shell's current
-directory. Paths written inside a package-local `.schema` file are still relative to that `.schema`
-file.
+Relative paths on the CushyLint command line, including extra `.schema` files and resource
+directories, are relative to your shell's current directory. Paths written inside a package-local
+`.schema` file are relative to that `.schema` file.
 
 `CushyLint/build/` ships prebuilt `PikaCmd` and `MakaronCmd` binaries for Windows and for Apple
 silicon Macs. On other platforms (Intel Macs, Linux) the runner builds them from the vendored source
