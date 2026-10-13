@@ -34,7 +34,7 @@ cold bootstrap. There is no bridge yet, so `DIRS.SCRIPTS` is unavailable, and Sy
 surface its script menu — including **Open Scripts Folder** — until the folder exists, so neither can
 point at a folder that is not there. On macOS the standard path is
 `/Library/Application Support/Sonic Charge/Synplant Scripts`; on Windows it may be under
-`C:\Program Files\Sonic Charge\Synplant Scripts`, and `tools/locate-scripts-folder.ps1 -Verify` can
+`C:\Program Files\Sonic Charge\Synplant Scripts`, and `tools\locate-scripts-folder.cmd -Verify` can
 provide a candidate before the bridge exists.
 
 - **Standard path missing** → a fresh install with no `Synplant Scripts` folder yet (the absent script
