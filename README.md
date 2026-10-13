@@ -86,7 +86,7 @@ CushyLint's `PikaCmd` and `MakaronCmd` in `CushyLint/build/` are built for Apple
 For agent-based script development, see
 [`agents/synplant-script-writer/vibe-coding.md`](agents/synplant-script-writer/vibe-coding.md). It
 includes a starter prompt with the SDK clone URL, a recommended separate project layout, the
-project-local `AGENTS.md`, MCP bridge setup, and the second-session smoke test.
+project-local `AGENTS.md` and `CLAUDE.md`, MCP bridge setup, and the second-session smoke test.
 
 ## Maintaining documentation
 
@@ -223,6 +223,13 @@ To render all static `.ivg` resources in this SDK:
 ```sh
 tools/validate-static-ivg.sh        # macOS / Linux
 tools\validate-static-ivg.cmd       # Windows
+```
+
+To check your own files instead, pass `.ivg` files or folders (searched recursively) relative to the
+current directory, and optionally `--out <dir>` for the PNGs and logs:
+
+```sh
+tools/validate-static-ivg.sh [--out <dir>] [<path> ...]
 ```
 
 The rendered PNGs are written to `synplant-static-ivg-validation` in the temp directory by default
