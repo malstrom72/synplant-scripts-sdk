@@ -1364,6 +1364,14 @@ the user starts editing (e.g. clicks the knob) and <code>false</code>
 when they finish. Beyond the per-script variables, Synplant exposes a
 large set of standard GUI variables and product variables — these are
 documented separately in the Cushy Variables reference.</p>
+<p>Set the GUI variable <code>verboseErrors</code> to true to make
+script error dialogs also say what Synplant was doing when the error
+happened, for example
+<code>Error performing action "myScript.randomize":</code>, above the
+error message. Either <code>verboseErrors = true;</code> or
+<code>setCushyVariable('verboseErrors', 'true')</code> works. It is off
+by default in release builds. The JS Console turns it on when it
+starts.</p>
 <h3 id="dynamic-vector-graphics">Dynamic Vector Graphics</h3>
 <p>Cushy <code>vector</code> views draw IVG/ImpD graphics. A vector
 source is one of:</p>
