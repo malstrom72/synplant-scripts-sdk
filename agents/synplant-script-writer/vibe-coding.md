@@ -122,9 +122,12 @@ Synplant does not surface its script menu (including **Open Scripts Folder**) un
 On Windows, before the bridge is installed, the SDK helper can usually locate the same folder from
 the Sonic Charge registry keys:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File references/synplant-scripts-sdk/tools/locate-scripts-folder.ps1 -Verify
+```bat
+references\synplant-scripts-sdk\tools\locate-scripts-folder.cmd -Verify
 ```
+
+The `.cmd` runs `locate-scripts-folder.ps1` with the execution policy bypassed for that script only,
+because Windows blocks running `.ps1` files by default.
 
 Treat that output as a high-confidence candidate to confirm with the user, not as a replacement for
 `DIRS.SCRIPTS` / **Open Scripts Folder**. The folder may be under `C:\Program Files\Sonic Charge\`,
@@ -207,6 +210,26 @@ folder setup is needed.
      the [layout section](#recommended-project-layout) above — rewrite them for CushyLint/editor
      tooling. Prefer a project **outside** `~/Documents`/Desktop/Downloads to avoid a one-time
      Synplant "wants to access Documents" prompt when it reads through the link.
+
+   On Windows the standard folder is normally `C:\Program Files\Sonic Charge\Synplant Scripts`;
+   confirm it with the [locator](#installing-scripts-in-synplant). Creating it also needs one
+   elevated step. Run the chosen option from the project root in a Command Prompt opened with
+   *Run as administrator*:
+
+   - **A**:
+
+     ```bat
+     mkdir "C:\Program Files\Sonic Charge\Synplant Scripts"
+     node references\synplant-scripts-sdk\tools\install-jsconsole.js "C:\Program Files\Sonic Charge\Synplant Scripts"
+     ```
+
+   - **B** (a directory junction, which needs no Developer Mode):
+
+     ```bat
+     mkdir scripts
+     xcopy "references\synplant-scripts-sdk\JS Console.spscript" "scripts\JS Console.spscript\" /E /I
+     mklink /J "C:\Program Files\Sonic Charge\Synplant Scripts" "%CD%\scripts"
+     ```
 
    Either way this is a one-time setup. Once the folder exists, `install-jsconsole.js` (above)
    is the way to refresh the console; it also prints option A's command if pointed at a folder

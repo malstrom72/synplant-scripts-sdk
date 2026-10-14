@@ -56,12 +56,16 @@ beyond what is bundled in this repository. The CushyLint and IVG2PNG binaries ar
 and macOS and used as-is (on macOS, CushyLint's binaries are built for Apple silicon; see the C++
 compiler note below for Intel Macs).
 
+The command-line tools a script author uses run on Windows without Git Bash. Each `.sh` tool has a
+`.cmd` counterpart with the same arguments, output and exit codes, and CushyLint has `CushyLint.bat`.
+Run them from a Command Prompt or PowerShell, for example `tools\validate-js.cmd`.
+
 [Node.js](https://nodejs.org/) (version 18 or newer) is needed for these tasks:
 
-- JavaScript validation: `tools/validate-js.sh` runs ESLint via `npx` when no local
-  `node_modules/.bin/eslint` is present, using `tools/eslint.synplant.config.mjs` to catch syntax the
-  engine does not support, undeclared globals, and a few NuXJS-incompatible constructs before a script
-  reaches Synplant. The engine is ECMAScript 3 with some ECMAScript 5 features, so ESLint parses scripts
+- JavaScript validation: `tools/validate-js.sh` (`tools\validate-js.cmd` on Windows) runs ESLint via
+  `npx` when no local `node_modules/.bin/eslint` is present, using `tools/eslint.synplant.config.mjs`
+  to catch syntax the engine does not support, undeclared globals, and a few NuXJS-incompatible
+  constructs before a script reaches Synplant. The engine is ECMAScript 3 with some ECMAScript 5 features, so ESLint parses scripts
   as ECMAScript 5 and additionally rejects getter/setter literals and `with`.
 - The JS Console MCP bridge server in [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp)
   (see [Live scripting bridge](#live-scripting-bridge)).
@@ -124,9 +128,9 @@ Synplant's interface and scripting are built from several Sonic Charge technolog
 - [`docs/`](docs): all documentation (see the table above).
 - [`JS Console.spscript/`](JS%20Console.spscript): an in-app JavaScript console used for development,
   with a file bridge that an external tool can drive.
-- [`tools/`](tools): the JavaScript, example and static IVG validators, the prebuilt `IVG2PNG`
-  renderer and its build scripts, `install-jsconsole.js`, `locate-scripts-folder.ps1`, and utilities
-  for maintaining the generated documentation.
+- [`tools/`](tools): the JavaScript, example and static IVG validators (each as `.sh` and `.cmd`), the
+  prebuilt `IVG2PNG` renderer and its build scripts, `install-jsconsole.js`,
+  `locate-scripts-folder.ps1`/`.cmd`, and utilities for maintaining the generated documentation.
 - [`tools/jsconsole-bridge-mcp/`](tools/jsconsole-bridge-mcp): a small
   [Model Context Protocol](https://modelcontextprotocol.io) server that evaluates JavaScript against a
   live Synplant engine through the JS Console bridge (see [Live scripting bridge](#live-scripting-bridge)).
@@ -149,7 +153,7 @@ Synplant's interface and scripting are built from several Sonic Charge technolog
 
 1. Find your Synplant Scripts folder via Synplant's script menu → **Open Scripts Folder** (it is the
    `DIRS.SCRIPTS` location). On Windows, before the bridge is installed, you can usually locate the
-   same folder with `tools\locate-scripts-folder.ps1 -Verify`; confirm the result before writing.
+   same folder with `tools\locate-scripts-folder.cmd -Verify`; confirm the result before writing.
 2. Put a single-file script (`MyScript.js`) or a GUI package directory (`MyScript.spscript/`) inside
    it. It appears in the script menu.
 3. For a GUI package, the entry `MyScript.js` opens the window:
@@ -198,7 +202,8 @@ is the canonical reference (its inline comments document every view type and bui
 **CushyLint** over your package to check syntax and schema conformance before loading it in Synplant:
 
 ```sh
-CushyLint/CushyLint "$(pwd)/My Script.spscript/"
+CushyLint/CushyLint "$(pwd)/My Script.spscript/"           # macOS / Linux
+CushyLint\CushyLint.bat "%cd%\My Script.spscript/"         # Windows
 ```
 
 Pass a directory path with a trailing slash so companion `.schema` files are picked up. For an
@@ -271,7 +276,7 @@ node tools/install-jsconsole.js "/path/to/Synplant Scripts"
 ```
 
 With no argument, the helper prints the SDK source path and platform-specific target hints. On
-Windows, use `tools\locate-scripts-folder.ps1 -Verify` or **Open Scripts Folder** to confirm the
+Windows, use `tools\locate-scripts-folder.cmd -Verify` or **Open Scripts Folder** to confirm the
 target first.
 
 ## TypeScript
