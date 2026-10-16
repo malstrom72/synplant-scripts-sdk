@@ -277,7 +277,12 @@ Object.assign(jsConsole, {
 			jc.realSave(jc.bridge.base + 'bridge.json', JSON.stringify({
 				ready: true, protocol: 1, time: Math.floor(Date.now()), owner: jc.bridge.token
 			}));
-		} catch (e) { }
+		} catch (e) {
+			return '' + e;
+		}
+		// A declined write permission may not throw, so check that the claim landed.
+		var info = jc.bridgeReadPresence();
+		return (info && info.owner === jc.bridge.token) ? null : 'bridge.json was not written';
 	},
 	bridgeOwnedByOther: function(info) {
 		// True when bridge.json names a DIFFERENT instance as the current owner.
@@ -327,7 +332,13 @@ Object.assign(jsConsole, {
 			host's `bridge.json`-based status checks and stamps this instance's token
 			as the current owner.
 		*/
-		jc.bridgeClaim();
+		var claimError = jc.bridgeClaim();
+		if (claimError !== null) {
+			print("!!! Bridge stays OFF: could not write bridge.json (" + claimError + ").");
+			print("Folder: " + base);
+			print("Check that the folder exists and that this account can write to it, then try again.");
+			return;
+		}
 		jc.bridge.isOwner = true;
 		jc.bridge.on = true;
 		print("Bridge ON.");
