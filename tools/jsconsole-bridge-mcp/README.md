@@ -125,8 +125,8 @@ folder. The quickest way to find that folder is the script menu in Synplant →
 On Windows, before the bridge exists, the SDK helper can usually locate the same
 folder from the Sonic Charge registry keys:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\locate-scripts-folder.ps1 -Verify
+```bat
+tools\locate-scripts-folder.cmd -Verify
 ```
 
 Treat that output as a candidate to confirm, not as a replacement for
@@ -156,6 +156,12 @@ user), use:
 
 ```sh
 claude mcp add synplant-bridge -- node /ABS/PATH/TO/synplant-scripts-sdk/tools/jsconsole-bridge-mcp/server.js
+```
+
+On Windows:
+
+```bat
+claude mcp add synplant-bridge -- node C:\ABS\PATH\TO\synplant-scripts-sdk\tools\jsconsole-bridge-mcp\server.js
 ```
 
 ### Other MCP clients

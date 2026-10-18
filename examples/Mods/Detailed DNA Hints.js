@@ -11,7 +11,7 @@ addModPatcher('Detailed DNA Hints', 'Synplant2_dna', function(cushyName, cushyCo
     var MAX_FM_RATIO = 5.0;
     var FM_MOD_RANGE = 8.0;
     var FILTER_MOD_RANGE = 8.0;
-    var MAX_FM_AMOUNT = 16.0;	// FIX : max is actually 4x this now, so change this constant
+    var MAX_FM_AMOUNT = 64.0;
     var VOL_FADE_STARTS_AT = 0.75;
     var MIN_ROOM_SIZE = 0.1;
     var MAX_ROOM_SIZE = 5.0;
@@ -332,7 +332,7 @@ addModPatcher('Detailed DNA Hints', 'Synplant2_dna', function(cushyName, cushyCo
             },
             fm_amt: function fm_amt() {
                 var fmAmt = getParam('fm_amt');
-                return paramText('fm_amt', fmAmt) + " (" + describeBipolar(Math.pow(fmAmt * 2.0 - 1.0, 4.0) * MAX_FM_AMOUNT * 4.0, 3) + "x)";
+                return paramText('fm_amt', fmAmt) + " (" + describeBipolar(Math.pow(fmAmt * 2.0 - 1.0, 4.0) * MAX_FM_AMOUNT, 3) + "x)";
             },
             mix_mod: function mix_mod() {
                 var mixMod = getParam('mix_mod');

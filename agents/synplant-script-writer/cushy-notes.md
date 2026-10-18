@@ -65,6 +65,12 @@ CushyLint/CushyLint "$(pwd)/My Script.spscript/"
 #                                           ^
 ```
 
+On Windows:
+
+```bat
+CushyLint\CushyLint.bat "%cd%\My Script.spscript/"
+```
+
 ## Cluster views
 
 A `cluster` is not only a display primitive. By default it is an editable paint surface tied to its

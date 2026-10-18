@@ -1156,6 +1156,11 @@ myScript.myKnob = {
 GUI variables and product variables — these are documented separately in the Cushy Variables
 reference.
 
+Set the GUI variable `verboseErrors` to true to make script error dialogs also say what Synplant was
+doing when the error happened, for example `Error performing action "myScript.randomize":`, above the
+error message. Either `verboseErrors = true;` or `setCushyVariable('verboseErrors', 'true')` works.
+It is off by default in release builds. The JS Console turns it on when it starts.
+
 ### Dynamic Vector Graphics
 
 Cushy `vector` views draw IVG/ImpD graphics. A vector source is one of:

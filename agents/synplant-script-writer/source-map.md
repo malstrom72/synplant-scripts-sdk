@@ -57,8 +57,8 @@ synced into this SDK. Put Synplant-specific workflow notes in the agent docs ins
 ## The live bridge
 
 - [`tools/jsconsole-bridge-mcp/README.md`](../../tools/jsconsole-bridge-mcp/README.md) — bridge setup,
-  `sp_eval`/`sp_status` usage, running scripts with `run(...)`, and reload behavior over the live JS
-  Console bridge.
+  `sp_status`/`sp_eval`/`sp_reload` usage, running scripts with `run(...)`, and reload behavior over
+  the live JS Console bridge.
 
 ## Repository overview
 
