@@ -34,7 +34,7 @@ cold bootstrap. There is no bridge yet, so `DIRS.SCRIPTS` is unavailable, and Sy
 surface its script menu — including **Open Scripts Folder** — until the folder exists, so neither can
 point at a folder that is not there. On macOS the standard path is
 `/Library/Application Support/Sonic Charge/Synplant Scripts`; on Windows it may be under
-`C:\Program Files\Sonic Charge\Synplant Scripts`, and `tools/locate-scripts-folder.ps1 -Verify` can
+`C:\Program Files\Sonic Charge\Synplant Scripts`, and `tools\locate-scripts-folder.cmd -Verify` can
 provide a candidate before the bridge exists.
 
 - **Standard path missing** → a fresh install with no `Synplant Scripts` folder yet (the absent script
@@ -65,7 +65,7 @@ against a **live** Synplant engine and read the result back. This is the stronge
 prefer verifying an API, constant, parameter, or patch shape against the running engine over relying
 on memory.
 
-When the bridge tools (`sp_status`, `sp_eval`) are available:
+When the bridge tools (`sp_status`, `sp_eval`, `sp_reload`) are available:
 
 - Call `sp_status` first; it probes the bridge and reports `bridge: LIVE` or `bridge: NOT
   RESPONDING`. `NOT RESPONDING` almost always means the JS Console is not open, or `bridge on` was

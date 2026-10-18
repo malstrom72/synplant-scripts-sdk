@@ -1,5 +1,6 @@
 @include scriptSupport.makaron
 @define script=skinChooser
+@define scriptRoot=Skin Chooser.spscript
 @define cols=2
 @define rows=2
 // Screenshots are 1000x1400, which gives 125x175 at 1:8 scale
@@ -165,8 +166,8 @@ autoexecs: {
 	{
 		type: "button"
 		bounds: { -1, -1, @scrollButtonWidth+1, $+2 }
-		standard: { icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "no", 'frame': "@buttonFrameColor", 'fill': "@buttonFillColor" } } }
-		down: { fill: "@buttonDownFillColor", icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "no", 'frame': "@buttonFillColor", 'fill': "@buttonFrameColor" } } }
+		standard: { icon: { ivgFile: "@scriptRoot/PrevNextIcon", defines: { 'flip': "no", 'frame': "@buttonFrameColor", 'fill': "@buttonFillColor" } } }
+		down: { fill: "@buttonDownFillColor", icon: { ivgFile: "@scriptRoot/PrevNextIcon", defines: { 'flip': "no", 'frame': "@buttonFillColor", 'fill': "@buttonFrameColor" } } }
 		disabled: { icon: { ivgCode: "bounds 0,0,1,1" } }
 		action: "@script.flipPage"
 		params: "left"
@@ -174,8 +175,8 @@ autoexecs: {
 	{
 		type: "button"
 		bounds: { w-@scrollButtonWidth, -1, @scrollButtonWidth+1, $+2 }
-		standard: { icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "yes", 'frame': "@buttonFrameColor", 'fill': "@buttonFillColor" } } }
-		down: { fill: "@buttonDownFillColor", icon: { ivgFile: "Skin Chooser.spscript/PrevNextIcon", defines: { 'flip': "yes", 'frame': "@buttonFillColor", 'fill': "@buttonFrameColor" } } }
+		standard: { icon: { ivgFile: "@scriptRoot/PrevNextIcon", defines: { 'flip': "yes", 'frame': "@buttonFrameColor", 'fill': "@buttonFillColor" } } }
+		down: { fill: "@buttonDownFillColor", icon: { ivgFile: "@scriptRoot/PrevNextIcon", defines: { 'flip': "yes", 'frame': "@buttonFillColor", 'fill': "@buttonFrameColor" } } }
 		disabled: { icon: { ivgCode: "bounds 0,0,1,1" } }
 		action: "@script.flipPage"
 		params: "right"

@@ -122,9 +122,12 @@ Synplant does not surface its script menu (including **Open Scripts Folder**) un
 On Windows, before the bridge is installed, the SDK helper can usually locate the same folder from
 the Sonic Charge registry keys:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File references/synplant-scripts-sdk/tools/locate-scripts-folder.ps1 -Verify
+```bat
+references\synplant-scripts-sdk\tools\locate-scripts-folder.cmd -Verify
 ```
+
+The `.cmd` runs `locate-scripts-folder.ps1` with the execution policy bypassed for that script only,
+because Windows blocks running `.ps1` files by default.
 
 Treat that output as a high-confidence candidate to confirm with the user, not as a replacement for
 `DIRS.SCRIPTS` / **Open Scripts Folder**. The folder may be under `C:\Program Files\Sonic Charge\`,
@@ -208,6 +211,26 @@ folder setup is needed.
      tooling. Prefer a project **outside** `~/Documents`/Desktop/Downloads to avoid a one-time
      Synplant "wants to access Documents" prompt when it reads through the link.
 
+   On Windows the standard folder is normally `C:\Program Files\Sonic Charge\Synplant Scripts`;
+   confirm it with the [locator](#installing-scripts-in-synplant). Creating it also needs one
+   elevated step. Run the chosen option from the project root in a Command Prompt opened with
+   *Run as administrator*:
+
+   - **A**:
+
+     ```bat
+     mkdir "C:\Program Files\Sonic Charge\Synplant Scripts"
+     node references\synplant-scripts-sdk\tools\install-jsconsole.js "C:\Program Files\Sonic Charge\Synplant Scripts"
+     ```
+
+   - **B** (a directory junction, which needs no Developer Mode):
+
+     ```bat
+     mkdir scripts
+     xcopy "references\synplant-scripts-sdk\JS Console.spscript" "scripts\JS Console.spscript\" /E /I
+     mklink /J "C:\Program Files\Sonic Charge\Synplant Scripts" "%CD%\scripts"
+     ```
+
    Either way this is a one-time setup. Once the folder exists, `install-jsconsole.js` (above)
    is the way to refresh the console; it also prints option A's command if pointed at a folder
    that does not exist yet.
@@ -237,9 +260,9 @@ folder setup is needed.
      Otherwise add it to `~/.codex/config.toml` (ask the user before editing a file outside the
      workspace), then reopen Codex.
 3. Open Synplant, open the JS Console, type `bridge on`.
-4. Restart or reopen the MCP client after registering the server. The `sp_status` and `sp_eval`
-   tools are unavailable until the client has loaded the MCP server, so the smoke test normally
-   happens in this second session, not during the initial bootstrap.
+4. Restart or reopen the MCP client after registering the server. The `sp_status`, `sp_eval` and
+   `sp_reload` tools are unavailable until the client has loaded the MCP server, so the smoke test
+   normally happens in this second session, not during the initial bootstrap.
 5. Resume the assistant session and run the smoke test:
 
    ```text
@@ -250,11 +273,11 @@ folder setup is needed.
    return `2`.
 
 Do not claim the bridge tools are available until the MCP client has actually loaded them — verify
-that `sp_status`/`sp_eval` exist before relying on them. Only one Synplant instance can serve the
-bridge at a time: `bridge on` claims an `owner` token in `bridge.json`, and if another instance
-already owns it you get an OK/Cancel take-over prompt in that window (the previous owner then stands
-down on its next tick). To drive a specific instance, make sure it is the current owner by running
-`bridge on` in its JS Console.
+that `sp_status`/`sp_eval`/`sp_reload` exist before relying on them. Only one Synplant instance can
+serve the bridge at a time: `bridge on` claims an `owner` token in `bridge.json`, and if another
+instance already owns it you get an OK/Cancel take-over prompt in that window (the previous owner
+then stands down on its next tick). To drive a specific instance, make sure it is the current owner
+by running `bridge on` in its JS Console.
 
 ## Reloading while iterating
 

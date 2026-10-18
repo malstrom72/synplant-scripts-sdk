@@ -4,17 +4,22 @@ Two kinds of checking matter for Synplant scripts: **static** checks (JavaScript
 schema conformance) and **live** checks (does it actually behave in Synplant). The live bridge is the
 strongest tool available and should be the primary verification.
 
+Every static validator is a `.sh` script for macOS and Linux with a `.cmd` counterpart for Windows
+that takes the same arguments, prints the same output and exits with the same codes, so Windows needs
+no Git Bash.
+
 ## All examples at once
 
 To validate every bundled example package (Cushy schema, JavaScript, and static IVG) in one command,
 use the aggregate runner:
 
 ```sh
-tools/validate-examples.sh
+tools/validate-examples.sh      # macOS / Linux
+tools\validate-examples.cmd     # Windows
 ```
 
 It runs CushyLint over every `*.spscript` package under `examples/` plus `JS Console.spscript`, then
-delegates to `tools/validate-js.sh` and `tools/validate-static-ivg.sh`. It runs all three sections
+delegates to `tools/validate-js` and `tools/validate-static-ivg`. It runs all three sections
 even if one fails, so a single run surfaces every problem, and exits non-zero if anything fails. Use
 this as the regression gate after changing an example or the shared schema; use the per-language
 tools below when working on a single script.
@@ -97,7 +102,8 @@ modules, and async.
 The lightweight static gate is:
 
 ```sh
-tools/validate-js.sh
+tools/validate-js.sh       # macOS / Linux
+tools\validate-js.cmd      # Windows
 ```
 
 It runs ESLint with [`tools/eslint.synplant.config.mjs`](../../tools/eslint.synplant.config.mjs). The
@@ -114,12 +120,22 @@ tools/validate-js.sh "$(pwd)/examples/Patch Stack.spscript/"
 tools/validate-js.sh "$(pwd)/examples/Patch Stack.spscript/Patch Stack_main.js"
 ```
 
+```bat
+tools\validate-js.cmd "%cd%\examples\Patch Stack.spscript"
+tools\validate-js.cmd "%cd%\examples\Patch Stack.spscript\Patch Stack_main.js"
+```
+
 From a separate script project that keeps the SDK under `references/`, call the SDK runner and pass
 the script directory as an absolute path:
 
 ```sh
 references/synplant-scripts-sdk/tools/validate-js.sh "/abs/path/to/scripts"
 references/synplant-scripts-sdk/tools/validate-js.sh "/abs/path/to/scripts/My Script.spscript/"
+```
+
+```bat
+references\synplant-scripts-sdk\tools\validate-js.cmd "C:\abs\path\to\scripts"
+references\synplant-scripts-sdk\tools\validate-js.cmd "C:\abs\path\to\scripts\My Script.spscript"
 ```
 
 The wrapper keeps the caller's working directory when paths are supplied, so files outside the SDK
@@ -149,14 +165,19 @@ gotchas; it does not prove runtime behavior. Confirm that with the bridge.
 product schema and any package-local `.schema`. The intended command form is:
 
 ```sh
-CushyLint/CushyLint "$(pwd)/My Script.spscript/"
+CushyLint/CushyLint "$(pwd)/My Script.spscript/"           # macOS / Linux
+CushyLint\CushyLint.bat "%cd%\My Script.spscript/"         # Windows
 ```
 
-From a separate script project that keeps the SDK under `references/`, call the SDK runner and pass
-the package directory as an absolute path:
+From a separate script project that keeps the SDK under `references/`, call the SDK runner from the
+project root and pass the package directory:
 
 ```sh
-references/synplant-scripts-sdk/CushyLint/CushyLint "/abs/path/to/scripts/My Script.spscript/"
+references/synplant-scripts-sdk/CushyLint/CushyLint "scripts/My Script.spscript/"
+```
+
+```bat
+references\synplant-scripts-sdk\CushyLint\CushyLint.bat "C:\abs\path\to\scripts\My Script.spscript/"
 ```
 
 Pass the package directory, not an individual `.cushy` file, and keep the trailing slash so companion
@@ -170,15 +191,13 @@ views and action/parameter references are not validated. Point CushyLint at the 
 with a trailing slash, or otherwise make sure the package `.schema` is loaded. A correct run ends
 with `Validation OK` and no schema-internal missing-rule errors.
 
-The `CushyLint/CushyLint` wrapper changes directory into `CushyLint/` before running the checker. If
-you pass extra command-line `.schema` files or resource directories, pass them as absolute paths;
-relative command-line args are resolved from the tool directory, not from your shell's current
-directory. Paths written inside a package-local `.schema` file are still relative to that `.schema`
-file.
+Relative paths on the CushyLint command line, including extra `.schema` files and resource
+directories, are relative to your shell's current directory. Paths written inside a package-local
+`.schema` file are relative to that `.schema` file.
 
-The `CushyLint` runner builds its `PikaCmd` engine from the vendored source
-([`CushyLint/support/PikaCmd/`](../../CushyLint/support/PikaCmd)) on first run, so a C++ compiler is
-needed the first time on a platform without the prebuilt binary (an arm64-macOS binary is included).
+`CushyLint/build/` ships prebuilt `PikaCmd` and `MakaronCmd` binaries for Windows and for Apple
+silicon Macs. On other platforms (Intel Macs, Linux) the runner builds them from the vendored source
+([`CushyLint/support/`](../../CushyLint/support)) on first run, so a C++ compiler is needed then.
 The product schema is [`Synplant Resources/Synplant2.schema`](../../Synplant%20Resources/Synplant2.schema)
 (which pulls in the standard host actions from [`CushyLint/chimera.schema`](../../CushyLint/chimera.schema));
 package `.schema` headers include it. The first run also compiles the schema, so it is slower than later runs. A CushyLint pass
