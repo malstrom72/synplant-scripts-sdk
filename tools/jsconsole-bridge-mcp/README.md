@@ -62,6 +62,8 @@ Files (all JSON):
   `bridge on` (`time` is epoch ms; `owner` is a token identifying the instance that
   currently holds the bridge). The server uses `time` for the "announced N s ago"
   status.
+- `server-owner.json`: `{ token, pid, time }`, written by the newest server on
+  startup (temp file + atomic rename). The bridge never reads it.
 
 Requests and replies are paired by a strictly increasing `seq` (epoch-ms based,
 so it keeps climbing across restarts). The bridge ignores any `seq` it has
@@ -75,6 +77,13 @@ already handled.
 > stands down — so two engines never handle the same request. To move the bridge to
 > a different instance, run `bridge on` (and click OK) in that instance's
 > JS Console window.
+
+> **One MCP server at a time.** The server side has the same rule. Each server
+> writes its own token to `server-owner.json` when it starts, so the newest server
+> takes over the folder. A server that finds another token there stands down for
+> good: it writes no more requests, and its tools answer with an "another session
+> took over the bridge" error (`sp_status` reports `STOOD DOWN`). Restart or
+> reconnect the MCP server in a session to take the bridge back for it.
 
 ## Tools
 
@@ -116,8 +125,8 @@ folder. The quickest way to find that folder is the script menu in Synplant →
 On Windows, before the bridge exists, the SDK helper can usually locate the same
 folder from the Sonic Charge registry keys:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\locate-scripts-folder.ps1 -Verify
+```bat
+tools\locate-scripts-folder.cmd -Verify
 ```
 
 Treat that output as a candidate to confirm, not as a replacement for
@@ -147,6 +156,12 @@ user), use:
 
 ```sh
 claude mcp add synplant-bridge -- node /ABS/PATH/TO/synplant-scripts-sdk/tools/jsconsole-bridge-mcp/server.js
+```
+
+On Windows:
+
+```bat
+claude mcp add synplant-bridge -- node C:\ABS\PATH\TO\synplant-scripts-sdk\tools\jsconsole-bridge-mcp\server.js
 ```
 
 ### Other MCP clients

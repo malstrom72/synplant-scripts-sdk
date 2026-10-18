@@ -203,7 +203,8 @@ Numbstrict is easy to get subtly wrong in deeply nested view trees, so run **Cus
 files before loading them in Synplant:
 
 ```sh
-CushyLint/CushyLint "$(pwd)/My Script.spscript/"
+CushyLint/CushyLint "$(pwd)/My Script.spscript/"           # macOS / Linux
+CushyLint\CushyLint.bat "%cd%\My Script.spscript/"         # Windows
 ```
 
 Pass a directory path **with a trailing slash** so the companion `.schema` files next to your
