@@ -48,7 +48,7 @@ autoexecs: {
 	}
 	{
 		type: "paged"
-		index: "@action.checked"
+		index: @action.checked
 		pages: {
 			"true": {
 				{
