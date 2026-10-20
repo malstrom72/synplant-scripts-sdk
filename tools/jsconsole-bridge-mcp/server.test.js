@@ -25,6 +25,7 @@ const path = require('node:path');
 
 const SERVER = path.join(__dirname, 'server.js');
 const PRODUCT = require('./server.js').PRODUCT;
+const PROTOCOL_VERSIONS = require('./server.js').PROTOCOL_VERSIONS;
 const EVAL = PRODUCT.toolPrefix + '_eval';
 const STATUS = PRODUCT.toolPrefix + '_status';
 const RELOAD = PRODUCT.toolPrefix + '_reload';
@@ -56,6 +57,7 @@ function startServer(base) {
 	child.stdout.setEncoding('utf8');
 
 	const pending = new Map();
+	const received = [];
 	let buffer = '';
 	child.stdout.on('data', function (chunk) {
 		buffer += chunk;
@@ -66,6 +68,7 @@ function startServer(base) {
 			if (!line) continue;
 			let msg;
 			try { msg = JSON.parse(line); } catch (e) { continue; }
+			received.push(msg);
 			if (msg.id != null && pending.has(msg.id)) {
 				const entry = pending.get(msg.id);
 				pending.delete(msg.id);
@@ -74,31 +77,44 @@ function startServer(base) {
 		}
 	});
 
+	function write(line) {
+		child.stdin.write(line + '\n');
+	}
+
 	let nextId = 1;
 	function request(method, params, timeoutMs) {
 		const id = nextId++;
-		return new Promise(function (resolve, reject) {
+		const promise = new Promise(function (resolve, reject) {
 			const timer = setTimeout(function () {
 				pending.delete(id);
 				reject(new Error('timed out waiting for response to ' + method));
 			}, timeoutMs || 5000);
 			pending.set(id, function (msg) { clearTimeout(timer); resolve(msg); });
-			child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: id, method: method, params: params || {} }) + '\n');
+			write(JSON.stringify({ jsonrpc: '2.0', id: id, method: method, params: params || {} }));
 		});
+		promise.id = id;
+		return promise;
 	}
 
 	return {
 		child: child,
 		request: request,
+		received: received,
+		write: write,
+		notify: function (method, params) {
+			write(JSON.stringify({ jsonrpc: '2.0', method: method, params: params || {} }));
+		},
 		endStdin: function () { child.stdin.end(); },
 		kill: function () { try { child.kill(); } catch (e) {} },
 		waitExit: function () { return new Promise(function (r) { child.on('exit', function (code) { r(code); }); }); }
 	};
 }
 
-// Stand-in for the product's JS Console bridge: watch request.json, and when a new
-// seq appears, write a response built by `handler(req)`. Records seqs seen.
-// Polls every 50ms like the real console's bridge tick.
+/*
+	Stand-in for the product's JS Console bridge: watch request.json, and when a new
+	seq appears, write a response built by `handler(req)`. Records seqs seen.
+	Polls every 50ms like the real console's bridge tick.
+*/
 function startFakeBridge(base, handler, delayMs) {
 	let last = 0;
 	const seqs = [];
@@ -135,6 +151,122 @@ test('initialize echoes protocol version and advertises tools', async function (
 	const list = await s.request('tools/list');
 	const names = list.result.tools.map(function (x) { return x.name; }).sort();
 	assert.deepEqual(names, [EVAL, RELOAD, STATUS]);
+});
+
+test('initialize answers an unsupported protocol version with the latest supported one', async function (t) {
+	const base = freshBase();
+	const s = startServer(base);
+	t.after(function () { s.kill(); cleanup(base); });
+
+	const init = await s.request('initialize', { protocolVersion: '1999-01-01', capabilities: {} });
+	assert.equal(init.result.protocolVersion, PROTOCOL_VERSIONS[0]);
+	const missing = await s.request('initialize', { capabilities: {} });
+	assert.equal(missing.result.protocolVersion, PROTOCOL_VERSIONS[0]);
+});
+
+test('a line that is not JSON gets a parse error reply', async function (t) {
+	const base = freshBase();
+	const s = startServer(base);
+	t.after(function () { s.kill(); cleanup(base); });
+
+	s.write('{"jsonrpc": "2.0", "id": 1, "method": ');
+	const init = await s.request('initialize', { capabilities: {} });
+	assert.ok(init.result);
+	const errors = s.received.filter(function (m) { return m.error; });
+	assert.equal(errors.length, 1);
+	assert.equal(errors[0].id, null);
+	assert.equal(errors[0].error.code, -32700);
+});
+
+test('notifications/cancelled stops a call, withdraws its request and sends no reply', async function (t) {
+	const base = freshBase();
+	const s = startServer(base);
+	let fb = null;
+	t.after(function () { if (fb) fb.stop(); s.kill(); cleanup(base); });
+
+	await s.request('initialize', { capabilities: {} });
+	const cancelled = s.request('tools/call', { name: EVAL, arguments: { code: 'stuck', timeout_ms: 5000 } }, 8000);
+	cancelled.catch(function () {});
+	await new Promise(function (resolve) { setTimeout(resolve, 200); });
+	s.notify('notifications/cancelled', { requestId: cancelled.id, reason: 'test' });
+	await new Promise(function (resolve) { setTimeout(resolve, 300); });
+	assert.equal(fs.existsSync(path.join(base, 'request.json')), false);
+
+	// The next call is not queued behind the cancelled one.
+	fb = startFakeBridge(base, function (req) { return { value: 'r:' + req.code }; });
+	const started = Date.now();
+	const r = await s.request('tools/call', { name: EVAL, arguments: { code: 'next', timeout_ms: 2000 } }, 4000);
+	assert.ok(Date.now() - started < 1500, 'next call took ' + (Date.now() - started) + 'ms');
+	assert.match(r.result.content[0].text, /value: r:next/);
+	assert.equal(fb.seqs.length, 1, 'the cancelled request should never reach the bridge');
+	assert.equal(s.received.filter(function (m) { return m.id === cancelled.id; }).length, 0);
+});
+
+function readOwner(base) {
+	return JSON.parse(fs.readFileSync(path.join(base, 'server-owner.json'), 'utf8'));
+}
+
+test('a second server takes over the bridge and the first stands down', async function (t) {
+	const base = freshBase();
+	const first = startServer(base);
+	let second = null;
+	let fb = null;
+	t.after(function () { if (fb) fb.stop(); first.kill(); if (second) second.kill(); cleanup(base); });
+
+	await first.request('initialize', { capabilities: {} });
+	assert.equal(readOwner(base).pid, first.child.pid);
+	second = startServer(base);
+	await second.request('initialize', { capabilities: {} });
+	assert.equal(readOwner(base).pid, second.child.pid);
+
+	fb = startFakeBridge(base, function (req) { return { value: 'r:' + req.code }; });
+	const old = await first.request('tools/call', { name: EVAL, arguments: { code: 'old', timeout_ms: 1000 } });
+	assert.equal(old.result.isError, true);
+	assert.match(old.result.content[0].text, /another session took over the bridge/);
+	assertOnlyRealTools(old.result.content[0].text);
+
+	const r = await second.request('tools/call', { name: EVAL, arguments: { code: 'new', timeout_ms: 2000 } });
+	assert.equal(r.result.isError, false);
+	assert.match(r.result.content[0].text, /value: r:new/);
+	assert.equal(fb.seqs.length, 1, 'the server that stood down must not write request.json');
+
+	const status = await first.request('tools/call', { name: STATUS }, 4000);
+	assert.equal(status.result.isError, true);
+	assert.match(status.result.content[0].text, /STOOD DOWN/);
+	const reload = await first.request('tools/call', { name: RELOAD, arguments: { until: 'true' } }, 4000);
+	assert.equal(reload.result.isError, true);
+	assert.match(reload.result.content[0].text, /another session took over the bridge/);
+	assert.equal(fb.seqs.length, 1);
+});
+
+test('a server that stood down keeps refusing after the new owner exits', async function (t) {
+	const base = freshBase();
+	const first = startServer(base);
+	t.after(function () { first.kill(); cleanup(base); });
+
+	await first.request('initialize', { capabilities: {} });
+	const second = startServer(base);
+	await second.request('initialize', { capabilities: {} });
+	second.endStdin();
+	await second.waitExit();
+
+	const r = await first.request('tools/call', { name: EVAL, arguments: { code: '1', timeout_ms: 500 } });
+	assert.equal(r.result.isError, true);
+	assert.match(r.result.content[0].text, /another session took over the bridge/);
+	assert.equal(fs.existsSync(path.join(base, 'request.json')), false);
+});
+
+test('a server claims the bridge again if the owner file goes missing', async function (t) {
+	const base = freshBase();
+	const s = startServer(base);
+	const fb = startFakeBridge(base, function (req) { return { value: 'r:' + req.code }; });
+	t.after(function () { fb.stop(); s.kill(); cleanup(base); });
+
+	await s.request('initialize', { capabilities: {} });
+	fs.unlinkSync(path.join(base, 'server-owner.json'));
+	const r = await s.request('tools/call', { name: EVAL, arguments: { code: 'x', timeout_ms: 2000 } });
+	assert.match(r.result.content[0].text, /value: r:x/);
+	assert.equal(readOwner(base).pid, s.child.pid);
 });
 
 test(EVAL + ' round-trips a value and captured output', async function (t) {
@@ -287,8 +419,10 @@ test(STATUS + ' probes liveness, not just the presence file', async function (t)
 	const none = await s.request('tools/call', { name: STATUS }, 4000);
 	assert.match(none.result.content[0].text, /NOT RESPONDING and no presence file/);
 
-	// A stale presence file with nothing answering → still NOT RESPONDING. (The old
-	// code wrongly reported "attached: yes" here — exactly the bug that misled us.)
+	/*
+		A stale presence file with nothing answering → still NOT RESPONDING. (The old
+		code wrongly reported "attached: yes" here, exactly the bug that misled us.)
+	*/
 	fs.writeFileSync(path.join(base, 'bridge.json'),
 		JSON.stringify({ ready: true, protocol: 1, time: Date.now() - 60000, owner: 'jc-test' }));
 	const stale = await s.request('tools/call', { name: STATUS }, 4000);
@@ -344,8 +478,10 @@ test('overlapping calls run one at a time and each gets its own reply', async fu
 	t.after(function () { fb.stop(); s.kill(); cleanup(base); });
 
 	await s.request('initialize', { capabilities: {} });
-	// Sent back to back, so without serialization the second request would overwrite
-	// the first before the bridge's next poll, and the first call would time out.
+	/*
+		Sent back to back, so without serialization the second request would overwrite
+		the first before the bridge's next poll, and the first call would time out.
+	*/
 	const results = await Promise.all(['a', 'b', 'c'].map(function (code) {
 		return s.request('tools/call', { name: EVAL, arguments: { code: code, timeout_ms: 3000 } }, 8000);
 	}));

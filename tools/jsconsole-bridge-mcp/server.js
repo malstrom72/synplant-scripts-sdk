@@ -20,6 +20,11 @@
 //                          (`time` is epoch ms; `owner` is a token identifying the
 //                          instance that currently holds the bridge)
 //
+// Server side only (the bridge never reads it):
+//
+//   <base>/server-owner.json  the newest server writes on startup: { token, pid, time }
+//                             (a server that finds another token there stands down)
+//
 // The bridge never deletes files, so this host owns the directory: it `mkdir -p`s
 // <base> on startup, writes requests atomically, and pairs replies by a strictly
 // increasing `seq`. We base `seq` on epoch ms so it keeps climbing across restarts
@@ -31,6 +36,7 @@
 
 'use strict';
 
+const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -48,14 +54,16 @@ const PRODUCT = {
 	scriptExtension: '.spscript',
 	evalExample: "getElement('patch').genome.flt_freq",
 	reloadExample: "typeof patchStack.slotLink !== 'undefined'",
-	// Must match jsConsole.bridgeDefaultBase() in JSConsole_main.js, which uses
-	// DIRS.DOCUMENTS + 'jsconsole-bridge/'. DIRS.DOCUMENTS is "<home>/Documents/Sonic
-	// Charge/" on macOS and Windows; Synplant grants scripts deep read-write access
-	// there, so the bridge never triggers a file-permission prompt. The bridge can
-	// also create this folder itself (makeDir); this server creates it too so either
-	// side may start first. It must never resolve to the same folder as another
-	// product's bridge: two consoles open at once would then share request.json /
-	// response.json. Override with BRIDGE_BASE if user documents live elsewhere.
+	/*
+		Must match jsConsole.bridgeDefaultBase() in JSConsole_main.js, which uses
+		DIRS.DOCUMENTS + 'jsconsole-bridge/'. DIRS.DOCUMENTS is "<home>/Documents/Sonic
+		Charge/" on macOS and Windows; Synplant grants scripts deep read-write access
+		there, so the bridge never triggers a file-permission prompt. The bridge can
+		also create this folder itself (makeDir); this server creates it too so either
+		side may start first. It must never resolve to the same folder as another
+		product's bridge: two consoles open at once would then share request.json /
+		response.json. Override with BRIDGE_BASE if user documents live elsewhere.
+	*/
 	defaultBase: function () {
 		return path.join(os.homedir(), 'Documents', 'Sonic Charge', 'jsconsole-bridge');
 	}
@@ -66,7 +74,11 @@ const PRODUCT = {
 
 const SERVER_NAME = PRODUCT.serverName;
 const SERVER_VERSION = '1.0.0';
-const DEFAULT_PROTOCOL = '2024-11-05';
+/*
+	MCP protocol versions this server implements, newest first. 2025-03-26 is left out because it
+	requires JSON-RPC batches, which this server does not handle.
+*/
+const PROTOCOL_VERSIONS = ['2025-06-18', '2024-11-05'];
 const DEFAULT_TIMEOUT_MS = 20000; // a single eval may run up to ~20s in the engine
 const POLL_INTERVAL_MS = 50;
 const RELOAD_POLL_MS = 150;
@@ -99,6 +111,7 @@ const BASE = bridgeBase();
 const REQUEST_PATH = path.join(BASE, 'request.json');
 const RESPONSE_PATH = path.join(BASE, 'response.json');
 const PRESENCE_PATH = path.join(BASE, 'bridge.json');
+const OWNER_PATH = path.join(BASE, 'server-owner.json');
 
 let lastSeq = 0;
 
@@ -134,10 +147,11 @@ function readJson(p) {
 	}
 }
 
-// On Windows, renaming over or deleting a file that another process has open (the
-// bridge polls request.json) fails with EPERM/EACCES/EBUSY. Retry with a short,
-// jittered backoff (like graceful-fs) so retries can't lock onto the poller's
-// timing, until `limitMs` runs out.
+/*
+	On Windows, renaming over or deleting a file that another process has open (the bridge polls
+	request.json) fails with EPERM/EACCES/EBUSY. Retry with a short, jittered backoff (like
+	graceful-fs) so retries can't lock onto the poller's timing, until `limitMs` runs out.
+*/
 const RENAME_RETRY_CODES = ['EPERM', 'EACCES', 'EBUSY'];
 const RENAME_RETRY_LIMIT_MS = 1000;
 
@@ -163,6 +177,18 @@ async function retryWhileLocked(op, limitMs) {
 	}
 }
 
+// Atomic publish: write `value` to a temp file in the bridge folder, then rename it over `dest`.
+async function writeJsonAtomic(tmpName, dest, value, limitMs) {
+	const tmp = path.join(BASE, tmpName);
+	fs.writeFileSync(tmp, JSON.stringify(value));
+	try {
+		await renameWithRetry(tmp, dest, null, limitMs);
+	} catch (e) {
+		try { fs.unlinkSync(tmp); } catch (e2) { /* already gone */ }
+		throw e;
+	}
+}
+
 /*
 	request.json and response.json hold one message each, so bridge calls run one at a time and
 	`timeout_ms` includes the wait in this queue. A call that times out withdraws its request, so a
@@ -171,13 +197,39 @@ async function retryWhileLocked(op, limitMs) {
 let bridgeQueue = Promise.resolve();
 let callsPending = 0;
 
-// Resolves true once `turn` settles, or false if `ms` runs out first.
-function waitAtMost(turn, ms) {
+// Set by notifications/cancelled. A cancelled call stops waiting and withdraws its request.
+function cancelToken() {
+	const token = { cancelled: false };
+	token.whenCancelled = new Promise(function (resolve) {
+		token.cancel = function () {
+			token.cancelled = true;
+			resolve(false);
+		};
+	});
+	return token;
+}
+
+function throwIfCancelled(token) {
+	if (token.cancelled) {
+		throw new Error('cancelled by the client');
+	}
+}
+
+// Marked so callers that retry, like the reload probes, can tell a timeout from a real failure.
+function timeoutError(message) {
+	const e = new Error(message);
+	e.timedOut = true;
+	return e;
+}
+
+// Resolves true once `turn` settles, or false if `ms` runs out or the call is cancelled first.
+function waitAtMost(turn, ms, token) {
 	let timer = null;
 	const expired = new Promise(function (resolve) { timer = setTimeout(resolve, ms, false); });
-	return Promise.race([turn.then(function () { return true; }), expired]).finally(function () {
-		clearTimeout(timer);
-	});
+	return Promise.race([turn.then(function () { return true; }), expired, token.whenCancelled])
+		.finally(function () {
+			clearTimeout(timer);
+		});
 }
 
 // Deletes our request unless the bridge replaced it. False only if it stayed locked.
@@ -203,10 +255,45 @@ async function withdrawRequest(seq) {
 	}
 }
 
+/*
+	Only one server may drive the bridge folder at a time, or two would overwrite each other's
+	request.json. A starting server takes over by writing its token to server-owner.json. A server
+	that finds another token there has been taken over and stands down for good: it answers tool
+	calls with an error instead of writing requests. This mirrors the console's owner token in
+	bridge.json and leaves the console protocol unchanged.
+*/
+const OWNER_TOKEN = crypto.randomBytes(8).toString('hex');
+let ownerClaimed = Promise.resolve();
+let stoodDownFor = null;	// the owner record that replaced ours
+
+function claimOwnership() {
+	return writeJsonAtomic('server-owner.' + process.pid + '.tmp', OWNER_PATH,
+		{ token: OWNER_TOKEN, pid: process.pid, time: Date.now() });
+}
+
+// Throws once another server has taken over. A missing or unreadable owner file is claimed again.
+async function checkOwnership() {
+	await ownerClaimed;
+	if (stoodDownFor === null) {
+		const owner = readJson(OWNER_PATH);
+		if (owner === null || typeof owner.token !== 'string') {
+			await claimOwnership();
+		} else if (owner.token !== OWNER_TOKEN) {
+			stoodDownFor = owner;
+			log('another server took over the bridge folder; standing down');
+		}
+	}
+	if (stoodDownFor !== null) {
+		const who = typeof stoodDownFor.pid === 'number' ? ' (server pid ' + stoodDownFor.pid + ')' : '';
+		throw new Error('another session took over the bridge' + who + '; nothing was sent. Restart or '
+			+ 'reconnect this session\'s ' + SERVER_NAME + ' MCP server to take it back.');
+	}
+}
+
 //
 // Tool: <prefix>_eval — write a request atomically, poll for the matching reply.
 //
-async function bridgeEval(args) {
+async function bridgeEval(args, token) {
 	const code = args && typeof args.code === 'string' ? args.code : null;
 	if (code === null) {
 		throw new Error(EVAL_TOOL + ' requires a string "code" argument');
@@ -220,31 +307,25 @@ async function bridgeEval(args) {
 	bridgeQueue = previous.then(function () { return mine; });
 	callsPending++;
 	try {
-		if (!await waitAtMost(previous, deadline - Date.now())) {
-			throw new Error('timed out after ' + timeout + 'ms waiting for an earlier bridge call to '
+		if (!await waitAtMost(previous, deadline - Date.now(), token)) {
+			throwIfCancelled(token);
+			throw timeoutError('timed out after ' + timeout + 'ms waiting for an earlier bridge call to '
 				+ 'finish; nothing was sent.');
 		}
-		return await bridgeEvalNow(code, timeout, deadline);
+		return await bridgeEvalNow(code, timeout, deadline, token);
 	} finally {
 		callsPending--;
 		release();
 	}
 }
 
-async function bridgeEvalNow(code, timeout, deadline) {
+async function bridgeEvalNow(code, timeout, deadline, token) {
+	await checkOwnership();
 	const seq = nextSeq();
+	await writeJsonAtomic('request.' + process.pid + '.' + seq + '.tmp', REQUEST_PATH, { seq: seq, code: code },
+		Math.max(1, deadline - Date.now()));
 
-	// Atomic publish: write a temp file in the same dir, then rename over request.json.
-	const tmp = path.join(BASE, 'request.' + process.pid + '.' + seq + '.tmp');
-	fs.writeFileSync(tmp, JSON.stringify({ seq: seq, code: code }));
-	try {
-		await renameWithRetry(tmp, REQUEST_PATH, null, Math.max(1, deadline - Date.now()));
-	} catch (e) {
-		try { fs.unlinkSync(tmp); } catch (e2) { /* already gone */ }
-		throw e;
-	}
-
-	while (Date.now() < deadline) {
+	while (Date.now() < deadline && !token.cancelled) {
 		const resp = readJson(RESPONSE_PATH);
 		if (resp && resp.seq === seq) {
 			return resp;
@@ -252,6 +333,7 @@ async function bridgeEvalNow(code, timeout, deadline) {
 		await sleep(POLL_INTERVAL_MS);
 	}
 	const withdrawn = await withdrawRequest(seq);
+	throwIfCancelled(token);
 	const resp = readJson(RESPONSE_PATH);
 	if (resp && resp.seq === seq) {
 		return resp;	// the reply landed while we were withdrawing
@@ -264,7 +346,7 @@ async function bridgeEvalNow(code, timeout, deadline) {
 		? ' The request was withdrawn, so it will not run later unless the bridge had already '
 			+ 'started it.'
 		: ' The request could not be withdrawn (request.json stayed locked) and may still run later.';
-	throw new Error('timed out after ' + timeout + 'ms with no reply — the bridge is not '
+	throw timeoutError('timed out after ' + timeout + 'ms with no reply — the bridge is not '
 		+ 'responding.' + detail + ' Check, in order of likelihood: '
 		+ '1) the ' + CONSOLE + ' window is open in ' + PRODUCT_NAME + '; '
 		+ '2) you typed `bridge on` in it this session (a leftover bridge.json does not mean it is live); '
@@ -293,13 +375,13 @@ function formatEval(resp) {
 // boolean result is only an invocation result (and reload always succeeds), so it
 // cannot tell callers when the script rerun has finished.
 //
-async function bridgeReload(args) {
+async function bridgeReload(args, token) {
 	const until = args && typeof args.until === 'string' && args.until !== '' ? args.until : null;
 	const timeout = args && typeof args.timeout_ms === 'number'
 		? args.timeout_ms
 		: RELOAD_DEFAULT_TIMEOUT_MS;
 
-	const issued = await bridgeEval({ code: "performCushyAction('reload')" });
+	const issued = await bridgeEval({ code: "performCushyAction('reload')" }, token);
 	if (!issued.ok) {
 		throw new Error('reload could not be invoked: ' + issued.error);
 	}
@@ -312,8 +394,10 @@ async function bridgeReload(args) {
 		};
 	}
 
-	// A predicate that touches a not-yet-defined global may throw. Treat that as
-	// "not ready" so callers do not have to make every natural probe defensive.
+	/*
+		A predicate that touches a not-yet-defined global may throw. Treat that as "not ready" so
+		callers do not have to make every natural probe defensive.
+	*/
 	const probe = '(function(){try{return (' + until + ') ? "' + READY_TOKEN + '" : "'
 		+ WAIT_TOKEN + '";}catch(e){return "' + WAIT_TOKEN + '";}})()';
 	const started = Date.now();
@@ -326,8 +410,13 @@ async function bridgeReload(args) {
 		}
 		let r = null;
 		try {
-			r = await bridgeEval({ code: probe, timeout_ms: Math.min(5000, remaining) });
-		} catch (e) { /* one probe timing out is not the end; keep polling until the deadline */ }
+			r = await bridgeEval({ code: probe, timeout_ms: Math.min(5000, remaining) }, token);
+		} catch (e) {
+			// One probe timing out is not the end; keep polling until the deadline.
+			if (!e.timedOut) {
+				throw e;
+			}
+		}
 		if (r && r.ok && String(r.value).indexOf(READY_TOKEN) >= 0) {
 			return {
 				text: 'reload complete after ' + (Date.now() - started)
@@ -352,11 +441,17 @@ async function bridgeReload(args) {
 //
 const PROBE_TIMEOUT_MS = 1500;
 
-async function bridgeStatus() {
+async function bridgeStatus(token) {
 	const lines = ['base: ' + BASE];
 	if (!fs.existsSync(BASE)) {
 		lines.push('folder: missing (will be created on first ' + EVAL_TOOL + ')');
 		return { text: lines.join('\n'), isError: false };
+	}
+	try {
+		await checkOwnership();
+	} catch (e) {
+		lines.push('server: STOOD DOWN, ' + e.message);
+		return { text: lines.join('\n'), isError: true };
 	}
 	const presence = readJson(PRESENCE_PATH);
 
@@ -365,7 +460,7 @@ async function bridgeStatus() {
 	let live = false;
 	if (!busy) {
 		try {
-			await bridgeEval({ code: '1', timeout_ms: PROBE_TIMEOUT_MS });
+			await bridgeEval({ code: '1', timeout_ms: PROBE_TIMEOUT_MS }, token);
 			live = true;
 		} catch (e) { /* no reply within the probe window */ }
 	}
@@ -464,16 +559,16 @@ const TOOLS = [
 	}
 ];
 
-async function handleToolCall(name, args) {
+async function handleToolCall(name, args, token) {
 	if (name === EVAL_TOOL) {
-		const resp = await bridgeEval(args || {});
+		const resp = await bridgeEval(args || {}, token);
 		return formatEval(resp);
 	}
 	if (name === STATUS_TOOL) {
-		return await bridgeStatus();
+		return await bridgeStatus(token);
 	}
 	if (name === RELOAD_TOOL) {
-		return await bridgeReload(args || {});
+		return await bridgeReload(args || {}, token);
 	}
 	throw new Error('unknown tool: ' + name);
 }
@@ -494,12 +589,25 @@ function sendError(id, code, message) {
 	send({ jsonrpc: '2.0', id: id, error: { code: code, message: message } });
 }
 
+// Cancel tokens of the tools/call requests in progress, by request id.
+const inFlight = new Map();
+
 async function dispatch(msg) {
+	if (msg === null || typeof msg !== 'object' || Array.isArray(msg)) {
+		sendError(null, -32600, 'invalid request: expected a single JSON-RPC message object');
+		return;
+	}
 	const id = msg.id;
 	const method = msg.method;
 
 	// Notifications (no id) get no response.
 	if (id === undefined || id === null) {
+		if (method === 'notifications/cancelled' && msg.params) {
+			const token = inFlight.get(msg.params.requestId);
+			if (token) {
+				token.cancel();
+			}
+		}
 		return;
 	}
 
@@ -507,7 +615,7 @@ async function dispatch(msg) {
 		case 'initialize': {
 			const requested = msg.params && msg.params.protocolVersion;
 			sendResult(id, {
-				protocolVersion: requested || DEFAULT_PROTOCOL,
+				protocolVersion: PROTOCOL_VERSIONS.indexOf(requested) >= 0 ? requested : PROTOCOL_VERSIONS[0],
 				capabilities: { tools: {} },
 				serverInfo: { name: SERVER_NAME, version: SERVER_VERSION }
 			});
@@ -521,18 +629,27 @@ async function dispatch(msg) {
 			return;
 		case 'tools/call': {
 			const params = msg.params || {};
+			const token = cancelToken();
+			inFlight.set(id, token);
+			let result;
 			try {
-				const out = await handleToolCall(params.name, params.arguments);
-				sendResult(id, {
+				const out = await handleToolCall(params.name, params.arguments, token);
+				result = {
 					content: [{ type: 'text', text: out.text }],
 					isError: !!out.isError
-				});
+				};
 			} catch (e) {
 				// Tool-level failure is reported as a result with isError, per MCP.
-				sendResult(id, {
+				result = {
 					content: [{ type: 'text', text: String(e && e.message ? e.message : e) }],
 					isError: true
-				});
+				};
+			} finally {
+				inFlight.delete(id);
+			}
+			// The client has dropped a cancelled request, so it gets no reply.
+			if (!token.cancelled) {
+				sendResult(id, result);
 			}
 			return;
 		}
@@ -544,19 +661,26 @@ async function dispatch(msg) {
 
 function main() {
 	ensureBase();
+	ownerClaimed = claimOwnership().catch(function (e) {
+		log('could not claim the bridge folder:', e.message);
+	});
 	log('ready. bridge folder:', BASE);
 
-	// Don't exit while a tool call is still in flight (an eval may be mid-poll when
-	// stdin closes). Real clients keep stdin open; this matters for graceful
-	// shutdown and for piped/test invocations.
+	/*
+		Don't exit while a tool call is still in flight (an eval may be mid-poll when
+		stdin closes). Real clients keep stdin open; this matters for graceful
+		shutdown and for piped/test invocations.
+	*/
 	let pending = 0;
 	let endReceived = false;
 	let exiting = false;
 	function maybeExit() {
 		if (endReceived && pending === 0 && !exiting) {
 			exiting = true;
-			// Flush any buffered stdout (e.g. the final reply) before exiting; a
-			// bare process.exit() can truncate a pending write on a pipe.
+			/*
+				Flush any buffered stdout (e.g. the final reply) before exiting; a
+				bare process.exit() can truncate a pending write on a pipe.
+			*/
 			process.stdout.write('', function () { process.exit(0); });
 		}
 	}
@@ -577,6 +701,7 @@ function main() {
 				msg = JSON.parse(line);
 			} catch (e) {
 				log('failed to parse line:', line);
+				sendError(null, -32700, 'parse error: ' + e.message);
 				continue;
 			}
 			// dispatch is async; errors inside are handled per-message.
@@ -595,9 +720,11 @@ function main() {
 	});
 }
 
-// Exported so server.test.js can be shared verbatim and parameterised by PRODUCT.
-// Requiring this file does not start the server or touch the bridge folder.
-module.exports = { PRODUCT: PRODUCT, renameWithRetry: renameWithRetry };
+/*
+	Exported so server.test.js can be shared verbatim and parameterised by PRODUCT.
+	Requiring this file does not start the server or touch the bridge folder.
+*/
+module.exports = { PRODUCT: PRODUCT, PROTOCOL_VERSIONS: PROTOCOL_VERSIONS, renameWithRetry: renameWithRetry };
 
 if (require.main === module) {
 	main();
