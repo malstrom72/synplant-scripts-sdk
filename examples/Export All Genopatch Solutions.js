@@ -24,7 +24,7 @@
 			: -Math.log(getElement('midiConfig').masterTuning / 440) / Math.LN2);
 
 	var name = splitPath(referenceInfo.path)[1];
-    display('Select a folder to save the patches in.');
+	display('Select a folder to save the patches in.');
 	var folder = browse('folder');
 	if (folder === null) {
 		return;

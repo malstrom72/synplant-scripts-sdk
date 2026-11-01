@@ -19,38 +19,38 @@ if (!globals.genobatch) {
 (function() {
 	var SAVE_ALL_STALKS = true;
 	var AUDIO_FILE_TYPES = [ 'wav', 'wave', 'aif', 'aiff', 'afc', 'aifc' ];
-    var FILE_NAME_RE = new RegExp("^.*"
-	        + (PLATFORM.OS === 'windows' ? "[\\/\\\\:]" : "\\/")
-    	    + "(.*?)(?:\\.[^.]*)?$");
+	var FILE_NAME_RE = new RegExp("^.*"
+			+ (PLATFORM.OS === 'windows' ? "[\\/\\\\:]" : "\\/")
+			+ "(.*?)(?:\\.[^.]*)?$");
 
 	var config = loadPapagenoConfig();
 
-    function loadPapagenoConfig() {
-        var config = parseNumbstrict(load(DIRS.PAPAGENO + "synplantGenopatchConfig.numbstrict"));
-        var overridesPath = getCushyVariable('preferences.genopatchConfigOverridesPath');
-        if (overridesPath !== '' && fileInfo(overridesPath) !== null) {
-            var configOverride = parseNumbstrict(load(overridesPath));
-            for (var key in configOverride) {
-                config[key] = configOverride[key];
-            }
-        }
-        assert(typeof config === 'object');
-        var remap = {
-            'maxIterations': 'mI',
-            'minReferenceSpan': 'mR',
-            'maxReferenceSpan': 'mX',
-            'focusIterations': 'fI',
-            'startingPointSpread': 'sP',
-            'maxAudioLength': 'mL',
-            'zeroCrossingArea': 'zC'
-        };
-        for (var key in remap) {
-            if (!(key in config)) {
-                config[key] = config[remap[key]];
-            }
-        }
-        return config;
-    }
+	function loadPapagenoConfig() {
+		var config = parseNumbstrict(load(DIRS.PAPAGENO + "synplantGenopatchConfig.numbstrict"));
+		var overridesPath = getCushyVariable('preferences.genopatchConfigOverridesPath');
+		if (overridesPath !== '' && fileInfo(overridesPath) !== null) {
+			var configOverride = parseNumbstrict(load(overridesPath));
+			for (var key in configOverride) {
+				config[key] = configOverride[key];
+			}
+		}
+		assert(typeof config === 'object');
+		var remap = {
+			'maxIterations': 'mI',
+			'minReferenceSpan': 'mR',
+			'maxReferenceSpan': 'mX',
+			'focusIterations': 'fI',
+			'startingPointSpread': 'sP',
+			'maxAudioLength': 'mL',
+			'zeroCrossingArea': 'zC'
+		};
+		for (var key in remap) {
+			if (!(key in config)) {
+				config[key] = config[remap[key]];
+			}
+		}
+		return config;
+	}
 
 	function getInitialAudioFilesDir() {
 		var initialDir = getCushyVariable('preferences.papagenoReferencesDirectory');
