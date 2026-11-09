@@ -741,7 +741,7 @@ See also: [readClipboard](#readclipboard).
     {
         implementation: Integer     // engine implementation id
         name:           string
-        path:           string|null // source file; null for unsaved/host-loaded patches
+        path:           string|null // patch file last loaded from or saved to (kept in the host project); null for Init Patch, Randomize and script-built patches without one
         modified:       boolean
         id:             Integer     // identity, auto-incremented on any modification
         patchId:        Integer|null// audio-smoothing id; null → assigned on setElement
