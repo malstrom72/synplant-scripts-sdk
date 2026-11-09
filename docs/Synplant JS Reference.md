@@ -1192,6 +1192,12 @@ variables change. `file:` vector source text is cached by the resource manager u
 Calling `displayCushy(...)` again or re-evaluating JavaScript over the bridge does not by itself
 re-read edited `.cushy` or `.ivg` resources.
 
+A vector view only reads. Its IVG sees `defines:`, `bindings:`, native variables such as
+`$width`/`$height` and, with `guiVariables: true`, GUI variables, but it cannot write to Cushy or
+JavaScript variables. Each paint runs in its own throwaway variable scope, so IVG assignments, and the
+variable that `TEXT ... caret:<variable>` sets, never reach Cushy or JavaScript. A hit area or another
+view therefore cannot follow a width measured in IVG.
+
 Button views have a separate top-level `vector:` field. It draws on top of the ordinary button
 graphics and provides IVG variables `$down`, `$checked`, and `$disabled` as `yes`/`no`, plus
 `$caption` as the expanded caption text. Use it when the overlay graphic should react to button
@@ -1212,6 +1218,9 @@ state:
 By contrast, a button style's `icon:` field is an image. Its `ivgCode`/`ivgFile` image form has no
 access to Cushy variables; use the button `vector:` overlay or a separate `vector` view when the IVG
 must react to state.
+
+A `hitMask:` image is built once. It can be IVG code, but that IVG has no access to Cushy variables
+and the mask is not rebuilt when variables change, so a hit mask cannot follow dynamic content.
 
 ### GUI Actions
 

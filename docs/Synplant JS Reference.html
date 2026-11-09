@@ -1414,6 +1414,15 @@ manager until a real reload (for example the JS Console reload button,
 Calling <code>displayCushy(...)</code> again or re-evaluating JavaScript
 over the bridge does not by itself re-read edited <code>.cushy</code> or
 <code>.ivg</code> resources.</p>
+<p>A vector view only reads. Its IVG sees <code>defines:</code>,
+<code>bindings:</code>, native variables such as
+<code>$width</code>/<code>$height</code> and, with
+<code>guiVariables: true</code>, GUI variables, but it cannot write to
+Cushy or JavaScript variables. Each paint runs in its own throwaway
+variable scope, so IVG assignments, and the variable that
+<code>TEXT ... caret:&lt;variable&gt;</code> sets, never reach Cushy or
+JavaScript. A hit area or another view therefore cannot follow a width
+measured in IVG.</p>
 <p>Button views have a separate top-level <code>vector:</code> field. It
 draws on top of the ordinary button graphics and provides IVG variables
 <code>$down</code>, <code>$checked</code>, and <code>$disabled</code> as
@@ -1433,6 +1442,9 @@ button state:</p>
 Its <code>ivgCode</code>/<code>ivgFile</code> image form has no access
 to Cushy variables; use the button <code>vector:</code> overlay or a
 separate <code>vector</code> view when the IVG must react to state.</p>
+<p>A <code>hitMask:</code> image is built once. It can be IVG code, but
+that IVG has no access to Cushy variables and the mask is not rebuilt
+when variables change, so a hit mask cannot follow dynamic content.</p>
 <h3 id="gui-actions">GUI Actions</h3>
 <p>When the user clicks a button or selects a menu item, Cushy performs
 a GUI action — either a built-in action or a JavaScript function you
