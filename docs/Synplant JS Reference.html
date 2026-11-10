@@ -514,7 +514,9 @@ shortcuts and lets the user audition the selected patch by playing MIDI
 before loading it. <code>defaultFileName</code> (save browser only)
 should omit the extension. If <code>initialDir</code> is
 <code>null</code>, a directory is chosen automatically from the first
-extension.</p>
+extension. In a save browser with a recognized single file type, the
+returned path normally already includes that extension; do not blindly
+append the extension again without checking the returned path.</p>
 <p>See also: <a href="#dir">dir</a>, <a href="#load">load</a>, <a
 href="#save">save</a>.</p>
 <h3 id="composenumbstrict">composeNumbstrict</h3>
@@ -689,6 +691,12 @@ display text into a normalized value, e.g.
 <p>Invokes a built-in Cushy/host action (e.g. <code>"reload"</code>,
 <code>"register"</code>, <code>"launch"</code>) with an optional
 Numbstrict parameter string. Returns whether the action succeeded.</p>
+<p>The <code>"reload"</code> and <code>"reset"</code> actions themselves
+are <strong>asynchronous</strong>: the script rerun they trigger is not
+finished when this function returns, so code running immediately
+afterwards may still see the old scripts. <code>"reload"</code> always
+succeeds, so its boolean return is not a completion signal. Poll for an
+observable effect instead of assuming the new code is live.</p>
 <p>See also: <a href="#getcushyvariable">getCushyVariable</a>, <a
 href="#setcushyvariable">setCushyVariable</a>.</p>
 <h3 id="print">print</h3>
@@ -837,7 +845,10 @@ a specific <code>seedId</code>.</p>
 Model</a>.</p>
 <h3 id="splitpath">splitPath</h3>
 <pre><code>function splitPath(path: string) : [string, string, string]</code></pre>
-<p>Splits a path into <code>[directory, name, extension]</code>.</p>
+<p>Splits a path into <code>[directory, name, extension]</code>. The
+extension includes the leading dot:
+<code>splitPath('/a/b/foo.synplant')</code> returns
+<code>['/a/b/', 'foo', '.synplant']</code>.</p>
 <p>See also: <a href="#fullpath">fullPath</a>.</p>
 <h3 id="translate">translate</h3>
 <pre><code>function translate(s: string) : string</code></pre>
@@ -869,7 +880,7 @@ return:</p>
 <pre><code>{
     implementation: Integer     // engine implementation id
     name:           string
-    path:           string|null // source file; filename takes priority over name when updating
+    path:           string|null // patch file last loaded from or saved to (kept in the host project); null for Init Patch, Randomize and script-built patches without one
     modified:       boolean
     id:             Integer     // identity, auto-incremented on any modification
     patchId:        Integer|null// audio-smoothing id; null → assigned on setElement
@@ -884,7 +895,13 @@ return:</p>
 <p><code>control</code> keys are the 14 <a
 href="#parameter-constants">control parameter</a> names;
 <code>genome</code> keys are the 48 gene names. Both hold normalized
-0..1 values.</p>
+0..1 values. <code>patch.path</code> is the authoritative source file
+path for a saved patch; if it is <code>null</code>, the patch has no
+backing <code>.synplant</code> file path in the current context. Use
+<code>patch.name</code> for display text, or when intentionally
+proposing a name for a new file, but do not treat it as a substitute for
+<code>patch.path</code> when updating or deriving from an existing saved
+file path.</p>
 <h3 id="branch-object">Branch object</h3>
 <p>Each entry of <code>patch.branches</code>:</p>
 <pre><code>{
