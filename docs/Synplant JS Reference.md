@@ -1041,7 +1041,8 @@ Math/utility helpers (verified present in build 309): `clamp`, `lerp`, `scale`, 
 `fract`, `unescape`, `floorMod`, `StringBuilder`, `createClass`, `Color`, and the `random` object.
 
 GUI/state helpers: `displayCushy`, `closeCushy`, `toggleCushy`, `getDisplayedCushy`, `select`,
-`selected`, `getCachedPatch`, `displayHint`, `assert`.
+`selected`, `getCachedPatch`, `displayHint`, `assert`, and `ComputedGUIVariable` (see
+[Performance Notes](#performance-notes)).
 
 In particular `select('program', n)` / `selected('program')` and `selected('branch')` are
 host-script helpers, not engine functions — this is why they do not appear in `COJSEngine.d.ts`.
@@ -1299,3 +1300,41 @@ suspension limit per call. Keep per-frame work (GUI variable getters, animations
 results and use [`getElementId('patch')`](#getelementid) to avoid recomputing when nothing changed.
 For heavy work, do it in response to an explicit user action, not in a continuously polled getter.
 Prefer [`getMonotonicTime()`](#getmonotonictime) for any timing logic.
+
+Cushy polls rather than being notified (see
+[Cushy Documentation → Performance](Cushy%20Documentation.md#performance)). Every view bound to a
+JavaScript variable calls its getter, and every view using a JavaScript action calls its `enabled`
+and `checked` functions, between 10 and 50 times a second while Synplant's window is the most recently used one and the view
+is not hidden, and once more
+on every mouse click. Two views bound to the same name make two calls. Each call looks the dotted
+name up from the globals again and re-parses the action's parameters. So:
+
+-   Make getters, `enabled` and `checked` cheap: return a value that is already computed. Do not call
+    `getElement('patch')`, serialize data, or build long strings in them.
+-   Compute derived values when their inputs change, for example from an `onChanged: patch.identity`
+    autoexec, and let the getter return the cached result.
+-   A plain string property costs no function call at all, so prefer one when the value is only set
+    from script code.
+-   Setters and `execute` run only on a user action or a `set`, so they may do expensive work.
+
+`ComputedGUIVariable`, a host script helper, packages that caching as a GUI variable. It wraps a
+computation function; `get()` runs the computation the first time it is needed and then returns the
+cached result until the inputs change. Pass the inputs with `setup(...)` whenever they may have
+changed: it clears the cached result only if an argument differs (by `!==`) from the last call, so
+calling it often is cheap. `reset(...)` sets the inputs and always clears the result. Synplant's own
+DNA waveforms and animations use it.
+
+```javascript
+function describePatch(patchId) {
+    var patch = getElement('patch');            // expensive: runs once per patch change
+    return buildSummary(patch);                 // your own formatting
+}
+
+myScript.patchSummary = new ComputedGUIVariable(describePatch);    // bind as myScript.patchSummary
+
+// From an `onChanged: patch.identity` action, or anywhere the inputs may have changed:
+myScript.patchSummary.setup(getElementId('patch'));
+```
+
+Pass numbers or strings to `setup`. A freshly built object or array never compares equal, so it
+would clear the result on every call.

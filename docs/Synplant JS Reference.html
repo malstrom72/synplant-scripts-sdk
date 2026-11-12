@@ -1259,7 +1259,9 @@ doubt.</p>
 <code>closeCushy</code>, <code>toggleCushy</code>,
 <code>getDisplayedCushy</code>, <code>select</code>,
 <code>selected</code>, <code>getCachedPatch</code>,
-<code>displayHint</code>, <code>assert</code>.</p>
+<code>displayHint</code>, <code>assert</code>, and
+<code>ComputedGUIVariable</code> (see <a
+href="#performance-notes">Performance Notes</a>).</p>
 <p>In particular <code>select('program', n)</code> /
 <code>selected('program')</code> and <code>selected('branch')</code> are
 host-script helpers, not engine functions — this is why they do not
@@ -1540,5 +1542,49 @@ recomputing when nothing changed. For heavy work, do it in response to
 an explicit user action, not in a continuously polled getter. Prefer <a
 href="#getmonotonictime"><code>getMonotonicTime()</code></a> for any
 timing logic.</p>
+<p>Cushy polls rather than being notified (see <a
+href="Cushy%20Documentation.md#performance">Cushy Documentation →
+Performance</a>). Every view bound to a JavaScript variable calls its
+getter, and every view using a JavaScript action calls its
+<code>enabled</code> and <code>checked</code> functions, between 10 and
+50 times a second while Synplant’s window is the most recently used one
+and the view is not hidden, and once more on every mouse click. Two
+views bound to the same name make two calls. Each call looks the dotted
+name up from the globals again and re-parses the action’s parameters.
+So:</p>
+<ul>
+<li>Make getters, <code>enabled</code> and <code>checked</code> cheap:
+return a value that is already computed. Do not call
+<code>getElement('patch')</code>, serialize data, or build long strings
+in them.</li>
+<li>Compute derived values when their inputs change, for example from an
+<code>onChanged: patch.identity</code> autoexec, and let the getter
+return the cached result.</li>
+<li>A plain string property costs no function call at all, so prefer one
+when the value is only set from script code.</li>
+<li>Setters and <code>execute</code> run only on a user action or a
+<code>set</code>, so they may do expensive work.</li>
+</ul>
+<p><code>ComputedGUIVariable</code>, a host script helper, packages that
+caching as a GUI variable. It wraps a computation function;
+<code>get()</code> runs the computation the first time it is needed and
+then returns the cached result until the inputs change. Pass the inputs
+with <code>setup(...)</code> whenever they may have changed: it clears
+the cached result only if an argument differs (by <code>!==</code>) from
+the last call, so calling it often is cheap. <code>reset(...)</code>
+sets the inputs and always clears the result. Synplant’s own DNA
+waveforms and animations use it.</p>
+<pre class="javascript"><code>function describePatch(patchId) {
+    var patch = getElement(&#39;patch&#39;);            // expensive: runs once per patch change
+    return buildSummary(patch);                 // your own formatting
+}
+
+myScript.patchSummary = new ComputedGUIVariable(describePatch);    // bind as myScript.patchSummary
+
+// From an `onChanged: patch.identity` action, or anywhere the inputs may have changed:
+myScript.patchSummary.setup(getElementId(&#39;patch&#39;));</code></pre>
+<p>Pass numbers or strings to <code>setup</code>. A freshly built object
+or array never compares equal, so it would clear the result on every
+call.</p>
 </body>
 </html>

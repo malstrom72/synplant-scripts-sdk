@@ -219,7 +219,21 @@ averages rather than tracing every tick.
 
 - Cushy has no dependency graph: views poll GUI variables regularly, adapting the rate per lookup
   (rarely-changing variables are polled less often). Keep getters short and fast; cache derived text
-  or data based on its inputs.
+  or data based on its inputs. The host helper `ComputedGUIVariable` does this: bind
+  `new ComputedGUIVariable(compute)`, call `.setup(input, ...)` with primitive inputs when they may
+  have changed, and `get()` recomputes only after an input differed (see the JS Reference's
+  *Performance Notes*).
+- Rates: the most recently used Synplant plug-in window (with its script windows) refreshes every
+  20 ms, another visible instance every 40 ms, a hidden one every 100 ms. An unchanged view backs off
+  to every 5th tick, so it still polls about 10 times a second. Hidden views (hidden groups' contents,
+  unshown `paged` pages) are not refreshed at all; clipped or scrolled-away views still are. Every
+  mouse click makes all views poll at once, and `onChanged` lists are looked up on every refresh. The
+  `vector` of a button or a knob/slider
+  cap re-reads its IVG's variables on every tick without backing off (it redraws only on a change).
+  Two views bound to one name call the getter twice. Details and costs: [Cushy Documentation → Performance](../../docs/Cushy%20Documentation.md#performance).
+- Each JavaScript getter, `enabled`, `checked` or `execute` call resolves its dotted name from the
+  globals again. `preferences.<key>` reads the preferences store from disk on every lookup; never bind
+  it to many views.
 - JavaScript variables shadow Cushy variables of the same name. Account for that when naming GUI
   state.
 - An object member with `get`/`set` is a Cushy **variable descriptor**, not a native JS
@@ -255,10 +269,19 @@ averages rather than tracing every tick.
   and what each view does.
 - `hover` and `mousePosition` updates are not inherently expensive, but avoid doing unnecessary work
   in their actions or getters.
-- Vector views cache: for the first few ticks after creation a vector draws directly; once stable it
-  draws into a compressed offscreen buffer and reuses that cache until its source material, accessed
-  bound variables, or native params (`$width`/`$height`) change. Static or rarely-updated vector views
-  are cheap after the initial redraws. `file:` vector sources are cached until a reload.
+- Vector views cache: draws 1 to 5 after creation or after the last change run the IVG (directly
+  into the destination only with normal `blend` and 100% `opacity`, otherwise through an offscreen).
+  The 6th draw renders into an offscreen and keeps a run-length compressed copy, which later draws only
+  blend, over the view's whole bounds. A change to the source, to an accessed bound or GUI variable, or
+  to native params (`$width`/`$height`) drops the cache and restarts the count; moving or covering the
+  view does not. Static or rarely-updated vector views are cheap after the initial redraws. `file:`
+  vector sources are cached until a reload.
+- Graphic choice, cheapest per repaint first: an image (PNG, or IVG via `image: { ivgFile: ... }` /
+  button `icon:`), then a cached static vector, then a vector whose variables keep changing. Images
+  from IVG are rendered once per distinct spec at the final pixel scale, so they are crisp at every
+  zoom and need no `_x2` master, but their IVG cannot read Cushy variables. Use them for fixed vector
+  art, PNGs for bitmap art, and `vector` views only for drawings that follow variables. A reload
+  (including a zoom change) clears the shared image cache.
 - `defines:` are constant IVG variables available during rendering; `bindings:` are variables
   available during rendering. Neither is a one-time textual substitution.
 
