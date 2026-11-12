@@ -144,11 +144,12 @@ that has one (often a `group`). Fall back to `varExpansion` only when you truly 
 script-generated tree, and expect a full rebuild only when nothing else fits.
 
 **Raster resources ship at high resolution.** PNG resources are referenced by base name in `.cushy`
-(`name: "myGraphic"` or `file: "myGraphic"`); Synplant resolves the file and scales it to the current
-zoom and DPI. Provide a high-resolution master named `<base>_x2.png` (and, for very high-density
-displays, optionally `<base>_x4.png`). Vector (`vector` / IVG) graphics and `caption` text scale
-cleanly at any zoom and sidestep the resolution question entirely; prefer them where crisp graphics
-matter.
+(`image: "myGraphic"` or `image: { name: "myGraphic" }`); Synplant resolves the file and scales it to
+the current zoom and DPI. Provide a high-resolution master named `<base>_x2.png` (and, for very
+high-density displays, optionally `<base>_x4.png`). Vector (`vector` / IVG) graphics and `caption` text
+scale cleanly at any zoom and sidestep the resolution question entirely; prefer them where crisp
+graphics matter. An image can also be drawn from IVG (`image: { ivgFile: "myGraphic" }`), which is
+crisp at every zoom and needs no PNG master; see [Drawing cost](#drawing-cost) for which to choose.
 
 ## A minimal window
 
@@ -200,6 +201,94 @@ A few things that trip up first-time authors, all expanded in the schema or exam
 - **Colors use normalized components** — `rgb(1,1,1,0.35)`, not `rgb(255,255,255,...)`.
 - **Keep `.cushy` source ASCII** unless you have tested the exact character path.
 
+## Performance
+
+Cushy has no change notifications. It polls: on refresh ticks every view asks its GUI variables for
+their values and its actions whether they are enabled and checked, and redraws only if something
+differs from what it drew last. Getters therefore run for as long as the window is open, and drawing
+cost depends on the kind of view. How much this matters for a given window depends on its size and
+contents, so check it in Synplant.
+
+### How often views poll
+
+Synplant refreshes its plug-in window, and the script windows open in it, every 20 ms (50 times a
+second) when it is the most recently used Synplant window (the instance last focused or clicked),
+every 40 ms when it is visible but another Synplant instance was used more recently, and every 100 ms
+when it is hidden. Each view paces itself: right after a change it polls on every tick, and while
+nothing changes it slows down step by step to every 5th tick. A steady view in the most recently used
+window still polls about 10 times a second.
+
+Hidden views are not refreshed and poll nothing: a hidden view, everything inside a hidden group, and
+the pages a `paged` view is not showing. A sub-cushy on a hidden page does not even load its layout
+until the page is shown. The group or `paged` view itself keeps polling its own `visibility`, `offset`
+or index variable. Views that are only scrolled or clipped out of sight inside a visible group still
+poll.
+
+Some polling ignores the pace:
+
+- Every mouse click, right click and context click in a window makes every view in it poll at once,
+  and so does the enter or leave action of a `hover` view.
+- `onChanged` autoexecs look up all their variables on every refresh, so keep those lists short.
+- `repeat` autoexecs run at their own rate, whether or not anything changed.
+- `vector` views, and the `vector` of a button or of a knob or slider cap, re-read every variable
+  their IVG read on every tick, without slowing down. They rerun the IVG and redraw only when one of
+  them changed, so the cost is the lookups: keep the variables such a vector reads few and cheap. A
+  button with a `vector` also checks its actions' `enabled` and `checked` state and its caption on
+  every tick, so keep those cheap too.
+
+Two views bound to the same variable call its getter twice; nothing caches values within a tick. A
+JavaScript getter or action state function therefore runs up to 50 times a second per view that uses
+it, and again on every click. See the JS Reference's
+[Performance Notes](Synplant%20JS%20Reference.md#performance-notes) for what that means for scripts.
+
+### What polling costs
+
+- An unchanged value costs only the lookup. A view invalidates and redraws only when the value differs.
+- Built-in variables such as `params.*` and the patch fields are cheap: they read a copy taken once
+  per tick.
+- `preferences.<key>` is not cheap: every lookup reads the preferences store from disk. Do not bind it
+  to many views; read it once into a script variable instead.
+- A `vector` view reruns its whole IVG whenever a variable it read changes. Between runs it looks up
+  each variable the last run read, by name, on every tick. `bindings:` and `guiVariables: true` cost
+  the same here, so choose between them for clarity.
+- A group with `varExpansion: 'true'` re-parses its whole `views:` text on every paced tick, and a
+  change rebuilds all its children, which loses their state and reruns their autoexecs.
+
+### Drawing cost
+
+Per repaint, cheapest first:
+
+1. A `raster` view or an image field (`image:`, a button `icon:`), whether from a PNG or from IVG. The
+   image is built once and blended, clipped to the area being repainted.
+2. A static `vector` view once its cache is built. It blends a run-length compressed copy of its
+   drawing, over its whole bounds even when only part of it is repainted.
+3. A `vector` view during its first draws, or one whose variables keep changing. It runs its whole IVG
+   on every draw, through an extra offscreen buffer when `blend` is not `"normal"` or `opacity` is not
+   100%.
+
+**Vector view cache.** The first 5 draws after a view is created, or after its cache was dropped, run
+the IVG. The 6th draws into an offscreen buffer and keeps a compressed copy, and later draws only blend
+that copy. A change to the source, to a variable the last run read, or to the view's size drops the
+cache and starts the count again. Moving the view or its group, or covering it, does not. A view that
+is never repainted never builds its cache.
+
+**Images from IVG.** An image given as `ivgFile:` or `ivgCode:` (with optional `defines:`) is rendered
+at the final pixel size, so it is crisp at every zoom and display density. It is rendered once per
+distinct image (source, `defines:`, format and scale), and every view that asks for the same image
+shares it. Its IVG cannot read Cushy variables; use a `vector` view for that.
+
+The image cache is shared by all Synplant instances and is cleared on every reload, including the
+reload that a zoom change causes. The same reset re-reads `file:` IVG sources.
+
+Choosing a graphic:
+
+- **Fixed vector art** (icons, frames, gradients, decorations): an image from IVG, in a `raster` view
+  or a button `icon:`. It is as cheap as a PNG to draw, crisp at any scale, and needs no master file.
+- **Photographic or bitmap art:** a PNG with an `_x2` master. It is resampled from the nearest `_x2`
+  or `_x4` master, so it is crisp only when the scale matches one exactly.
+- **Graphics that follow variables:** a `vector` view with `bindings:`. Keep views that change often
+  small, and split a large drawing so that the static part sits in its own view or image.
+
 ## Validating what you write
 
 Numbstrict is easy to get subtly wrong in deeply nested view trees, so run **CushyLint** against your
@@ -212,5 +301,5 @@ CushyLint\CushyLint.bat "%cd%\My Script.spscript/"         # Windows
 
 Pass a directory path **with a trailing slash** so the companion `.schema` files next to your
 `.cushy` are picked up. CushyLint checks syntax and schema conformance; it does not predict runtime
-performance — measure that in Synplant. See the repository README for CushyLint details and
+performance — measure that in Synplant (see [Performance](#performance)). See the repository README for CushyLint details and
 [`cushy.schema`](../CushyLint/cushy.schema) for what it validates against.

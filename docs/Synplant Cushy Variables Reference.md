@@ -168,6 +168,9 @@ written.
     project.<key>       read/write   // saved and restored with the host song / project state
 
 `preferences.*` writes hit the preferences store immediately, so avoid writing them on every frame.
+Reads are not cheap either: every lookup reads the preferences store from disk, and views poll their
+variables many times a second (see [Cushy Documentation → Performance](Cushy%20Documentation.md#performance)).
+Do not bind a `preferences.*` key to many views; read it once into a script variable instead.
 Use `instance.*` for state that should survive closing and reopening the GUI window, and `project.*`
 for state that should travel with the user's saved song.
 
