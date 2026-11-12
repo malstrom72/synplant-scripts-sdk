@@ -306,7 +306,7 @@ template literals.
 ## Script state pattern
 
 ```js
-if (!globals.myScript) {
+if (!this.myScript) {
     myScript = {
         inited: false,
         cache: {}

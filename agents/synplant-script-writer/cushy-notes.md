@@ -45,7 +45,7 @@ Renaming a script is a multi-point change — keep these in sync or action dispa
 
 - the `@define script=<name>` in the `.cushy` (`@scriptIdentifier` in packages using that
   convention),
-- the top-level JavaScript global object (`if (!globals.myScript) { myScript = ... }`),
+- the top-level JavaScript global object (`if (!this.myScript) { myScript = ... }`),
 - the schema action prefix (`action: "myScript.startup"`),
 - the package folder `<Name>.spscript/` and its filenames,
 - the entry `.js` literal path, `displayCushy("<Name>.spscript/<Name>_main", "script", true)`,
@@ -598,7 +598,7 @@ not emit them. It owns its internal chrome constants (shadow, title-bar height);
 at top level. Use `@windowInLayer(...)` when you need to target a specific Cushy layer.
 
 For window position persistence, store `windowPosition` on the script's state object inside the
-`if (!globals.myScript)` guard so it survives the window closing and the JS re-running; the drag area
+`if (!this.myScript)` guard so it survives the window closing and the JS re-running; the drag area
 reads it on open and writes it on drag, but persistence is the script's responsibility.
 
 ## IVG notes

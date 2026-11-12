@@ -74,7 +74,7 @@ functions.
 Cushy **reruns that JavaScript on every reload** — and reload is not only a developer action:
 changing Synplant's zoom scale also forces a rebuild. So scripts must survive their JS being re-run:
 keep persistent state under a single object named after the script and guard its initialization
-(`if (!globals.myScript) { ... }`) so existing globals are not reset. The reload/reset/close
+(`if (!this.myScript) { ... }`) so existing globals are not reset. The reload/reset/close
 lifecycle is detailed in the JS Reference's _Cushy Interface_.
 
 ## Coordinates, expressions, and scaling
