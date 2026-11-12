@@ -231,7 +231,9 @@ Some polling ignores the pace:
 - `repeat` autoexecs run at their own rate, whether or not anything changed.
 - `vector` views, and the `vector` of a button or of a knob or slider cap, re-read every variable
   their IVG read on every tick, without slowing down. They rerun the IVG and redraw only when one of
-  them changed, so the cost is the lookups: keep the variables such a vector reads few and cheap.
+  them changed, so the cost is the lookups: keep the variables such a vector reads few and cheap. A
+  button with a `vector` also checks its actions' `enabled` and `checked` state and its caption on
+  every tick, so keep those cheap too.
 
 Two views bound to the same variable call its getter twice; nothing caches values within a tick. A
 JavaScript getter or action state function therefore runs up to 50 times a second per view that uses

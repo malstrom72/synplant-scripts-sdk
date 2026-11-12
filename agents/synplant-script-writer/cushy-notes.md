@@ -229,7 +229,8 @@ averages rather than tracing every tick.
   unshown `paged` pages) are not refreshed at all; clipped or scrolled-away views still are. Every
   mouse click makes all views poll at once, and `onChanged` lists are looked up on every refresh.
   `vector` views and the `vector` of a button or a knob/slider cap re-read their IVG's variables on
-  every tick without backing off (they redraw only on a change). Two views bound to one name call the getter twice. Details and
+  every tick without backing off (they redraw only on a change); a vector button also polls its
+  actions' `enabled`/`checked` and its caption every tick. Two views bound to one name call the getter twice. Details and
   costs: [Cushy Documentation → Performance](../../docs/Cushy%20Documentation.md#performance).
 - Each JavaScript getter, `enabled`, `checked` or `execute` call resolves its dotted name from the
   globals again. `preferences.<key>` reads the preferences store from disk on every lookup; never bind
