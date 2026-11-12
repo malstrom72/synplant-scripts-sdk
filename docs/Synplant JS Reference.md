@@ -1304,10 +1304,10 @@ Prefer [`getMonotonicTime()`](#getmonotonictime) for any timing logic.
 Cushy polls rather than being notified (see
 [Cushy Documentation → Performance](Cushy%20Documentation.md#performance)). Every view bound to a
 JavaScript variable calls its getter, and every view using a JavaScript action calls its `enabled`
-and `checked` functions, between 10 and 50 times a second while Synplant's window is the most recently used one and the view
-is not hidden, and once more
-on every mouse click. Two views bound to the same name make two calls. Each call looks the dotted
-name up from the globals again and re-parses the action's parameters. So:
+and `checked` functions, between 10 and 50 times a second while Synplant's window is the most
+recently used one and the view is not hidden, and once more on every mouse click. Two views bound to
+the same name make two calls. Each call looks the dotted name up from the globals again and re-parses
+the action's parameters. So:
 
 -   Make getters, `enabled` and `checked` cheap: return a value that is already computed. Do not call
     `getElement('patch')`, serialize data, or build long strings in them.
