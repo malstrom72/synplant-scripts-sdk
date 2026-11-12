@@ -49,6 +49,9 @@ lines. The full instructions are [`instructions.md`](instructions.md).
 - Views poll their variables and action states up to 50 times a second. Keep getters, `enabled` and `checked` cheap:
   return values computed when their inputs changed. Read `preferences.*` once into a script variable.
 - Never modify anything in `Synplant Resources/`; it is a copy of the shipped files.
+- To start a GUI package, copy `examples/Tuning Fork.spscript`, the smallest example (about 0.7k tokens: a window,
+  a checkbox button with a caption and a package schema). For knobs, copy `examples/Four Knobs.spscript` (about
+  1.3k). The other examples are 2k to 11k tokens; open only the parts you need.
 
 ## Graphics (IVG)
 
