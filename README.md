@@ -106,6 +106,11 @@ Run `tools/regenerate-doc-html.sh` with no arguments to regenerate every Markdow
 that already has a checked-in HTML target. The script uses `pandoc -s --no-highlight` so regenerated
 output stays close to the existing plain code-block style.
 
+[`llms.txt`](llms.txt) is a generated section index of the docs, agent notes and schemas, with line
+ranges and sizes, for agents with small context windows. After editing any indexed file, regenerate
+it with `node tools/generate-doc-index.js`. `tools/validate-examples.sh` fails while the index is
+stale.
+
 ## Technology overview
 
 Synplant's interface and scripting are built from several Sonic Charge technologies:

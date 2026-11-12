@@ -4,6 +4,9 @@ Reusable agent instructions for creating, adapting, and debugging Synplant scrip
 the source of truth.
 
 - [`instructions.md`](instructions.md) is the canonical instruction file.
+- [`core-card.md`](core-card.md) holds the rules for every task, for agents with a small context window.
+  They load it with [`llms.txt`](../../llms.txt), a generated section index with line ranges, and open
+  only the sections they need.
 - [`vibe-coding.md`](vibe-coding.md) is a practical project-setup and AI-assisted workflow guide.
 - [`source-map.md`](source-map.md) maps where to find authoritative references.
 - [`packaging.md`](packaging.md) covers the three script shapes (`.js`, `.spscript`, Mods).

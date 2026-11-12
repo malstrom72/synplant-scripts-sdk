@@ -3,7 +3,12 @@
 For Synplant scripting work, follow the package in
 [`agents/synplant-script-writer/`](agents/synplant-script-writer/).
 
-Start with [`instructions.md`](agents/synplant-script-writer/instructions.md), then use:
+With a small context window, load
+[`core-card.md`](agents/synplant-script-writer/core-card.md) (the rules for every task) and
+[`llms.txt`](llms.txt) (a section index with line ranges) instead, and open only the sections you
+need.
+
+Otherwise start with [`instructions.md`](agents/synplant-script-writer/instructions.md), then use:
 
 - [`source-map.md`](agents/synplant-script-writer/source-map.md) for authoritative references.
 - [`validation.md`](agents/synplant-script-writer/validation.md) for the SDK tooling: CushyLint,
