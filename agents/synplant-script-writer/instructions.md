@@ -157,6 +157,7 @@ There are three kinds of script; do not default to a GUI package. See [`packagin
 
 - Keep script-local state in one global object named after the script, guarded so first-run state is
   created once: `if (!this.myScript) { myScript = { /* fields */ }; }`. Avoid scattering globals.
+  Add `/* global myScript:writable */` at the top of each file that uses it, so ESLint accepts it.
 - GUI script startup JavaScript **runs again on every rebuild** — not only during development: an end
   user changing Synplant's zoom scale forces a reload so graphics and coordinates rescale. Make
   startup rerun-safe: guard initial state, and reassign methods and GUI-variable handlers on rerun.

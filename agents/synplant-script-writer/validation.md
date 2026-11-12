@@ -112,6 +112,10 @@ syntax that NuXJS accepts in practice, such as trailing commas in object literal
 as property names. ESLint with `ecmaVersion: 5` is therefore a practical gate: it rejects modern ES6+
 syntax while accepting the syntax style already used by this SDK.
 
+The config declares the host globals and the bundled examples' state objects. A script of your own
+declares its state object in each file that uses it, with `/* global myScript:writable */` at the
+top, or ESLint reports it as undefined.
+
 With no arguments, the wrapper changes to the SDK root and validates `JS Console.spscript` plus
 `examples/`. Validate a specific bundled package, directory, or file with an absolute path:
 
