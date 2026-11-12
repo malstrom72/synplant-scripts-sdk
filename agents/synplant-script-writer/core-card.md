@@ -60,7 +60,7 @@ lines. The full instructions are [`instructions.md`](instructions.md).
 ## Validate before you answer
 
 Run these from the project root, with the SDK in `references/synplant-scripts-sdk/`; from the SDK root, drop that
-prefix. On Windows, use the `.cmd` and `.bat` versions and `IVG2PNG.exe`, in Git Bash too.
+prefix. On Windows, use the `.cmd` and `.bat` versions, in Git Bash too.
 
 - `.js` files: `references/synplant-scripts-sdk/tools/validate-js.sh scripts`. Run it from the project root, or
   ESLint skips files outside the SDK.
@@ -69,6 +69,7 @@ prefix. On Windows, use the `.cmd` and `.bat` versions and `IVG2PNG.exe`, in Git
   include `Synplant2.schema` from the SDK; an error count of 7 with `rule view is missing` means it was not loaded.
 - `.ivg` files: `references/synplant-scripts-sdk/tools/validate-static-ivg.sh "scripts/My Script.spscript"`, and
   render icons while designing them with
-  `references/synplant-scripts-sdk/tools/IVG2PNG/IVG2PNG <input.ivg> <output.png>`.
+  `references/synplant-scripts-sdk/tools/IVG2PNG/IVG2PNG <input.ivg> <output.png>`. On Windows that is
+  `IVG2PNG.exe`; `IVG2PNG` without an extension is the macOS binary.
 - When the bridge tools are available, call `sp_status` first and verify behavior with `sp_eval`. Never claim code
   was tested inside Synplant unless it ran there.
