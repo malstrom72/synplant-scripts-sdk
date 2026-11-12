@@ -227,9 +227,9 @@ averages rather than tracing every tick.
   20 ms, another visible instance every 40 ms, a hidden one every 100 ms. An unchanged view backs off
   to every 5th tick, so it still polls about 10 times a second. Hidden views (hidden groups' contents,
   unshown `paged` pages) are not refreshed at all; clipped or scrolled-away views still are. Every
-  mouse click makes all views poll at once, and `onChanged` lists are looked up on every refresh. The
-  `vector` of a button or a knob/slider cap re-reads its IVG's variables on every tick without backing
-  off (it redraws only on a change). Two views bound to one name call the getter twice. Details and
+  mouse click makes all views poll at once, and `onChanged` lists are looked up on every refresh.
+  `vector` views and the `vector` of a button or a knob/slider cap re-read their IVG's variables on
+  every tick without backing off (they redraw only on a change). Two views bound to one name call the getter twice. Details and
   costs: [Cushy Documentation → Performance](../../docs/Cushy%20Documentation.md#performance).
 - Each JavaScript getter, `enabled`, `checked` or `execute` call resolves its dotted name from the
   globals again. `preferences.<key>` reads the preferences store from disk on every lookup; never bind

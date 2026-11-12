@@ -229,9 +229,9 @@ Some polling ignores the pace:
 - Every mouse click, right click and context click in a window makes every view in it poll at once.
 - `onChanged` autoexecs look up all their variables on every refresh, so keep those lists short.
 - `repeat` autoexecs run at their own rate, whether or not anything changed.
-- The `vector` of a button, and a knob or slider cap drawn with `vector`, re-reads every variable its
-  IVG read on every tick, without slowing down. It reruns the IVG and redraws only when one of them
-  changed, so the cost is the lookups: keep the variables such a vector reads few and cheap.
+- `vector` views, and the `vector` of a button or of a knob or slider cap, re-read every variable
+  their IVG read on every tick, without slowing down. They rerun the IVG and redraw only when one of
+  them changed, so the cost is the lookups: keep the variables such a vector reads few and cheap.
 
 Two views bound to the same variable call its getter twice; nothing caches values within a tick. A
 JavaScript getter or action state function therefore runs up to 50 times a second per view that uses
@@ -246,8 +246,8 @@ it, and again on every click. See the JS Reference's
 - `preferences.<key>` is not cheap: every lookup reads the preferences store from disk. Do not bind it
   to many views; read it once into a script variable instead.
 - A `vector` view reruns its whole IVG whenever a variable it read changes. Between runs it looks up
-  each variable the last run read, by name, on every paced check. `bindings:` and `guiVariables: true`
-  cost the same here, so choose between them for clarity.
+  each variable the last run read, by name, on every tick. `bindings:` and `guiVariables: true` cost
+  the same here, so choose between them for clarity.
 - A group with `varExpansion: 'true'` re-parses its whole `views:` text on every paced tick, and a
   change rebuilds all its children, which loses their state and reruns their autoexecs.
 
