@@ -226,7 +226,8 @@ poll.
 
 Some polling ignores the pace:
 
-- Every mouse click, right click and context click in a window makes every view in it poll at once.
+- Every mouse click, right click and context click in a window makes every view in it poll at once,
+  and so does the enter or leave action of a `hover` view.
 - `onChanged` autoexecs look up all their variables on every refresh, so keep those lists short.
 - `repeat` autoexecs run at their own rate, whether or not anything changed.
 - `vector` views, and the `vector` of a button or of a knob or slider cap, re-read every variable
