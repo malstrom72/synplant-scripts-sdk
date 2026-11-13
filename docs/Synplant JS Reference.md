@@ -1082,8 +1082,12 @@ layout coordinates rescale. Scripts must therefore survive being re-run: guard i
 do not clobber existing global state, e.g.
 
 ```javascript
-if (!globals.myScript) { myScript = { /* initial state */ }; }
+if (!this.myScript) { myScript = { /* initial state */ }; }
 ```
+
+Put the guard at the top level or in a top-level IIFE, where `this` is the global object. Inside a
+method `this` is the method's object instead. Testing `this.myScript` rather than a bare `myScript`
+avoids a ReferenceError on the first run, before the variable exists.
 
 Because all scripts share one global object, keep your script's state under a single object named
 after the script to avoid colliding with others.

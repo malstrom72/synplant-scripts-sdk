@@ -156,7 +156,8 @@ There are three kinds of script; do not default to a GUI package. See [`packagin
 ## State and startup
 
 - Keep script-local state in one global object named after the script, guarded so first-run state is
-  created once: `if (!globals.myScript) { myScript = { /* fields */ }; }`. Avoid scattering globals.
+  created once: `if (!this.myScript) { myScript = { /* fields */ }; }`. Avoid scattering globals.
+  Add `/* global myScript:writable */` at the top of each file that uses it, so ESLint accepts it.
 - GUI script startup JavaScript **runs again on every rebuild** — not only during development: an end
   user changing Synplant's zoom scale forces a reload so graphics and coordinates rescale. Make
   startup rerun-safe: guard initial state, and reassign methods and GUI-variable handlers on rerun.
@@ -175,10 +176,10 @@ For `.spscript` packages with `.cushy` files:
   Verify behavior with the live bridge. See [`validation.md`](validation.md) for the current state of
   the validator tooling in this SDK.
 - When authoring a `.ivg` icon or vector asset, render the IVG repeatedly with
-  `tools/IVG2PNG/IVG2PNG`; this is an authoring preview, not merely a pre-ship check. Do not make an
-  SVG approximation or rely on generic image tools, which may silently omit stroked paths. For an
-  SVG source, `IVG/tools/svg2ivg.js` can generate a draft, but tidy its verbose IVG-1 output by hand
-  and verify the result with IVG2PNG. See [`validation.md`](validation.md#static-ivg-validation).
+  `tools/IVG2PNG/IVG2PNG` (`IVG2PNG.exe` on Windows); this is an authoring preview, not merely a
+  pre-ship check. Do not make an SVG approximation or rely on generic image tools, which may
+  silently omit stroked paths. For an SVG source, `IVG/tools/svg2ivg.js` can generate a draft, but
+  tidy its verbose IVG-1 output by hand and verify the result with IVG2PNG. See [`validation.md`](validation.md#static-ivg-validation).
 - Treat the IVG, ImpD, Makaron, and related language documentation as upstream-mirrored reference
   docs. Do not make local SDK-only edits there; make language-doc changes upstream first, then sync
   them into the SDK. Put product-specific workflow notes in this agent package.

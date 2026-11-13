@@ -1303,7 +1303,13 @@ actions: changing Synplant’s zoom/scale forces a reload so graphics and
 layout coordinates rescale. Scripts must therefore survive being re-run:
 guard initialization so you do not clobber existing global state,
 e.g.</p>
-<pre class="javascript"><code>if (!globals.myScript) { myScript = { /* initial state */ }; }</code></pre>
+<pre class="javascript"><code>if (!this.myScript) { myScript = { /* initial state */ }; }</code></pre>
+<p>Put the guard at the top level or in a top-level IIFE, where
+<code>this</code> is the global object. Inside a method
+<code>this</code> is the method’s object instead. Testing
+<code>this.myScript</code> rather than a bare <code>myScript</code>
+avoids a ReferenceError on the first run, before the variable
+exists.</p>
 <p>Because all scripts share one global object, keep your script’s state
 under a single object named after the script to avoid colliding with
 others.</p>
