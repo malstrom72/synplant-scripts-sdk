@@ -468,14 +468,14 @@ if (!this.patchStack) {
 	var LevelVar = createClass({ constructor: function (i) { this.i = i; this.savedUndo = false; },
 		get: function () { return me.slots[this.i].level; },
 		set: function (v) {
-			if (!this.savedUndo) { saveUndo(translate('Patch Stack: layer level'), true); this.savedUndo = true; }
+			if (!this.savedUndo) { saveUndo(translate('Patch Stack: layer level')); this.savedUndo = true; }
 			setLevel(this.i, v);
 		},
 		touch: function () { this.savedUndo = false; } });
 	var TransposeVar = createClass({ constructor: function (i) { this.i = i; this.savedUndo = false; },
 		get: function () { return me.slots[this.i].transpose; },
 		set: function (v) {
-			if (!this.savedUndo) { saveUndo(translate('Patch Stack: transpose'), true); this.savedUndo = true; }
+			if (!this.savedUndo) { saveUndo(translate('Patch Stack: transpose')); this.savedUndo = true; }
 			setTranspose(this.i, v);
 		},
 		touch: function () { this.savedUndo = false; } });
@@ -503,14 +503,14 @@ if (!this.patchStack) {
 	var SpreadVar = createClass({ constructor: function () { this.savedUndo = false; },
 		get: function () { return me.spread; },
 		set: function (v) {
-			if (!this.savedUndo) { saveUndo(translate('Patch Stack: spread'), true); this.savedUndo = true; }
+			if (!this.savedUndo) { saveUndo(translate('Patch Stack: spread')); this.savedUndo = true; }
 			setSpread(v);
 		},
 		touch: function () { this.savedUndo = false; } });
 	var DetuneVar = createClass({ constructor: function () { this.savedUndo = false; },
 		get: function () { return me.detune; },
 		set: function (v) {
-			if (!this.savedUndo) { saveUndo(translate('Patch Stack: detune'), true); this.savedUndo = true; }
+			if (!this.savedUndo) { saveUndo(translate('Patch Stack: detune')); this.savedUndo = true; }
 			setDetune(v);
 		},
 		touch: function () { this.savedUndo = false; } });

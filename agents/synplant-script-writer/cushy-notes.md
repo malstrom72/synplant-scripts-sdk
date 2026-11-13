@@ -130,9 +130,10 @@ has to write one position and visible flag per marker instead of one value per c
   engine and clears globals. Do not drive a full reset over the bridge — it tears the bridge down.
 - If interaction objects are kept across reloads they may retain old methods and closures. For
   development, recreate interaction objects on each reload and carry over only persistent user state.
-- Any field added to a persisted script global must be backfilled in code that runs on every reload,
-  not only in the `if (!this.myState)` first-run initializer. Existing sessions keep the old object
-  shape across a normal reload, so new fields otherwise stay `undefined`.
+- Existing sessions keep a persisted script global's old shape across a normal reload, so a field
+  added to the `if (!this.myState)` first-run initializer stays `undefined`. During development,
+  start the state over instead of writing migration code: the JS Console `reset`, or over the bridge
+  `sp_eval("myState = undefined")` and then `sp_reload`.
 - Launching a package over the bridge is asynchronous at the Cushy boundary: `displayCushy(...)`
   returns before the package's `_main.js` runs. Do not assert the package global in the same
   `sp_eval`; check it in a follow-up eval. Inspect which script window is open with
@@ -327,7 +328,8 @@ averages rather than tracing every tick.
 - Call `saveUndo(description)` **before** mutating patch state — the snapshot is the state the user
   returns to. For a continuous gesture, save undo on the first document-changing update and guard
   further drag updates until release, giving one undo entry per gesture. `saveUndo(..., collapse)` is a
-  UX choice: `collapse: true` merges repeated same-description actions into one undo item.
+  UX choice: `collapse: true` merges repeated same-description actions into one undo item, even
+  across separate gestures; for one item per drag, see `saveUndo` in the JS Reference.
 - `saveUndo` captures Synplant document state, not your script's JavaScript state. After undo/redo,
   derive script state from the patch where possible (e.g. re-read on `getElementId('patch')` change)
   rather than assuming your cached GUI state still matches.

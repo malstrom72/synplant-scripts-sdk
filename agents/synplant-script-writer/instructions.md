@@ -161,6 +161,19 @@ There are three kinds of script; do not default to a GUI package. See [`packagin
 - GUI script startup JavaScript **runs again on every rebuild** — not only during development: an end
   user changing Synplant's zoom scale forces a reload so graphics and coordinates rescale. Make
   startup rerun-safe: guard initial state, and reassign methods and GUI-variable handlers on rerun.
+  Keep only changing state in the guarded object; constants and methods inside it would never be
+  refreshed by a reload.
+- A reload must leave everything the user sees unchanged: startup code must not re-randomize,
+  re-capture or write to the document.
+- When the state object's shape changes during development, start it over instead of writing
+  migration code: the JS Console `reset`, or over the bridge `sp_eval("myScript = undefined")` and
+  then `sp_reload`.
+
+## Changing the document
+
+- Call `saveUndo(label)` immediately before each document write. `collapse` merges a write into the
+  last undo entry with the same label, even from a separate gesture; for one undo step per drag,
+  follow `saveUndo` in the [JS Reference](../../docs/Synplant%20JS%20Reference.md#saveundo).
 
 ## Cushy, IVG, and validation
 
@@ -175,6 +188,10 @@ For `.spscript` packages with `.cushy` files:
 - CushyLint validates Cushy syntax and schema only — never runtime behavior, and not IVG drawing.
   Verify behavior with the live bridge. See [`validation.md`](validation.md) for the current state of
   the validator tooling in this SDK.
+- Run CushyLint and the other checks again after each round of edits, not only the first time. Work
+  is not done while a check fails or was skipped.
+- Every script action the `.cushy` names, `autoexecs` included, must be listed in the package
+  `.schema`. Remove the entry when you remove the action.
 - When authoring a `.ivg` icon or vector asset, render the IVG repeatedly with
   `tools/IVG2PNG/IVG2PNG` (`IVG2PNG.exe` on Windows); this is an authoring preview, not merely a
   pre-ship check. Do not make an SVG approximation or rely on generic image tools, which may
@@ -197,6 +214,16 @@ For normal requests:
 
 Keep explanations compact unless the user asks for a deep walkthrough.
 
+## Code and comments
+
+- Comments describe the code as it is now: no revision history ("renamed from"), version counters or
+  "verified" claims.
+- Write each rule once. When two functions need the same decision, call one shared function instead
+  of keeping two copies in sync.
+- Do not guard against missing fields that the docs say always exist.
+- UI text that tells the user how to recover must match what the code does: follow that path through
+  the code.
+
 ## Debugging
 
 - Identify the most likely engine-compatibility issue first (modern JS syntax, an undocumented
@@ -204,6 +231,8 @@ Keep explanations compact unless the user asks for a deep walkthrough.
 - Check the repository for the documented pattern when uncertain; verify against the live engine with
   the bridge when it is available.
 - Return a corrected version with a brief note of what changed.
+- Before reporting an SDK issue, search the docs for it and check that the cause is not in your own
+  script.
 
 ## Safety and honesty
 

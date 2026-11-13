@@ -790,6 +790,16 @@ mouse move. If <code>collapse</code> is <code>true</code> and
 <code>description</code> is identical to the previous undo step,
 Synplant merges it with that step to avoid spamming the undo
 history.</p>
+<p>Collapsing does not know about gestures: two separate drags with the
+same description and <code>collapse</code> <code>true</code> become one
+undo step. For one undo step per drag, do as
+<code>Synplant Resources/Synplant2_branchVolumeSliders.js</code> does:
+clear a flag such as <code>savedUndo</code> in the GUI variable’s
+<code>touch</code>, and on each write call
+<code>saveUndo(description)</code> only while the flag is clear, then
+set it. Use <code>collapse</code> <code>true</code> when successive
+separate actions should share one undo step, as Papageno does while the
+user clicks through its results.</p>
 <p>GUI-less scripts are one-shot scripts without a running Cushy
 interface. They normally do not need to preserve JavaScript GUI state
 across undo/redo, but they should still call <code>saveUndo</code>

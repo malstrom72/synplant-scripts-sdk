@@ -632,6 +632,13 @@ document-changing update, not on every mouse move. If `collapse` is `true` and `
 identical to the previous undo step, Synplant merges it with that step to avoid spamming the undo
 history.
 
+Collapsing does not know about gestures: two separate drags with the same description and
+`collapse` `true` become one undo step. For one undo step per drag, do as
+`Synplant Resources/Synplant2_branchVolumeSliders.js` does: clear a flag such as `savedUndo` in the
+GUI variable's `touch`, and on each write call `saveUndo(description)` only while the flag is clear,
+then set it. Use `collapse` `true` when successive separate actions should share one undo step, as
+Papageno does while the user clicks through its results.
+
 GUI-less scripts are one-shot scripts without a running Cushy interface. They normally do not need
 to preserve JavaScript GUI state across undo/redo, but they should still call `saveUndo` before
 user-visible document changes. GUI scripts stay loaded and can perform multiple independent edits
