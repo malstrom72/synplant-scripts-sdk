@@ -31,9 +31,26 @@ lines. The full instructions are [`instructions.md`](instructions.md).
 - GUI scripts rerun on every reload, including the one a zoom change causes. Keep state in one global object named
   after the script and guard it at top level: `if (!this.myScript) { myScript = { inited: false }; }`. Reading an
   undeclared global throws, so test `this.myScript`, not `myScript`. For ESLint, add `/* global myScript:writable */`
-  at the top of each file that uses it. Then reassign methods and GUI variable handlers on every run.
+  at the top of each file that uses it. Keep only changing state in that object; constants, methods and GUI variable
+  handlers go outside the guard and are reassigned on every run.
+- A reload must leave everything the user sees unchanged: startup code must not re-randomize, re-capture or write to
+  the document.
 - Over the bridge, `sp_reload` reruns the scripts and keeps globals. Never run `reload` with `reset` over the bridge:
-  it tears the bridge down.
+  it tears the bridge down. When the state object's shape changes during development, start it over instead of
+  writing migration code: `sp_eval("myScript = undefined")`, then `sp_reload`.
+
+## Changing the document
+
+- Call `saveUndo(label)` immediately before each write. With `collapse` `true`, a write with the same label as the
+  last undo entry joins that entry, even from a separate gesture; for one undo step per drag, see `saveUndo` in the
+  JS Reference.
+
+## Code and comments
+
+- Comments describe the code as it is now: no revision history ("renamed from"), version counters or "verified"
+  claims.
+- Write each rule once. When two functions need the same decision, call one shared function instead of keeping two
+  copies in sync.
 
 ## Cushy GUI (`.cushy`)
 
@@ -46,6 +63,11 @@ lines. The full instructions are [`instructions.md`](instructions.md).
 - `@define` takes everything to the end of the line, so a trailing `//` comment becomes part of the value. Put
   comments on their own line.
 - Build windows with `@include scriptSupport.makaron` and `@window(...)`, not from primitive views.
+- Lay out from a few `@define`s for margins, gutters and columns, not hand-typed coordinates. Before calling a GUI
+  done, look at a screenshot of it: every caption fits its longest value, and edges and gaps are consistent. Button
+  labels say what the button does; explanations go in the `hint`.
+- Every script action the `.cushy` names, `autoexecs` included, must be listed in the package `.schema`. Remove the
+  entry when you remove the action.
 - Views poll their variables and action states up to 50 times a second. Keep getters, `enabled` and `checked` cheap:
   return values computed when their inputs changed. Read `preferences.*` once into a script variable.
 - Never modify anything in `Synplant Resources/`; it is a copy of the shipped files.
@@ -62,8 +84,9 @@ lines. The full instructions are [`instructions.md`](instructions.md).
 
 ## Validate before you answer
 
-Run these from the project root, with the SDK in `references/synplant-scripts-sdk/`; from the SDK root, drop that
-prefix. On Windows, use the `.cmd` and `.bat` versions, in Git Bash too.
+Run every check below again after each round of edits, not only the first time; work is not done while a check fails
+or was skipped. Run them from the project root, with the SDK in `references/synplant-scripts-sdk/`; from the SDK root,
+drop that prefix. On Windows, use the `.cmd` and `.bat` versions, in Git Bash too.
 
 - `.js` files: `references/synplant-scripts-sdk/tools/validate-js.sh scripts`. Run it from the project root, or
   ESLint skips files outside the SDK.
