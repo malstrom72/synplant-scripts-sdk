@@ -171,9 +171,8 @@ There are three kinds of script; do not default to a GUI package. See [`packagin
 
 ## Changing the document
 
-- Call `saveUndo(label)` immediately before each document write. `collapse` merges a write into the
-  last undo entry with the same label, even from a separate gesture; for one undo step per drag,
-  follow `saveUndo` in the [JS Reference](../../docs/Synplant%20JS%20Reference.md#saveundo).
+- Call `saveUndo(label)` immediately before each document write; for a drag, only before its first
+  write, as `saveUndo` in the [JS Reference](../../docs/Synplant%20JS%20Reference.md#saveundo) shows.
 
 ## Cushy, IVG, and validation
 
