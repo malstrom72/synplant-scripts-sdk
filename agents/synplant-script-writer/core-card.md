@@ -63,6 +63,9 @@ lines. The full instructions are [`instructions.md`](instructions.md).
 - `@define` takes everything to the end of the line, so a trailing `//` comment becomes part of the value. Put
   comments on their own line.
 - Build windows with `@include scriptSupport.makaron` and `@window(...)`, not from primitive views.
+- Lay out from a few `@define`s for margins, gutters and columns, not hand-typed coordinates. Before calling a GUI
+  done, look at a screenshot of it: every caption fits its longest value, and edges and gaps are consistent. Button
+  labels say what the button does; explanations go in the `hint`.
 - Every script action the `.cushy` names, `autoexecs` included, must be listed in the package `.schema`. Remove the
   entry when you remove the action.
 - Views poll their variables and action states up to 50 times a second. Keep getters, `enabled` and `checked` cheap:

@@ -185,6 +185,13 @@ For `.spscript` packages with `.cushy` files:
 - Prefer `@include scriptSupport.makaron` and the shared `@window(...)` macro for window chrome over
   rebuilding it from primitives. See [`Synplant Resources/scriptSupport.makaron`](../../Synplant%20Resources/scriptSupport.makaron)
   and [`cushy-notes.md`](cushy-notes.md).
+- Look at a screenshot of the running GUI before calling it done, or ask the user for one; the bridge
+  does not show what was drawn. Check that every caption fits its longest realistic value, since
+  captions clip hard at their bounds, and that edges and gaps are consistent.
+- Build the layout from a few `@define`s for margins, gutters and column positions instead of
+  hand-typed coordinates, and line decoration up with the control it belongs to.
+- Button labels say what the button does, in the user's words, with no developer terms such as
+  variable or action names. Put explanations in the `hint`, not the label.
 - CushyLint validates Cushy syntax and schema only — never runtime behavior, and not IVG drawing.
   Verify behavior with the live bridge. See [`validation.md`](validation.md) for the current state of
   the validator tooling in this SDK.
