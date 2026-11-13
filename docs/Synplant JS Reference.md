@@ -633,11 +633,31 @@ identical to the previous undo step, Synplant merges it with that step to avoid 
 history.
 
 Collapsing does not know about gestures: two separate drags with the same description and
-`collapse` `true` become one undo step. For one undo step per drag, do as
-`Synplant Resources/Synplant2_branchVolumeSliders.js` does: clear a flag such as `savedUndo` in the
-GUI variable's `touch`, and on each write call `saveUndo(description)` only while the flag is clear,
-then set it. Use `collapse` `true` when successive separate actions should share one undo step, as
-Papageno does while the user clicks through its results.
+`collapse` `true` become one undo step. To save once per drag, clear a flag in both `touch(true)` and
+`touch(false)`, call `saveUndo` on a write only while the flag is clear, and set the flag after
+saving if a drag is in progress. `touch` is called only on the variable being edited, so an "Enter
+Exact Value..." popup that edits `myKnob.human` never calls `myKnob.touch`: its write arrives with
+no drag in progress and gets its own undo step.
+
+```javascript
+myScript.level = {
+    dragging: false, savedUndo: false,
+    get: function () { return '' + myScript.levelValue; },
+    set: function (s) {
+        if (!this.savedUndo) {
+            saveUndo(translate('Change Level'));
+            this.savedUndo = this.dragging;
+        }
+        myScript.levelValue = +s;
+        myScript.applyLevel();
+    },
+    touch: function (beginEdit) { this.dragging = beginEdit; this.savedUndo = false; }
+};
+```
+
+A command, such as a button or menu action, saves undo every time, even if it changes nothing. Use
+`collapse` `true` when successive separate actions should share one undo step, as Papageno does while
+the user clicks through its results.
 
 GUI-less scripts are one-shot scripts without a running Cushy interface. They normally do not need
 to preserve JavaScript GUI state across undo/redo, but they should still call `saveUndo` before

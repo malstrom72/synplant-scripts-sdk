@@ -41,9 +41,8 @@ lines. The full instructions are [`instructions.md`](instructions.md).
 
 ## Changing the document
 
-- Call `saveUndo(label)` immediately before each write. With `collapse` `true`, a write with the same label as the
-  last undo entry joins that entry, even from a separate gesture; for one undo step per drag, see `saveUndo` in the
-  JS Reference.
+- Call `saveUndo(label)` immediately before each write; for a drag, only before its first write (see `saveUndo` in the
+  JS Reference).
 
 ## Code and comments
 

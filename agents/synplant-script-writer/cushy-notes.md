@@ -327,9 +327,10 @@ averages rather than tracing every tick.
 - `setPreview` is for auditioning or a genuinely modal flow with one clear commit point.
 - Call `saveUndo(description)` **before** mutating patch state — the snapshot is the state the user
   returns to. For a continuous gesture, save undo on the first document-changing update and guard
-  further drag updates until release, giving one undo entry per gesture. `saveUndo(..., collapse)` is a
-  UX choice: `collapse: true` merges repeated same-description actions into one undo item, even
-  across separate gestures; for one item per drag, see `saveUndo` in the JS Reference.
+  further drag updates until release. Clear the guard in both `touch(true)` and `touch(false)`, and
+  set it only while a drag is in progress, so each drag and each "Enter Exact Value..." write gets
+  its own undo entry (see `saveUndo` in the JS Reference). `saveUndo(..., collapse)` is a UX choice:
+  `collapse: true` merges repeated same-description actions into one undo item.
 - `saveUndo` captures Synplant document state, not your script's JavaScript state. After undo/redo,
   derive script state from the patch where possible (e.g. re-read on `getElementId('patch')` change)
   rather than assuming your cached GUI state still matches.
