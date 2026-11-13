@@ -70,6 +70,8 @@ prefix. On Windows, use the `.cmd` and `.bat` versions, in Git Bash too.
 - `.cushy` files: CushyLint on the package folder, with a trailing slash:
   `references/synplant-scripts-sdk/CushyLint/CushyLint "scripts/My Script.spscript/"`. The package `.schema` must
   include `Synplant2.schema` from the SDK; an error count of 7 with `rule view is missing` means it was not loaded.
+  On Windows, Git Bash included, call `CushyLint/CushyLint.bat` with the same argument, forward slashes and a
+  trailing `/`: the file without an extension is the Unix script and tries to compile with g++.
 - `.ivg` files: `references/synplant-scripts-sdk/tools/validate-static-ivg.sh "scripts/My Script.spscript"`, and
   render icons while designing them with
   `references/synplant-scripts-sdk/tools/IVG2PNG/IVG2PNG <input.ivg> <output.png>`. On Windows that is
