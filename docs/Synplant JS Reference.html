@@ -1500,10 +1500,20 @@ when variables change, so a hit mask cannot follow dynamic content.</p>
 <h3 id="gui-actions">GUI Actions</h3>
 <p>When the user clicks a button or selects a menu item, Cushy performs
 a GUI action — either a built-in action or a JavaScript function you
-provide. Actions receive a single string parameter in its raw, unparsed
-form (a quoted string still carries its quotes; use
-<code>unescape</code> to strip them). You may implement an action
-as:</p>
+provide. Actions receive <code>params</code> as a single string: the raw
+Numbstrict text from the <code>.cushy</code>, not a parsed value.
+<code>params: 3</code> arrives as <code>3</code>,
+<code>params: "left"</code> arrives as <code>"left"</code> with its
+quotes, and <code>params: { a: 1 }</code> arrives as Numbstrict text for
+that structure. Use <code>+params</code> for a bare number,
+<code>unescape(params)</code> for a quoted string and
+<code>parseNumbstrict(params)</code> for a structure. A quoted number
+such as <code>params: "@index"</code> is a string: <code>+params</code>
+gives <code>NaN</code>, so leave the quotes off numbers.
+<code>unescape</code> here is Synplant’s <a
+href="#host-script-helpers">host helper</a>, which replaces the engine’s
+built-in <code>unescape</code>: it parses a quoted string and returns
+other text unchanged. You may implement an action as:</p>
 <ul>
 <li>a function with the action’s name (receives the parameter), or</li>
 <li>an object with an <code>execute(param)</code> function and optional

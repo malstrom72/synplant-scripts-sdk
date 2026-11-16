@@ -67,6 +67,9 @@ lines. The full instructions are [`instructions.md`](instructions.md).
   labels say what the button does; explanations go in the `hint`.
 - Every script action the `.cushy` names, `autoexecs` included, must be listed in the package `.schema`. Remove the
   entry when you remove the action.
+- Action `params` reach JavaScript as the raw Numbstrict text: `params: "left"` arrives with its quotes. Use
+  `+params` for a bare number, `unescape(params)` for a quoted string and `parseNumbstrict(params)` for a structure;
+  write numbers without quotes.
 - Views poll their variables and action states up to 50 times a second. Keep getters, `enabled` and `checked` cheap:
   return values computed when their inputs changed. Read `preferences.*` once into a script variable.
 - Never modify anything in `Synplant Resources/`; it is a copy of the shipped files.
