@@ -255,9 +255,11 @@ averages rather than tracing every tick.
 
   Reading `myScript.doThing` returns the descriptor; call `myScript.doThing.execute(param)` to run it.
 - Action parameters reach `execute`, `checked` and `enabled` as the raw Numbstrict text from the
-  `.cushy` file, quotes included: `params: "2"` arrives as `"2"`, and a bare `+p` gives NaN. Always
-  parse them, so quoting in the `.cushy` never matters: `+unescape(p)` for a number, `unescape(p)`
-  for a string, `parseNumbstrict(p)` for a structure. See GUI Actions in the
+  `.cushy` file. Write a number unquoted (`params: 542`), declare it `<int>` or `<real>` in the
+  package `.schema` and read it with `+p`; CushyLint then rejects a quoted number, which would arrive
+  as `"542"` with its quotes and make `+p` NaN. Write a string quoted, declare it `<string>` and read
+  it with `unescape(p)` (`+unescape(p)` if the string holds a number). Read a structure with
+  `parseNumbstrict(p)`. An action without params gets `''`. See GUI Actions in the
   [JS Reference](../../docs/Synplant%20JS%20Reference.md#gui-actions).
 - For dynamic IVG data, compact list strings are usually fine for payloads of a few hundred
   characters, or even around a thousand characters. If the IVG only needs a tiny part of a very large

@@ -1257,11 +1257,11 @@ and the mask is not rebuilt when variables change, so a hit mask cannot follow d
 ### GUI Actions
 
 When the user clicks a button or selects a menu item, Cushy performs a GUI action — either a built-in
-action or a JavaScript function you provide. Actions receive `params` as a single string: the raw
-Numbstrict text from the `.cushy`, not a parsed value, quotes included: `params: "2"` arrives as
-`"2"`, and a bare `+params` gives `NaN`. Always parse them, so quoting in the `.cushy` never
-matters: `+unescape(params)` for a number, `unescape(params)` for a string,
-`parseNumbstrict(params)` for a structure. `unescape` here is Synplant's
+action or a JavaScript function you provide. Actions receive a single string parameter in its raw,
+unparsed form (a quoted string still carries its quotes; use `unescape` to strip them). Write a
+number unquoted (`542`, not `"542"`) and read it with `+p`; write a string quoted and read it with
+`unescape(p)`; read a structure with `parseNumbstrict(p)`. Declaring the parameter's type in the
+package `.schema` lets CushyLint catch a quoted number. `unescape` here is Synplant's
 [host helper](#host-script-helpers), which replaces the engine's built-in `unescape`: it parses a
 quoted string and returns other text unchanged. You may implement an action as:
 

@@ -67,9 +67,10 @@ lines. The full instructions are [`instructions.md`](instructions.md).
   labels say what the button does; explanations go in the `hint`.
 - Every script action the `.cushy` names, `autoexecs` included, must be listed in the package `.schema`. Remove the
   entry when you remove the action.
-- Action `params` reach `execute`, `checked` and `enabled` as the raw Numbstrict text from the `.cushy` file, quotes
-  included. Always parse them, so quoting in the `.cushy` never matters: `+unescape(p)` for a number, `unescape(p)`
-  for a string, `parseNumbstrict(p)` for a structure.
+- Action `params` reach `execute`, `checked` and `enabled` as the raw Numbstrict text from the `.cushy` file. Write
+  a number unquoted (`params: 542`), declare it `<int>` or `<real>` in the package `.schema` and read it with `+p`.
+  Write a string quoted, declare it `<string>` and read it with `unescape(p)`. Read a structure with
+  `parseNumbstrict(p)`. An action without params gets `''`.
 - Views poll their variables and action states up to 50 times a second. Keep getters, `enabled` and `checked` cheap:
   return values computed when their inputs changed. Read `preferences.*` once into a script variable.
 - Never modify anything in `Synplant Resources/`; it is a copy of the shipped files.
