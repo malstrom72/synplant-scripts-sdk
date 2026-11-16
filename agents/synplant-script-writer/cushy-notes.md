@@ -254,9 +254,11 @@ averages rather than tracing every tick.
   ```
 
   Reading `myScript.doThing` returns the descriptor; call `myScript.doThing.execute(param)` to run it.
-- An action's `param` is the raw Numbstrict text from the `.cushy`: a quoted string keeps its quotes.
-  Use `+param` for a bare number, `unescape(param)` for a quoted string and `parseNumbstrict(param)`
-  for a structure. `params: "@index"` makes a string, so `+param` is `NaN`; write `params: @index`.
+- Action parameters reach `execute`, `checked` and `enabled` as the raw Numbstrict text from the
+  `.cushy` file, quotes included: `params: "2"` arrives as `"2"`, and a bare `+p` gives NaN. Always
+  parse them, so quoting in the `.cushy` never matters: `+unescape(p)` for a number, `unescape(p)`
+  for a string, `parseNumbstrict(p)` for a structure. See GUI Actions in the
+  [JS Reference](../../docs/Synplant%20JS%20Reference.md#gui-actions).
 - For dynamic IVG data, compact list strings are usually fine for payloads of a few hundred
   characters, or even around a thousand characters. If the IVG only needs a tiny part of a very large
   structure, do not serialize the whole thing every tick; `guiVariables: true` can be a better fit.

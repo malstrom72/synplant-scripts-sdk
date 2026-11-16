@@ -1501,15 +1501,13 @@ when variables change, so a hit mask cannot follow dynamic content.</p>
 <p>When the user clicks a button or selects a menu item, Cushy performs
 a GUI action — either a built-in action or a JavaScript function you
 provide. Actions receive <code>params</code> as a single string: the raw
-Numbstrict text from the <code>.cushy</code>, not a parsed value.
-<code>params: 3</code> arrives as <code>3</code>,
-<code>params: "left"</code> arrives as <code>"left"</code> with its
-quotes, and <code>params: { a: 1 }</code> arrives as Numbstrict text for
-that structure. Use <code>+params</code> for a bare number,
-<code>unescape(params)</code> for a quoted string and
-<code>parseNumbstrict(params)</code> for a structure. A quoted number
-such as <code>params: "@index"</code> is a string: <code>+params</code>
-gives <code>NaN</code>, so leave the quotes off numbers.
+Numbstrict text from the <code>.cushy</code>, not a parsed value, quotes
+included: <code>params: "2"</code> arrives as <code>"2"</code>, and a
+bare <code>+params</code> gives <code>NaN</code>. Always parse them, so
+quoting in the <code>.cushy</code> never matters:
+<code>+unescape(params)</code> for a number,
+<code>unescape(params)</code> for a string,
+<code>parseNumbstrict(params)</code> for a structure.
 <code>unescape</code> here is Synplant’s <a
 href="#host-script-helpers">host helper</a>, which replaces the engine’s
 built-in <code>unescape</code>: it parses a quoted string and returns

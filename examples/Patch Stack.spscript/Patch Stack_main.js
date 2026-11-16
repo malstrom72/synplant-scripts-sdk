@@ -605,7 +605,7 @@ if (!this.patchStack) {
 		},
 
 		slotOpen: function (params) {
-			var i = +params;
+			var i = +unescape(params);
 			var picked = browse('open', 'synplant', me.slots[i].dir || DIRS.PATCHES, null);
 			if (picked === null) { return; }
 			if (loadIntoSlot(i, picked)) { commit('Patch Stack: load layer'); }
@@ -619,15 +619,15 @@ if (!this.patchStack) {
 			var next = (cur + delta + list.length) % list.length;
 			if (loadIntoSlot(index, list[next])) { commit('Patch Stack: change layer'); }
 		},
-		slotPrev: function (params) { me.slotStep(+params, -1); },
-		slotNext: function (params) { me.slotStep(+params, +1); },
+		slotPrev: function (params) { me.slotStep(+unescape(params), -1); },
+		slotNext: function (params) { me.slotStep(+unescape(params), +1); },
 		slotRandom: function (params) {
-			var i = +params;
+			var i = +unescape(params);
 			var list = listPatches(me.slots[i].dir || (DIRS.PATCHES + 'Synplant Patches' + DIR_SLASH + 'All'));
 			if (list.length === 0) { return; }
 			if (loadIntoSlot(i, list[random.integer(list.length)])) { commit('Patch Stack: random layer'); }
 		},
-		slotClear: function (params) { me.slots[+params] = freshSlot(); commit('Patch Stack: clear layer'); },
+		slotClear: function (params) { me.slots[+unescape(params)] = freshSlot(); commit('Patch Stack: clear layer'); },
 
 		// Out-of-sync recovery: rebuild the stack from the current slots and overwrite the live patch,
 		// re-taking ownership. writeLive stamps lastPatchId and clears outOfSync, so the overlay drops and
@@ -640,12 +640,12 @@ if (!this.patchStack) {
 		},
 
 		slotEnable: {
-			execute: function (params) { setEnabled(+params, me.slots[+params].enabled ? 0 : 1); },
-			checked: function (params) { return me.slots[+params].enabled; }
+			execute: function (params) { setEnabled(+unescape(params), me.slots[+unescape(params)].enabled ? 0 : 1); },
+			checked: function (params) { return me.slots[+unescape(params)].enabled; }
 		},
 		slotMain: {
-			execute: function (params) { setMainIndex(+params, 1); },
-			checked: function (params) { return me.mainIndex === +params; }
+			execute: function (params) { setMainIndex(+unescape(params), 1); },
+			checked: function (params) { return me.mainIndex === +unescape(params); }
 		},
 
 		levels: [ new LevelVar(0), new LevelVar(1), new LevelVar(2) ],

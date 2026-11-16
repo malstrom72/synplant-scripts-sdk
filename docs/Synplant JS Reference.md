@@ -1258,14 +1258,12 @@ and the mask is not rebuilt when variables change, so a hit mask cannot follow d
 
 When the user clicks a button or selects a menu item, Cushy performs a GUI action — either a built-in
 action or a JavaScript function you provide. Actions receive `params` as a single string: the raw
-Numbstrict text from the `.cushy`, not a parsed value. `params: 3` arrives as `3`, `params: "left"`
-arrives as `"left"` with its quotes, and `params: { a: 1 }` arrives as Numbstrict text for that
-structure. Use `+params` for a
-bare number, `unescape(params)` for a quoted string and `parseNumbstrict(params)` for a structure. A
-quoted number such as `params: "@index"` is a string: `+params` gives `NaN`, so leave the quotes off
-numbers. `unescape` here is Synplant's [host helper](#host-script-helpers), which replaces the
-engine's built-in `unescape`: it parses a quoted string and returns other text unchanged. You may
-implement an action as:
+Numbstrict text from the `.cushy`, not a parsed value, quotes included: `params: "2"` arrives as
+`"2"`, and a bare `+params` gives `NaN`. Always parse them, so quoting in the `.cushy` never
+matters: `+unescape(params)` for a number, `unescape(params)` for a string,
+`parseNumbstrict(params)` for a structure. `unescape` here is Synplant's
+[host helper](#host-script-helpers), which replaces the engine's built-in `unescape`: it parses a
+quoted string and returns other text unchanged. You may implement an action as:
 
 -   a function with the action's name (receives the parameter), or
 -   an object with an `execute(param)` function and optional `enabled(param)` and `checked(param)`

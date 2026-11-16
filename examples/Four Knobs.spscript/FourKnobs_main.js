@@ -61,7 +61,7 @@
 			}
 		},
 		newVector: function newVector(params) {
-			var index = +params;
+			var index = +unescape(params);
 			for (var gene = 0; gene < GENES.length - 5; ++gene) {
 				var n = GENES[gene].NAME;
 				var m = getMagnitudeOfGene(n);
