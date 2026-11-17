@@ -249,7 +249,7 @@ Object.assign(jsConsole, {
 	*/
 	bridgeDefaultBase: function() {
 		/*
-			Keep the bridge folder inside DIRS.DOCUMENTS — Synplant grants scripts
+			Keep the bridge folder inside DIRS.DOCUMENTS: Synplant grants scripts
 			deep read-write access there by default (it is the trusted
 			userPresetsDefault path), so the bridge never triggers a file-permission
 			prompt. DIRS.DOCUMENTS already ends with a directory separator.

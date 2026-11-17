@@ -1,6 +1,6 @@
 # TypeScript definitions
 
-`COJSEngine.d.ts` is the authoritative declaration of Synplant's scripting API — the same definitions
+`COJSEngine.d.ts` is the authoritative declaration of Synplant's scripting API: the same definitions
 Synplant's own interface is built against. Target it to get editor completion and type checking when
 writing scripts.
 

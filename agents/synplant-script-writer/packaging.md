@@ -6,7 +6,7 @@ Synplant has three script shapes. Choose by what the request needs; do not defau
 
 Use a single JavaScript file for a direct utility, generator, patch operation, or other command with
 no custom interface. It runs when chosen from Synplant's script menu. This is the default for simple
-requests and the most robust shape — it depends only on the JavaScript API.
+requests and the most robust shape: it depends only on the JavaScript API.
 
 ## `.spscript` GUI packages
 
@@ -62,7 +62,7 @@ Cushy action names, and schema action names identifier-safe, e.g. a visible pack
 
 ## Mods
 
-Use a Mod only when the user wants to change Synplant's **own** interface — add a button or menu to
+Use a Mod only when the user wants to change Synplant's **own** interface: add a button or menu to
 the built-in GUI, or alter its behavior. A Mod is a `.js` file in a `Mods/` subfolder of the scripts
 folder; every `.js` there runs automatically at startup. Mods rewrite Synplant's built-in `.cushy`
 source as it loads and/or monkey-patch its JavaScript. They are the most powerful and the most

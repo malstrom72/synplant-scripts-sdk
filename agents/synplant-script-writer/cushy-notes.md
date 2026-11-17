@@ -2,10 +2,10 @@
 
 Practical Cushy details, gotchas, and patterns useful when writing or debugging `.spscript` GUI
 packages, too specific for the main instruction file. These notes do not replace the schema, the JS
-reference, or the example packages — when exact syntax or supported fields matter, verify against the
+reference, or the example packages. When exact syntax or supported fields matter, verify against the
 references in [`source-map.md`](source-map.md), or against the live engine over the bridge.
 
-For an orientation to Cushy — the mental model, coordinates and scaling, static versus dynamic — start
+For an orientation to Cushy (the mental model, coordinates and scaling, static versus dynamic), start
 with [`docs/Cushy Documentation.md`](../../docs/Cushy%20Documentation.md). This file picks up where
 that one leaves off.
 
@@ -41,7 +41,7 @@ the same role.
 These macros only expand in `.cushy` files. The entry-point `.js` (which calls `displayCushy(...)`)
 is plain JavaScript and must use the literal package path.
 
-Renaming a script is a multi-point change — keep these in sync or action dispatch breaks:
+Renaming a script is a multi-point change. Keep these in sync or action dispatch breaks:
 
 - the `@define script=<name>` in the `.cushy` (`@scriptIdentifier` in packages using that
   convention),
@@ -127,7 +127,7 @@ has to write one position and visible flag per marker instead of one value per c
   cache until a normal reload. If the on-disk file validates but Synplant still reports a stale error,
   reload before debugging the file further.
 - A full reset (the JS Console `reset`, or `performCushyAction('reload', 'reset')`) recreates the
-  engine and clears globals. Do not drive a full reset over the bridge — it tears the bridge down.
+  engine and clears globals. Do not drive a full reset over the bridge: it tears the bridge down.
 - If interaction objects are kept across reloads they may retain old methods and closures. For
   development, recreate interaction objects on each reload and carry over only persistent user state.
 - Existing sessions keep a persisted script global's old shape across a normal reload, so a field
@@ -171,7 +171,7 @@ Use the top-level `vector:` field instead when the graphic should resize with th
 ## Timed actions and animation
 
 A GUI script gets periodic callbacks by registering a repeating action in the root `autoexecs` block.
-Use it for animation, polling, or any time-based behavior. Each action must return quickly — the UI
+Use it for animation, polling, or any time-based behavior. Each action must return quickly: the UI
 freezes while script code runs, and a single call over 20 seconds is suspended.
 
 ```cushy
@@ -212,7 +212,7 @@ averages rather than tracing every tick.
   invocation is still running.
 - Use repeat rates that communicate intent. Target 50 Hz or lower for normal scripts; avoid
   "as often as possible" rates like `repeat: 0.001`. To react to a value change, use `onChanged`
-  rather than a fast poll — it runs on the next tick only when the value actually changes.
+  rather than a fast poll; it runs on the next tick only when the value actually changes.
 - Updating a variable every tick is acceptable when the view needs full-rate updates. If a variable
   is read by views, changing it frequently keeps those reads active at the full rate.
 
@@ -242,7 +242,7 @@ averages rather than tracing every tick.
 - An object member with `get`/`set` is a Cushy **variable descriptor**, not a native JS
   getter/setter: reading `myScript.thing` from JavaScript returns the descriptor object; it does not
   call `get`. To reuse the computed value in script logic, call it explicitly: `myScript.thing.get()`.
-- An object member used as an action is a Cushy **action descriptor** — `execute` plus optional
+- An object member used as an action is a Cushy **action descriptor**: `execute` plus optional
   `checked`/`enabled` state functions:
 
   ```javascript
@@ -293,7 +293,7 @@ averages rather than tracing every tick.
 - IVG/ImpD is CPU-interpreted at render time; there is no GPU acceleration. Large pixel areas (big UI
   regions, high zoom, Retina buffers) are usually a bigger cost than individual language constructs.
 - Most features (shapes, paths, masks, gradients, opacity, blends, image transforms, text) are
-  practical — measure at the real UI size before assuming something is too expensive. Layering static
+  practical; measure at the real UI size before assuming something is too expensive. Layering static
   and dynamic content into separate vector views can help, or may be unnecessary; measure.
 - IVG text anchoring is geometric, not guaranteed optical centering. In small circles, badges, and
   compact buttons, render the real GUI and apply a small visual offset if the text looks high or low;
@@ -303,7 +303,7 @@ averages rather than tracing every tick.
 ### JavaScript data and memory
 
 - The memory cap is checked after garbage collection. `gc()` is available and returns before/after
-  heap stats — useful for memory tests and for forcing a collection after building large transient
+  heap stats, useful for memory tests and for forcing a collection after building large transient
   data. Returning from an action makes large temporaries collectible if nothing global retains them;
   avoid keeping large transient data in persistent globals.
 - `StringBuilder` (and `Array.prototype.join`, which uses it internally) avoids the GC pressure of
@@ -325,7 +325,7 @@ averages rather than tracing every tick.
   or parameter edits. Do not build a non-modal preview-plus-Apply editor; Save/export, undo/redo, A/B
   compare, preset switching, and automation all operate on the live patch, not `setPreview`.
 - `setPreview` is for auditioning or a genuinely modal flow with one clear commit point.
-- Call `saveUndo(description)` **before** mutating patch state — the snapshot is the state the user
+- Call `saveUndo(description)` **before** mutating patch state: the snapshot is the state the user
   returns to. For a continuous gesture, save undo on the first document-changing update and guard
   further drag updates until release. Clear the guard in both `touch(true)` and `touch(false)`, and
   set it only while a drag is in progress, so each drag and each "Enter Exact Value..." write gets
@@ -396,7 +396,7 @@ averages rather than tracing every tick.
 
 ## View bounds clip drawing and input
 
-Cushy clips hard at every view's bounding box, with no exceptions — nothing outside a view's bounds is
+Cushy clips hard at every view's bounding box, with no exceptions: nothing outside a view's bounds is
 drawn or clickable. For a slider, the slit `start`/`end` coordinates define where the **center** of the
 cap travels, not its edges, so the cap fill and its frame stroke must stay inside the view bounds at
 the travel extremes. When a control looks clipped at the ends, widen the view or inset the slit.
@@ -546,8 +546,8 @@ padPress: function () {
 
 ## All text requires an explicit font
 
-Cushy has no default font. Any text — `caption` views, button `caption` fields (via `font` in the
-button style), bubble styles, or any other text-bearing view — is not drawn at all unless that view
+Cushy has no default font. Any text (`caption` views, button `caption` fields (via `font` in the
+button style), bubble styles, or any other text-bearing view) is not drawn at all unless that view
 or style has an explicit `font`. There is no fallback font.
 
 CushyLint does not flag this. A text-bearing view/style with no `font` is schema-valid and can still
@@ -568,7 +568,7 @@ For radio-button groups, use `action: "set"` with a **plain string variable**. P
 automatically with no JavaScript:
 
 ```cushy
-// JS: a plain string property on the state object — myScript = { mode: '0', ... }
+// JS: a plain string property on the state object: myScript = { mode: '0', ... }
 {
     type: "button"
     action: "set"
@@ -596,7 +596,7 @@ Do not assemble window chrome from primitive views. Include the support macros a
 
 `@window` emits the top-level `bounds:` and `views:`, and provides the drop shadow, click blocker,
 drag area, rounded frame, centered title, and a close button. Wire the script's own close to
-`displayCushy(null, 'script')`. Declare `transitions:` and `autoexecs:` separately — `@window` does
+`displayCushy(null, 'script')`. Declare `transitions:` and `autoexecs:` separately; `@window` does
 not emit them. It owns its internal chrome constants (shadow, title-bar height); do not redefine those
 at top level. Use `@windowInLayer(...)` when you need to target a specific Cushy layer.
 
@@ -624,7 +624,7 @@ reads it on open and writes it on drag, but persistence is the script's responsi
 - **Colors:** `none` is transparent; `rgb(r,g,b,a)` uses normalized components (`rgb(1,1,1,0.35)`, not
   0–255); CSS-style `rgba(...)` is not valid IVG.
 - **Font coverage:** the built-in `sans-serif` does not cover all Unicode. Use printable ASCII
-  (U+0020–U+007E) in GUI-variable return values and captions; characters like the em-dash `—` render
+  (U+0020 to U+007E) in GUI-variable return values and captions; characters like the em dash (U+2014) render
   as replacement boxes. Use `-` or `...` instead.
 
 Use `tools/validate-static-ivg.sh` / `tools\validate-static-ivg.cmd` for static `.ivg` files, passing

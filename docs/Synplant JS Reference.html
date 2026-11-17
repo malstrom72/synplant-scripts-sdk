@@ -281,9 +281,10 @@ measurements, not audio buffers or audio files. There is no network or
 internet API.</p>
 <p>What scripts <em>can</em> do is considerable:</p>
 <ul>
-<li><strong>Read and write the patch.</strong> The full patch — genome,
-control parameters, branches (the DNA tree), layers — is available
-through <a href="#getelement"><code>getElement('patch')</code></a> / <a
+<li><strong>Read and write the patch.</strong> The full patch, with
+genome, control parameters, branches (the DNA tree) and layers, is
+available through <a
+href="#getelement"><code>getElement('patch')</code></a> / <a
 href="#setelement"><code>setElement('patch', …)</code></a>.</li>
 <li><strong>Analyze audio offline.</strong> <a
 href="#analyzepatchaudio"><code>analyzePatchAudio(...)</code></a>
@@ -291,7 +292,7 @@ synthesizes a patch internally and returns measured pitch and/or volume,
 without touching the live audio engine.</li>
 <li><strong>Drive the AI sound matcher.</strong> The entire Papageno /
 Genopatch engine is scriptable through the <a
-href="#papageno-genopatch"><code>papageno</code></a> object — load a
+href="#papageno-genopatch"><code>papageno</code></a> object: load a
 reference sound, run an evolutionary search, read back solutions.</li>
 <li><strong>Send MIDI.</strong> <a
 href="#sendmidi"><code>sendMidi(...)</code></a> emits a MIDI
@@ -312,12 +313,12 @@ target. Two helper aliases appear throughout:</p>
 declare type Integer = number  // a value that is conceptually an integer</code></pre>
 <p>There are effectively <strong>two layers</strong> of API:</p>
 <ol type="1">
-<li><strong>The native engine API</strong> — everything declared in
+<li><strong>The native engine API</strong>: everything declared in
 <code>COJSEngine.d.ts</code> and listed under <a
 href="#functions">Functions</a>, <a href="#objects">Objects</a>, and <a
 href="#constants">Constants</a> below. These are guaranteed to exist
 whenever a script runs.</li>
-<li><strong>Host script helpers</strong> — additional functions
+<li><strong>Host script helpers</strong>: additional functions
 (<code>clamp</code>, <code>lerp</code>, <code>select</code>,
 <code>displayCushy</code>, <code>getCachedPatch</code>, …) defined by
 Synplant’s running main script in the shared global space. They are
@@ -342,10 +343,10 @@ prompt): the Sonic Charge user-documents folder
 a script may freely create, write, move, and erase files in. Persist
 your script’s data here.</li>
 </ul>
-<p>When a script attempts an operation outside the granted set — saving
+<p>When a script attempts an operation outside the granted set (saving
 to an arbitrary folder the user picked with <a
 href="#browse"><code>browse</code></a>, creating a directory elsewhere,
-erasing a file — the engine shows a modal <strong>“Grant permission to …
+erasing a file), the engine shows a modal <strong>“Grant permission to …
 : …”</strong> dialog. If the user approves, the grant is remembered for
 the rest of the session; if they decline, the operation throws
 (<code>"user canceled"</code>). There is also an automatic grant for the
@@ -373,7 +374,7 @@ BUILD = {
 }</code></pre>
 <blockquote>
 <p>Note: <code>PLATFORM</code>, <code>BUILD</code>, and
-<code>DIRS</code> are not injected by the bare engine — they are
+<code>DIRS</code> are not injected by the bare engine; they are
 populated by Synplant’s main script from Cushy variables
 (<code>getCushyVariable('BUILD.NUMBER')</code>, etc.). They are present
 whenever the standard GUI is loaded, which is always the case for a
@@ -844,8 +845,8 @@ function setElement(type: &quot;midiConfig&quot;, config: MidiConfig) : void</co
 <p>Replaces the current patch or MIDI configuration. For
 <code>"patch"</code>, returns the new patch id. If the patch’s
 <code>patchId</code> or <code>seedId</code> is <code>null</code>, a
-fresh unique id is assigned automatically — the expected behavior when
-creating a distinct new patch from loading, randomization, etc.</p>
+fresh unique id is assigned automatically. That is the expected behavior
+when creating a distinct new patch from loading, randomization, etc.</p>
 <p>See also: <a href="#getelement">getElement</a>, <a
 href="#createelement">createElement</a>.</p>
 <h3 id="setparam">setParam</h3>
@@ -865,9 +866,9 @@ non-modal script window. See <a href="#script-window-editing">Script
 Window Editing</a>.</p>
 <h3 id="spawnpatch">spawnPatch</h3>
 <pre><code>function spawnPatch(patch: Patch, branchNumber: Integer, [newSeedId: Integer]) : Patch</code></pre>
-<p>Returns a new patch grown from <code>patch</code> at the given branch
-— the scripted form of planting a seed from a branch. Optionally assigns
-a specific <code>seedId</code>.</p>
+<p>Returns a new patch grown from <code>patch</code> at the given
+branch: the scripted form of planting a seed from a branch. Optionally
+assigns a specific <code>seedId</code>.</p>
 <p>See also: <a href="#the-dna--genome-model">The DNA / Genome
 Model</a>.</p>
 <h3 id="splitpath">splitPath</h3>
@@ -1036,19 +1037,19 @@ stalk/solution and saves them.</p>
 <h2 id="the-dna-genome-model">The DNA / Genome Model</h2>
 <p>A Synplant patch is built from three layers of parameters:</p>
 <ul>
-<li><strong>Genome</strong> — 48 genes (<code>GENES</code>) that define
+<li><strong>Genome</strong>: 48 genes (<code>GENES</code>) that define
 the <em>sound</em> of a voice: envelopes, modulation, the two
 oscillators (A/B), FM, the filter, saturation, reverb, and output
 adjust. These are the “DNA” that Genopatch evolves and that mutate when
 you grow a plant.</li>
-<li><strong>Branches</strong> — up to <code>BRANCH_COUNT</code> (12)
+<li><strong>Branches</strong>: up to <code>BRANCH_COUNT</code> (12)
 branches form the visual DNA tree. Each branch has a
 <code>length</code>, a <code>volume</code>, and optional
 <code>explicit</code> morph data. Branch geometry, together with
 <code>control.rotation</code>, <code>control.atonality</code>, and
 <code>seedId</code>, determines how a branch maps to pitch and
 detuning.</li>
-<li><strong>Control parameters</strong> — 14 performance/global
+<li><strong>Control parameters</strong>: 14 performance/global
 parameters (<code>CONTROLS</code>): <code>tuning</code>,
 <code>atonality</code>, <code>effect</code>, <code>release</code>,
 <code>volume</code>, <code>bulbMode</code>, <code>voiceMode</code>, the
@@ -1060,7 +1061,7 @@ mod-wheel routing (<code>wheelTarget</code>, <code>wheelScale</code>,
 applied across branches; <code>patchId</code> controls whether the audio
 engine smooths parameter changes. Setting either to <code>null</code>
 before <code>setElement('patch', …)</code> asks Synplant to assign a
-fresh unique id — do this when a genuinely new patch is created (from
+fresh unique id; do this when a genuinely new patch is created (from
 loading, randomization, Genopatch, etc.). For repeatedly updated
 versions of the same sounding patch, keep <code>patchId</code> stable so
 held notes can smooth instead of retriggering; keep <code>seedId</code>
@@ -1079,12 +1080,12 @@ covers the growable genes, so
 non-null. Non-growable genes are always taken from the seed genome and
 apply to the whole patch.</p>
 <ul>
-<li><strong>Growable (per-branch)</strong> — most of the first
+<li><strong>Growable (per-branch)</strong>: most of the first
 <code>GROWABLE_GENE_COUNT</code> genes. Each branch can carry its own
 morphed value. These mutate as a plant grows and can be shaped
 independently per branch: envelopes, modulation, oscillators A/B, FM,
 filter, saturation, reverb mix/attack, and so on.</li>
-<li><strong>Exclusive</strong> — <code>rvb_len</code>,
+<li><strong>Exclusive</strong>: <code>rvb_len</code>,
 <code>rvb_chor</code>, <code>rvb_damp</code>. These are growable, so
 each branch stores its own value and they appear in explicit morph data,
 but their effect is mutually exclusive: they parameterize Synplant’s
@@ -1094,7 +1095,7 @@ branch</strong>: in non-layered bulb modes this is the latest triggered
 branch; in Layered bulb mode it is the first branch in the current
 rotated branch order (the bottom-most branch in the circular GUI),
 regardless of whether that layer is enabled.</li>
-<li><strong>Non-growable (global)</strong> — the last 5 genes in
+<li><strong>Non-growable (global)</strong>: the last 5 genes in
 <code>GENES</code> order: <code>rvb_size</code>, <code>adj_bass</code>,
 <code>adj_treb</code>, <code>adj_pan</code>, <code>adj_clip</code>. They
 never grow, never appear in explicit morph data, and are taken from the
@@ -1145,7 +1146,7 @@ seed genome to apply to the whole patch.</li>
 </table>
 <p>The word “exclusive” describes the effect, not the data. The gene
 value is ordinary per-branch data; the downstream reverb resource is
-singular. Avoid treating these as shared gene values — only the realized
+singular. Avoid treating these as shared gene values; only the realized
 reverb-tail effect is shared.</p>
 <p>Dump the boundary from the running plug-in:</p>
 <pre><code>for (var i = 0; i &lt; GENES.length; ++i) {
@@ -1187,8 +1188,8 @@ farther along the same slope.</p>
 length <code>L</code>:</p>
 <pre><code>explicit[i] = (T[GENES[i].NAME] - seedGenome[GENES[i].NAME]) / L</code></pre>
 <p>Slopes that round to approximately zero may be stored as
-<code>0</code>. This identity — a branch that becomes a specific target
-sound at its tip — is the basis of grafting.</p>
+<code>0</code>. This identity (a branch that becomes a specific target
+sound at its tip) is the basis of grafting.</p>
 <h3 id="grafting">Grafting</h3>
 <p><strong>Grafting</strong> attaches the sound of one patch onto a
 branch of another, written as an explicit morph so the destination
@@ -1205,13 +1206,13 @@ functions, <code>calcBranchPitch(...)</code>,
 retuning helpers stay nested inside the grafting function. The Mod wraps
 the copy/graft functions as a two-step clipboard flow:</p>
 <ul>
-<li><strong>Copy Branch</strong> —
+<li><strong>Copy Branch</strong>:
 <code>spawnPatch(sourcePatch, selectedBranch)</code> grows the selected
 branch into a standalone patch, capturing that branch’s exact sound and
 pitch. The Mod then serializes it with <code>marshal('patch', …)</code>
 and writes it to the clipboard with
 <code>writeClipboard(...)</code>.</li>
-<li><strong>Graft Onto Branch</strong> —
+<li><strong>Graft Onto Branch</strong>:
 <code>unmarshal('patch', …)</code> reads the clipboard patch (guarded
 with <code>isMarshaledFormat('patch', …)</code>), reconciles it into the
 destination’s frame, then computes
@@ -1227,7 +1228,7 @@ to be extended a little.</p>
 interpreted relative to other patch state, so the source genome is first
 reconciled into the destination’s frame:</p>
 <ul>
-<li><strong>Pitch (<code>a_freq</code>)</strong> — shifted by the
+<li><strong>Pitch (<code>a_freq</code>)</strong>: shifted by the
 source/destination pitch difference, accounting for
 <code>pitchAdjust</code>, <code>control.tuning</code>, and the
 destination branch’s mapped pitch (which depends on
@@ -1235,25 +1236,25 @@ destination branch’s mapped pitch (which depends on
 result is octave-wrapped to stay in range. If the wrap forces the
 destination seed to move, the user is warned because existing branches
 can change.</li>
-<li><strong>Envelope key-follow (<code>env_kf</code>)</strong> — when
+<li><strong>Envelope key-follow (<code>env_kf</code>)</strong>: when
 active, envelope time is rescaled to compensate for the pitch
 shift.</li>
-<li><strong>Filter key-follow (<code>flt_kf</code>)</strong> —
+<li><strong>Filter key-follow (<code>flt_kf</code>)</strong>:
 <code>flt_freq</code> is recomputed through the filter cutoff mapping so
 the absolute cutoff is preserved after retuning.</li>
 <li><strong>Effect / reverb wet (<code>rvb_mix</code> vs
-<code>control.effect</code>)</strong> — the source’s effective wet
-amount is converted into the destination’s effect context.</li>
-<li><strong>Volume</strong> — the grafted branch’s <code>volume</code>
-is offset by the source/destination master-volume difference in
+<code>control.effect</code>)</strong>: the source’s effective wet amount
+is converted into the destination’s effect context.</li>
+<li><strong>Volume</strong>: the grafted branch’s <code>volume</code> is
+offset by the source/destination master-volume difference in
 decibels.</li>
 </ul>
 <p>Only after these corrections are the per-gene slopes computed and
 written to <code>branch.explicit</code>; the grafted branch’s
 <code>id</code> is copied from the source branch.</p>
 <p>Because Layered bulb mode triggers several branches at once, grafting
-different source patches onto separate branches — extending each to full
-length and enabling its layer — creates a stacked patch. The
+different source patches onto separate branches, extending each to full
+length and enabling its layer, creates a stacked patch. The
 global/non-growable genes (<code>rvb_size</code>, <code>adj_*</code>)
 plus control parameters still come from the single seed genome, so they
 are dictated by whichever patch is the base. The exclusive reverb-tail
@@ -1273,7 +1274,7 @@ snippet code into your script’s own IIFE/closure instead of depending on
 <p>These functions are <strong>not</strong> part of the engine API; they
 are defined by Synplant’s running main script in the shared global space
 and are available to scripts and Mods while the standard GUI is loaded.
-They are convenient but version-dependent — treat them as a softer
+They are convenient but version-dependent: treat them as a softer
 contract than the native API, and guard with <code>typeof</code> if in
 doubt.</p>
 <p>Math/utility helpers (verified present in build 309):
@@ -1291,23 +1292,23 @@ doubt.</p>
 href="#performance-notes">Performance Notes</a>).</p>
 <p>In particular <code>select('program', n)</code> /
 <code>selected('program')</code> and <code>selected('branch')</code> are
-host-script helpers, not engine functions — this is why they do not
+host-script helpers, not engine functions, which is why they do not
 appear in <code>COJSEngine.d.ts</code>.</p>
 <h2 id="cushy-interface">Cushy Interface</h2>
 <h3 id="script-types">Script Types</h3>
 <p>There are three kinds of user script:</p>
 <ol type="1">
-<li><strong>Standalone <code>.js</code></strong> — a single JavaScript
+<li><strong>Standalone <code>.js</code></strong>: a single JavaScript
 file in the Synplant Scripts folder. It runs when chosen from the script
 menu. Good for one-shot operations (e.g. transform the current
 patch).</li>
-<li><strong>GUI scripts (<code>.spscript</code>)</strong> — a directory
+<li><strong>GUI scripts (<code>.spscript</code>)</strong>: a directory
 named <code>MyScript.spscript</code> containing a
 <code>MyScript.js</code> launcher and one or more <code>.cushy</code>
 layouts (plus optional <code>.js</code>, <code>.schema</code>, image,
 and other resources). The launcher opens a Cushy window for the
 script.</li>
-<li><strong>Mods</strong> — scripts in the <code>Mods</code> subfolder
+<li><strong>Mods</strong>: scripts in the <code>Mods</code> subfolder
 that run automatically at startup and patch Synplant’s <em>own</em>
 built-in GUI. See <a href="#mods">Mods</a> below.</li>
 </ol>
@@ -1325,11 +1326,10 @@ sibling <code>.js</code> of the same name
 (<code>MyScript_main.js</code>) if present, which sets up the script’s
 functions and state.</p>
 <p>Cushy runs this JavaScript every time the script opens <strong>and on
-every GUI rebuild</strong> — and rebuilds are not only developer
-actions: changing Synplant’s zoom/scale forces a reload so graphics and
-layout coordinates rescale. Scripts must therefore survive being re-run:
-guard initialization so you do not clobber existing global state,
-e.g.</p>
+every GUI rebuild</strong>, and rebuilds are not only developer actions:
+changing Synplant’s zoom/scale forces a reload so graphics and layout
+coordinates rescale. Scripts must therefore survive being re-run: guard
+initialization so you do not clobber existing global state, e.g.</p>
 <pre class="javascript"><code>if (!this.myScript) { myScript = { /* initial state */ }; }</code></pre>
 <p>Put the guard at the top level or in a top-level IIFE, where
 <code>this</code> is the global object. Inside a method
@@ -1394,13 +1394,13 @@ writes it when the user interacts. All GUI variable values are strings
 (which may contain numbers in decimal text, or Numbstrict for
 arrays/structures). Cushy resolves a variable in one of these ways:</p>
 <ul>
-<li>an existing JS string variable — read and written directly;</li>
-<li>an existing JS function — called to get the value (Cushy can never
+<li>an existing JS string variable: read and written directly;</li>
+<li>an existing JS function: called to get the value (Cushy can never
 set it);</li>
-<li>an existing JS object — with <code>get()</code>,
+<li>an existing JS object with <code>get()</code>,
 <code>set(value)</code>, and optional <code>touch(beginEdit)</code>
 functions;</li>
-<li>a name that does not exist as a JS variable — Cushy creates a
+<li>a name that does not exist as a JS variable: Cushy creates a
 Cushy-only variable (avoid this).</li>
 </ul>
 <p>If a setter rounds the incoming value, coerce first with unary
@@ -1414,7 +1414,7 @@ href="#engine">Engine</a>.</p>
 <p><code>touch(beginEdit)</code> is called with <code>true</code> when
 the user starts editing (e.g. clicks the knob) and <code>false</code>
 when they finish. Beyond the per-script variables, Synplant exposes a
-large set of standard GUI variables and product variables — these are
+large set of standard GUI variables and product variables; these are
 documented separately in the Cushy Variables reference.</p>
 <p>Set the GUI variable <code>verboseErrors</code> to true to make
 script error dialogs also say what Synplant was doing when the error
@@ -1428,11 +1428,11 @@ starts.</p>
 <p>Cushy <code>vector</code> views draw IVG/ImpD graphics. A vector
 source is one of:</p>
 <ul>
-<li><code>file: "Pkg.spscript/MyGraphic"</code> — load an external
+<li><code>file: "Pkg.spscript/MyGraphic"</code>: load an external
 <code>.ivg</code> resource, without the extension;</li>
-<li><code>code: "..."</code> — inline IVG source in the
+<li><code>code: "..."</code>: inline IVG source in the
 <code>.cushy</code> file;</li>
-<li><code>variable: myScript.ivgSource</code> — read the complete IVG
+<li><code>variable: myScript.ivgSource</code>: read the complete IVG
 source from a GUI variable.</li>
 </ul>
 <p>Use static IVG with <code>defines:</code> and <code>bindings:</code>
@@ -1499,7 +1499,7 @@ that IVG has no access to Cushy variables and the mask is not rebuilt
 when variables change, so a hit mask cannot follow dynamic content.</p>
 <h3 id="gui-actions">GUI Actions</h3>
 <p>When the user clicks a button or selects a menu item, Cushy performs
-a GUI action — either a built-in action or a JavaScript function you
+a GUI action: either a built-in action or a JavaScript function you
 provide. Actions receive a single string parameter in its raw, unparsed
 form (a quoted string still carries its quotes; use
 <code>unescape</code> to strip them). You may implement an action
