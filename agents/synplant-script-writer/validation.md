@@ -35,7 +35,7 @@ the running engine:
 - `sp_status` → expect `bridge: LIVE`.
 - `sp_eval("run('My Script.spscript/My Script.js')")` to launch a script (or toggle its window).
 - `sp_eval("getDisplayedCushy('script')")` to see which script window is open.
-- `sp_reload` with an `until` expression to re-run edited files and wait until the change is live —
+- `sp_reload` with an `until` expression to re-run edited files and wait until the change is live;
   the bridge survives a normal reload. Do not drive a full reset over the bridge.
 - Read state and parameters directly, e.g. `sp_eval("getElement('patch').genome.flt_freq")`.
 
@@ -205,7 +205,7 @@ silicon Macs. On other platforms (Intel Macs, Linux) the runner builds them from
 The product schema is [`Synplant Resources/Synplant2.schema`](../../Synplant%20Resources/Synplant2.schema)
 (which pulls in the standard host actions from [`CushyLint/chimera.schema`](../../CushyLint/chimera.schema));
 package `.schema` headers include it. The first run also compiles the schema, so it is slower than later runs. A CushyLint pass
-confirms `.cushy` syntax and schema conformance only — never runtime behavior; verify that with the
+confirms `.cushy` syntax and schema conformance only, never runtime behavior; verify that with the
 live bridge and by looking at the real window, and do not claim a pass you did not actually run.
 
 For colors, CushyLint checks that a field has the right shape, not that every referenced IVG source
@@ -367,11 +367,11 @@ prefix, and `.schema` action prefix in sync.
 
 ## What validation does and does not prove
 
-- A clean syntax/schema check confirms the `.js`/`.cushy` parse and conform — not that the script
+- A clean syntax/schema check confirms the `.js`/`.cushy` parse and conform, not that the script
   behaves correctly inside Synplant.
 - CushyLint validates the current on-disk files; it does not model Synplant's runtime resource cache.
 - CushyLint does not flag text-bearing views/styles that omit `font`; those are schema-valid but draw
   blank in Synplant.
 - CushyLint does not validate or rasterize IVG drawing code. Use `tools/validate-static-ivg.*` for
   static `.ivg` files, and still check dynamic IVG in the real Synplant window.
-- The authoritative behavioral check is running it in Synplant — over the bridge when possible.
+- The authoritative behavioral check is running it in Synplant, over the bridge when possible.

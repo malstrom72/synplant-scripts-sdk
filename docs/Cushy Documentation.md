@@ -3,7 +3,7 @@
 _Cushy_ is the GUI / layout engine used in Synplant. A `.cushy` file describes a window's layout as a
 tree of _views_, and wires those views to your script through _GUI variables_ and _GUI actions_. This
 document is an orientation: it explains the mental model and shows where each piece is documented in
-full. It does not duplicate the field-by-field reference — that lives in
+full. It does not duplicate the field-by-field reference; that lives in
 [`cushy.schema`](../CushyLint/cushy.schema).
 
 Synplant's interface is built entirely on Cushy, so the same system you use for your own script
@@ -17,7 +17,7 @@ schema, so the schema is the canonical syntax reference and everything else rout
 | If you need...                                              | Read                                                                                            |
 | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | The mental model and a reading order (this page)            | this document                                                                                   |
-| Exact fields for a view, action, color, font, or style      | [`CushyLint/cushy.schema`](../CushyLint/cushy.schema) — the official reference                  |
+| Exact fields for a view, action, color, font, or style      | [`CushyLint/cushy.schema`](../CushyLint/cushy.schema) (the official reference)                  |
 | How `.cushy` connects to JavaScript (variables and actions) | [Synplant JS Reference](Synplant%20JS%20Reference.md) → _Cushy Interface_                        |
 | The macro syntax used in `.cushy` files (`@define`, etc.)   | [Makaron Documentation](Makaron%20Documentation.md)                                             |
 | Vector graphics drawn inside views                          | [IVG Documentation](IVG%20Documentation.md) and [ImpD Documentation](ImpD%20Documentation.md)   |
@@ -30,8 +30,8 @@ syntax or supported fields matter, the schema is the source of truth.
 
 ## The mental model
 
-A `.cushy` file is a _Numbstrict_ document — a JSON-like notation with C-style comments and a few
-extensions — that is expanded by Makaron macros before parsing. Conceptually it has five top-level
+A `.cushy` file is a _Numbstrict_ document (a JSON-like notation with C-style comments and a few
+extensions) that is expanded by Makaron macros before parsing. Conceptually it has five top-level
 sections:
 
 ```
@@ -39,13 +39,13 @@ bounds:      { left, top, width, height }   // the window rectangle (main .cushy
 autoexecs:   { ... }                        // actions run on open, close, a timer, or a variable change
 transitions: { ... }                        // open/close animations
 translations:{ ... }                        // string translations for this Cushy
-views:       { ... }                        // the view tree — the actual UI
+views:       { ... }                        // the view tree: the actual UI
 ```
 
 Three ideas tie the system together:
 
 1. **Views nest into a tree.** Each view has `bounds` relative to its parent, and Cushy **clips hard
-   at every view's bounding box** — nothing outside a view's bounds is drawn or clickable. Common
+   at every view's bounding box**: nothing outside a view's bounds is drawn or clickable. Common
    view types include `group`, `caption`, `rectangle`, `button`, `knob`, `slider`, `click`, `hover`,
    `vector`, and `cluster`; the full list and every field is in the schema. Later views in a `views:`
    list are drawn on top of earlier ones, and where they handle the mouse they get it first. A
@@ -59,7 +59,7 @@ Three ideas tie the system together:
    available built-in variable names are in the JS Reference's _Cushy Interface_ and the
    *Synplant Cushy Variables Reference*.
 
-3. **GUI actions run script code from the UI.** A clicked button or menu item performs an _action_ —
+3. **GUI actions run script code from the UI.** A clicked button or menu item performs an _action_:
    a built-in (`set`, `popup`, `edit`, `reload`, ...) or a JavaScript function you provide
    (optionally an object with `execute`/`enabled`/`checked`). Actions can also be triggered by
    `autoexecs`: on open, on close, on a timer, or when a variable changes.
@@ -71,7 +71,7 @@ A GUI script is a `<Name>.spscript/` directory. Its entry `<Name>.js` opens the 
 it first runs the same-named `<Name>_main.js`, which defines the script's variables and action
 functions.
 
-Cushy **reruns that JavaScript on every reload** — and reload is not only a developer action:
+Cushy **reruns that JavaScript on every reload**, and reload is not only a developer action:
 changing Synplant's zoom scale also forces a rebuild. So scripts must survive their JS being re-run:
 keep persistent state under a single object named after the script and guard its initialization
 (`if (!this.myScript) { ... }`) so existing globals are not reset. The reload/reset/close
@@ -80,12 +80,12 @@ lifecycle is detailed in the JS Reference's _Cushy Interface_.
 ## Coordinates, expressions, and scaling
 
 **Coordinates are always integers.** View bounds and offsets are whole pixels, and they stay whole
-pixels after the user's zoom level and high-DPI scaling are applied — Cushy rescales to integer
+pixels after the user's zoom level and high-DPI scaling are applied: Cushy rescales to integer
 positions and never places a view on a fractional pixel.
 
 **Synplant scales the whole UI for the end user.** A zoom setting and the display's pixel density
 (standard 1x or high-DPI/Retina 2x) combine into a scale factor applied to your integer layout.
-Changing the zoom forces a full GUI rebuild — the same reload that reruns your `_main.js` — so the
+Changing the zoom forces a full GUI rebuild (the same reload that reruns your `_main.js`), so the
 layout must survive reloads (see [Startup and reload](#startup-and-reload)).
 
 > **Align to a 4-pixel grid.** Zoom steps are fractional, so small details can land between pixels
@@ -94,9 +94,9 @@ layout must survive reloads (see [Startup and reload](#startup-and-reload)).
 > aligned, abutting views, align on multiples of 4.
 
 **Math expressions are evaluated by Cushy, at construction.** Where a numeric constant is expected you
-may write an expression — for example `bounds: { l+10, t+10, w-20, h-20 }` or `updateRate: $*2`, using
+may write an expression, for example `bounds: { l+10, t+10, w-20, h-20 }` or `updateRate: $*2`, using
 `$` for the field's default value and `l`/`t`/`w`/`h`/`r`/`b` for the parent rectangle (see the
-repository README). These are evaluated by **Cushy when it builds the view tree** — *not* by Makaron
+repository README). These are evaluated by **Cushy when it builds the view tree**, *not* by Makaron
 (which only does text substitution before parsing) and *not* by JavaScript. The result is a fixed
 number baked into the view at construction time.
 
@@ -127,12 +127,12 @@ grades, and it is worth deliberately choosing the more stable one:
 - **Rebuilding views from a source variable (`varExpansion`, least stable).** A `group` with
   `varExpansion: 'true'` treats its `views:` as a source string with `[var]myDynamicSource[/var]`
   interpolation, letting a script generate arbitrary view configurations at run time. The catch is
-  that those views are torn down and recreated *every time the source variable changes* — the schema
+  that those views are torn down and recreated *every time the source variable changes*; the schema
   even notes CushyLint cannot check views under `varExpansion`. It is the most flexible and the least
   stable option; reserve it for cases that genuinely need a script-generated view tree.
 
   **`[var]` expansion does not nest.** Expansion is literally a single pass that rebakes the whole
-  group's `views:` text and reparses it as a Cushy subtree — there is no second pass. So a child
+  group's `views:` text and reparses it as a Cushy subtree; there is no second pass. So a child
   inside a `varExpansion` group cannot itself rely on `[var]…[/var]` (a knob `hint`, a `meta` text, an
   indirect `execute` action, etc.); the inner markers are consumed or broken by the one outer
   expansion. If you need `[var]`-driven content *inside* a var-expanding group, move that content out
@@ -155,7 +155,7 @@ crisp at every zoom and needs no PNG master; see [Drawing cost](#drawing-cost) f
 
 The smallest useful `.cushy` includes the shared support macros and uses the `@window` macro for
 standard window chrome (shadow, frame, title, close button), then declares its content views. The
-fragment below — one knob bound to a script variable, with a caption — follows the same conventions
+fragment below (one knob bound to a script variable, with a caption) follows the same conventions
 as the [`examples/`](../examples) scripts:
 
 ```makaron
@@ -189,16 +189,16 @@ The matching `MyScript_main.js` would define `myScript` with a `cutoff` value (g
 reloads), and the launcher `My Script.js` would call
 `displayCushy("My Script.spscript/MyScript_main", "script", true)`. For the full window structure,
 `transitions:`/`autoexecs:` blocks, and how `@window` lays out its content, read the example scripts
-end to end — they are the canonical worked references.
+end to end; they are the canonical worked references.
 
 A few things that trip up first-time authors, all expanded in the schema or example scripts:
 
-- **All text-bearing views/styles need an explicit `font`** — Cushy has no default font. Text in
+- **All text-bearing views/styles need an explicit `font`**: Cushy has no default font. Text in
   `caption` views, button captions, bubble styles, and any other text-bearing view/style is simply
   not drawn unless that view or style provides a `font`.
-- **Coordinates are clipped at view bounds** — a child cannot draw or receive clicks outside its
+- **Coordinates are clipped at view bounds**: a child cannot draw or receive clicks outside its
   parent.
-- **Colors use normalized components** — `rgb(1,1,1,0.35)`, not `rgb(255,255,255,...)`.
+- **Colors use normalized components**: `rgb(1,1,1,0.35)`, not `rgb(255,255,255,...)`.
 - **Keep `.cushy` source ASCII** unless you have tested the exact character path.
 
 ## Performance
@@ -301,5 +301,5 @@ CushyLint\CushyLint.bat "%cd%\My Script.spscript/"         # Windows
 
 Pass a directory path **with a trailing slash** so the companion `.schema` files next to your
 `.cushy` are picked up. CushyLint checks syntax and schema conformance; it does not predict runtime
-performance — measure that in Synplant (see [Performance](#performance)). See the repository README for CushyLint details and
+performance; measure that in Synplant (see [Performance](#performance)). See the repository README for CushyLint details and
 [`cushy.schema`](../CushyLint/cushy.schema) for what it validates against.

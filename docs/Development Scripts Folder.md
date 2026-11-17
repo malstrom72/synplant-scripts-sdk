@@ -37,7 +37,7 @@ The `with administrator privileges` clause runs the whole shell script as root f
 so both the `rm` and `ln -s` operations are covered.
 
 **Cold start (the folder does not exist yet).** On a never-used Synplant install there is no
-`Synplant Scripts` folder — Synplant only surfaces its script menu once the folder exists — so there
+`Synplant Scripts` folder (Synplant only surfaces its script menu once the folder exists), so there
 is nothing to copy or back up. Skip the `cp -R` and `mv ... .backup` steps entirely: create your
 project `scripts/` folder and link the standard location straight to it. There is also no `rm` to do,
 since nothing is there to remove:

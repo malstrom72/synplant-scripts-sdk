@@ -5,35 +5,35 @@ For a section-level index with line ranges and sizes, see [`llms.txt`](../../llm
 
 ## Core API references
 
-- [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md) — the JavaScript API:
+- [`docs/Synplant JS Reference.md`](../../docs/Synplant%20JS%20Reference.md): the JavaScript API, with
   engine limits, constants, functions, the patch/genome/branch object model, Genopatch, host helpers,
   and the Cushy interface.
-- [`docs/Synplant User Guide.md`](../../docs/Synplant%20User%20Guide.md) — Synplant product behavior,
+- [`docs/Synplant User Guide.md`](../../docs/Synplant%20User%20Guide.md): Synplant product behavior,
   terminology, patch and genome concepts, workflow, and user-facing feature descriptions.
-- [`docs/Synplant User Guide.pdf`](../../docs/Synplant%20User%20Guide.pdf) — the original user guide
+- [`docs/Synplant User Guide.pdf`](../../docs/Synplant%20User%20Guide.pdf): the original user guide
   source.
-- [`ts/COJSEngine.d.ts`](../../ts/COJSEngine.d.ts) — the authoritative, machine-readable declaration
+- [`ts/COJSEngine.d.ts`](../../ts/COJSEngine.d.ts): the authoritative, machine-readable declaration
   of the native API. When the prose and the declarations disagree, the declarations win.
-- [`docs/Synplant Cushy Variables Reference.md`](../../docs/Synplant%20Cushy%20Variables%20Reference.md) —
+- [`docs/Synplant Cushy Variables Reference.md`](../../docs/Synplant%20Cushy%20Variables%20Reference.md):
   the GUI variables and built-in actions a `.cushy` layout or script can read, write, and trigger.
 
 ## Cushy and GUI references
 
-- [`docs/Cushy Documentation.md`](../../docs/Cushy%20Documentation.md) — orientation to Cushy: the
+- [`docs/Cushy Documentation.md`](../../docs/Cushy%20Documentation.md): orientation to Cushy, with the
   mental model, a minimal-window walkthrough, and where each part is documented. Start here, then drill
   into the schema for exact syntax.
-- [`CushyLint/cushy.schema`](../../CushyLint/cushy.schema) — the official `.cushy` format reference:
+- [`CushyLint/cushy.schema`](../../CushyLint/cushy.schema): the official `.cushy` format reference, with
   view types, built-in actions, meta text/variables, and schema rules, with inline comments.
-- [`CushyLint/chimera.schema`](../../CushyLint/chimera.schema) — the standard host actions and the
+- [`CushyLint/chimera.schema`](../../CushyLint/chimera.schema): the standard host actions and the
   `midiAssign` view, layered above `cushy.schema`.
-- [`Synplant Resources/scriptSupport.makaron`](../../Synplant%20Resources/scriptSupport.makaron) — the
+- [`Synplant Resources/scriptSupport.makaron`](../../Synplant%20Resources/scriptSupport.makaron): the
   shared macros (`@window`, `@windowInLayer`, helpers) used by GUI scripts.
-- [`docs/Makaron Documentation.md`](../../docs/Makaron%20Documentation.md) — the macro syntax.
+- [`docs/Makaron Documentation.md`](../../docs/Makaron%20Documentation.md): the macro syntax.
 - [`docs/IVG Documentation.md`](../../docs/IVG%20Documentation.md) and
-  [`docs/ImpD Documentation.md`](../../docs/ImpD%20Documentation.md) — vector graphics drawn inside
+  [`docs/ImpD Documentation.md`](../../docs/ImpD%20Documentation.md): vector graphics drawn inside
   views and the data format they build on.
-- [`docs/ivgfont Documentation.md`](../../docs/ivgfont%20Documentation.md) — the `.ivgfont` format.
-- [`cushy-notes.md`](cushy-notes.md) — practical Cushy gotchas and patterns.
+- [`docs/ivgfont Documentation.md`](../../docs/ivgfont%20Documentation.md): the `.ivgfont` format.
+- [`cushy-notes.md`](cushy-notes.md): practical Cushy gotchas and patterns.
 
 The IVG, ImpD, Makaron, and related language documents are mirrored from upstream Sonic Charge
 sources such as [`malstrom72/IVG`](https://github.com/malstrom72/IVG). Do not make local SDK-only
@@ -42,26 +42,26 @@ synced into this SDK. Put Synplant-specific workflow notes in the agent docs ins
 
 ## Mods
 
-- [`docs/Synplant Mods Guide.md`](../../docs/Synplant%20Mods%20Guide.md) — writing Mods that patch
+- [`docs/Synplant Mods Guide.md`](../../docs/Synplant%20Mods%20Guide.md): writing Mods that patch
   Synplant's own interface at load time.
 
 ## Examples
 
-- [`docs/Synplant Script Examples.md`](../../docs/Synplant%20Script%20Examples.md) — a guided index of
+- [`docs/Synplant Script Examples.md`](../../docs/Synplant%20Script%20Examples.md): a guided index of
   the example scripts, what each does, and which techniques it shows.
-- [`examples/`](../../examples) — the example scripts themselves. Inspect package contents; treat
+- [`examples/`](../../examples): the example scripts themselves. Inspect package contents; treat
   `.spscript` items as directories, not flat files.
-- [`snippets/`](../../snippets) — stable, copyable source snippets for script authors. Use these as
+- [`snippets/`](../../snippets): stable, copyable source snippets for script authors. Use these as
   reference implementations, then copy the needed code into the script's own IIFE/closure for
   distributable scripts or packages.
 
 ## The live bridge
 
-- [`tools/jsconsole-bridge-mcp/README.md`](../../tools/jsconsole-bridge-mcp/README.md) — bridge setup,
+- [`tools/jsconsole-bridge-mcp/README.md`](../../tools/jsconsole-bridge-mcp/README.md): bridge setup,
   `sp_status`/`sp_eval`/`sp_reload` usage, running scripts with `run(...)`, and reload behavior over
   the live JS Console bridge.
 
 ## Repository overview
 
-- [`README.md`](../../README.md) — repository structure, technology overview, getting started, and the
+- [`README.md`](../../README.md): repository structure, technology overview, getting started, and the
   compatibility note.

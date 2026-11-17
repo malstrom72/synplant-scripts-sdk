@@ -1,7 +1,7 @@
 # Synplant Cushy Variables and Actions Reference
 
 This reference documents the **GUI variables** and **GUI actions** that Synplant exposes to its
-Cushy interface — the values a `.cushy` layout (or a script) can read and write, and the built-in
+Cushy interface: the values a `.cushy` layout (or a script) can read and write, and the built-in
 operations it can trigger. It was written and verified against **Synplant 2.0.2 (build 309)**.
 
 For the JavaScript API (functions, the patch object model, parameters as numbers) see the
@@ -127,7 +127,7 @@ Examples (live values):
     params.voiceMode.human   "poly"          // stepped params read back their choice label
     params.flt_freq.human    "0.3662"
 
-`params.<name>` is the same value as `getParam('<name>')` in the JavaScript API — the GUI-variable
+`params.<name>` is the same value as `getParam('<name>')` in the JavaScript API; the GUI-variable
 form is simply the string view of it. Use `.human` for hints and text entry, `.name` for labels, and
 `.default` to implement "reset to default".
 

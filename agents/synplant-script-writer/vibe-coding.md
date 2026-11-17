@@ -105,7 +105,7 @@ Follow [`AGENTS.md`](AGENTS.md):
 ## Installing scripts in Synplant
 
 Synplant runs scripts from the **Synplant Scripts** folder. Inside Synplant, `DIRS.SCRIPTS` is the
-absolute path to it, and **Open Scripts Folder** in Synplant's script menu opens it — but **do not
+absolute path to it, and **Open Scripts Folder** in Synplant's script menu opens it, but **do not
 lead with either on a cold bootstrap.** There is no bridge yet, so `DIRS.SCRIPTS` is unavailable, and
 Synplant does not surface its script menu (including **Open Scripts Folder**) until the folder exists.
 **Check the standard path on disk first** (macOS
@@ -138,7 +138,7 @@ which normally requires elevation to write.
 - Mods go in a `Mods/` subfolder; every `.js` there runs at startup.
 
 For quicker iteration you can keep a project-local scripts folder and link Synplant's scripts folder
-to it — see **Development scripts folder** in the [repository README](../../README.md#development-scripts-folder)
+to it; see **Development scripts folder** in the [repository README](../../README.md#development-scripts-folder)
 for the macOS/Windows commands. Linking changes Synplant's live scripts installation and may need
 elevated permissions, so ask the user before doing it, and first check whether the live folder is
 already a symlink to another workspace (on macOS, inspect that exact folder with `ls -ld` and
@@ -153,11 +153,11 @@ one-time elevated junction/symlink avoids repeated elevated installs while itera
 The SDK's `JS Console.spscript` contains a file bridge, and
 [`tools/jsconsole-bridge-mcp/`](../../tools/jsconsole-bridge-mcp) is the MCP server that drives it.
 Wire it up so you can verify against the live engine. The bridge brokers files in a folder under
-`DIRS.DOCUMENTS`, which Synplant scripts may write to without a permission prompt — so no special
+`DIRS.DOCUMENTS`, which Synplant scripts may write to without a permission prompt, so no special
 folder setup is needed.
 
 1. Install the SDK's `JS Console.spscript` into the folder Synplant reads (it must be **this SDK's**
-   bridged copy — a plain console has no `bridge on`). If any existing bridge is already working, get
+   bridged copy; a plain console has no `bridge on`). If any existing bridge is already working, get
    the exact target from `sp_eval("DIRS.SCRIPTS")`; otherwise use **Open Scripts Folder** or the
    Windows locator above and confirm the target with the user. Then copy the bridged console:
 
@@ -165,15 +165,15 @@ folder setup is needed.
    node references/synplant-scripts-sdk/tools/install-jsconsole.js "/ABS/PATH/TO/Synplant Scripts"
    ```
 
-   **First-ever install (no script menu yet).** Synplant surfaces the script menu — and
-   therefore **Open Scripts Folder** — only once the Scripts folder exists, so on a never-used
+   **First-ever install (no script menu yet).** Synplant surfaces the script menu (and
+   therefore **Open Scripts Folder**) only once the Scripts folder exists, so on a never-used
    install there is nothing to click yet. The standard macOS location is
    `/Library/Application Support/Sonic Charge/Synplant Scripts` (on Windows, use the
    [locator](#installing-scripts-in-synplant)). It is protected (root-owned `/Library`), so
    first-time creation needs one elevated step either way. **Offer the user a choice** rather
    than deciding for them:
 
-   - **A — Create the folder at the standard location (stays stock).** Best when they just want
+   - **A: Create the folder at the standard location (stays stock).** Best when they just want
      the bridge working with minimal change to their install. Stage through `/tmp` so the
      elevated copy never reads the SDK checkout (macOS TCC blocks that when the checkout is
      under `~/Documents`, Desktop, or Downloads):
@@ -186,11 +186,11 @@ folder setup is needed.
 
      The folder stays root-owned; later installs need elevation, but iteration rides the bridge.
 
-   - **B — Link the standard location to your project's `scripts/` folder** ([development
+   - **B: Link the standard location to your project's `scripts/` folder** ([development
      scripts folder](../../README.md#development-scripts-folder)). Best when they want to edit
      installed scripts in place without elevation afterwards. This is the `scripts/` folder from
-     the [recommended layout](#recommended-project-layout) above — the same directory your
-     project scripts live in — so linking it makes every project script Synplant's live
+     the [recommended layout](#recommended-project-layout) above (the same directory your
+     project scripts live in), so linking it makes every project script Synplant's live
      installation. Because the standard location does not exist yet there is nothing to back up:
      put the console in `scripts/`, then point the standard path at it with one elevated `ln -s`
      (creating a link does not read the target, so no TCC block):
@@ -207,7 +207,7 @@ folder setup is needed.
      the inner paths use single quotes so the spaces survive. Afterwards
      `install-jsconsole.js` and edits run as the normal user with no elevation. Copying the
      console into `scripts/` means its `JSConsole.schema` needs the project-relative paths from
-     the [layout section](#recommended-project-layout) above — rewrite them for CushyLint/editor
+     the [layout section](#recommended-project-layout) above; rewrite them for CushyLint/editor
      tooling. Prefer a project **outside** `~/Documents`/Desktop/Downloads to avoid a one-time
      Synplant "wants to access Documents" prompt when it reads through the link.
 
@@ -272,7 +272,7 @@ folder setup is needed.
    `sp_status` probes the bridge and should report `bridge: LIVE`, and `sp_eval` of `1 + 1` should
    return `2`.
 
-Do not claim the bridge tools are available until the MCP client has actually loaded them — verify
+Do not claim the bridge tools are available until the MCP client has actually loaded them; verify
 that `sp_status`/`sp_eval`/`sp_reload` exist before relying on them. Only one Synplant instance can
 serve the bridge at a time: `bridge on` claims an `owner` token in `bridge.json`, and if another
 instance already owns it you get an OK/Cancel take-over prompt in that window (the previous owner

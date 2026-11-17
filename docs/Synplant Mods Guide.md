@@ -35,7 +35,7 @@ A Mod differs from the other two script types in three ways:
 
 -   It runs **automatically at startup**, with no menu selection.
 -   It modifies the **built-in** interface instead of opening its own window.
--   Its effect is **persistent** for the session — it is woven into Synplant's GUI until the engine
+-   Its effect is **persistent** for the session: it is woven into Synplant's GUI until the engine
     is reset.
 
 ## Mods are the least sturdy script type
@@ -50,13 +50,13 @@ of Synplant's internals each kind depends on:
     variable/action conventions as well as the JavaScript API. Those are stable in spirit, but the
     Cushy format and conventions *might* change between releases, so a GUI script may occasionally
     need a touch-up.
--   **Mods are the most fragile.** A Mod reaches into Synplant's *own* built-in interface — its exact
+-   **Mods are the most fragile.** A Mod reaches into Synplant's *own* built-in interface: its exact
     `.cushy` source text and the JavaScript its layouts define. None of that is a published contract;
     it is internal implementation that **is expected to change with new releases**. A Synplant update
     can move an anchor, rename a layout, or restructure the JavaScript a Mod wraps, and the Mod will
     break.
 
-This is not a reason to avoid Mods — they can do things nothing else can — but it sets expectations:
+This is not a reason to avoid Mods (they can do things nothing else can), but it sets expectations:
 write Mods defensively, fail loudly when an assumption no longer holds (see
 [Practical guidance](#practical-guidance)), and be prepared to update them when Synplant updates. If
 the same goal can be met with a GUI script or a plain `.js` script, prefer that.
@@ -73,7 +73,7 @@ Mods live in a folder named `Mods` inside the Synplant Scripts folder (`DIRS.SCR
             ...
 
 When Synplant starts and a `Mods` folder exists, **every `.js` file directly inside it is run
-automatically**, in alphabetical order. There is no separate "enable" step — presence in the folder
+automatically**, in alphabetical order. There is no separate "enable" step; presence in the folder
 is what activates a Mod. Removing the file (and reloading) removes the Mod.
 
 > If there is no `Mods` folder, the global `mods` namespace is not installed and Mod files are not
@@ -97,13 +97,13 @@ Two pieces cooperate:
     variables and actions by name; a Mod defines those under the global `mods` object so the injected
     interface has something to call.
 
-The hook itself is installed for you when a `Mods` folder is present — you never define
+The hook itself is installed for you when a `Mods` folder is present; you never define
 `handleCushyPreparation` yourself. You only register patchers and populate `mods`.
 
 Beyond rewriting layout source, a Mod can also **monkey-patch JavaScript**. A Mod's `.js` runs after
 the interface's own JavaScript has executed, so by the time your Mod code runs, the functions and
 objects that the running layouts defined already exist as globals. A Mod can therefore wrap or
-replace them — capturing the original and substituting its own behavior — in addition to (or instead
+replace them (capturing the original and substituting its own behavior) in addition to (or instead
 of) splicing views into the layout source. See
 [Monkey-patching the interface's JavaScript](#monkey-patching-the-interfaces-javascript).
 
@@ -114,9 +114,9 @@ A Mod registers a patcher with the global function `addModPatcher`:
     function addModPatcher(modName: string, cushyName: string,
             patcher: function(cushyName: string, cushyContents: string) : string | undefined) : void
 
--   `modName` — a label for your Mod, used in trace and error messages.
--   `cushyName` — the built-in layout to target, without extension (e.g. `'Synplant2_main'`).
--   `patcher` — called with the layout name and its raw source text. It returns the **modified**
+-   `modName`: a label for your Mod, used in trace and error messages.
+-   `cushyName`: the built-in layout to target, without extension (e.g. `'Synplant2_main'`).
+-   `patcher`: called with the layout name and its raw source text. It returns the **modified**
     source, or `undefined` to leave the layout unchanged.
 
 A single Mod may register several patchers, for the same layout or different ones. Multiple Mods may
@@ -146,7 +146,7 @@ addModPatcher('My Mod', 'Synplant2_main', function (cushyName, cushyContents) {
 
 Because the input is the source *before* macro expansion, you can also inject macro definitions
 (`@define …`) and macro calls, and adjust existing layout expressions. Injected views can carry their
-own `vector:` (IVG) graphics, `actions:`, `hint:`, and so on — anything the `.cushy` format supports.
+own `vector:` (IVG) graphics, `actions:`, `hint:`, and so on: anything the `.cushy` format supports.
 
 Throw an explicit error whenever an anchor is missing or a replacement does not take effect. A Mod
 that silently does nothing is hard to diagnose; a Mod that throws tells the user exactly which anchor
@@ -195,9 +195,9 @@ globals.someInterfaceFunction = function () {
 ```
 
 Guard for the function actually existing first (`if (typeof globals.someInterfaceFunction ===
-'function')`), since the name you are wrapping is internal and may differ between releases — this is
+'function')`), since the name you are wrapping is internal and may differ between releases. This is
 exactly the fragility discussed [above](#mods-are-the-least-sturdy-script-type). Monkey-patching JS
-and rewriting layout source are complementary: a Mod commonly does both — splice a button into the
+and rewriting layout source are complementary: a Mod commonly does both: splice a button into the
 layout, and have its action call into wrapped or new JavaScript.
 
 ## A worked example
@@ -215,7 +215,7 @@ pattern:
     }
     ```
 
-2.  **Define behavior** under `mods` — a `markFavorite` action with `execute`/`checked`/`enabled`/
+2.  **Define behavior** under `mods`: a `markFavorite` action with `execute`/`checked`/`enabled`/
     `hint`, plus helpers to list and load favorites and build the context menu:
 
     ```javascript
@@ -253,22 +253,22 @@ pattern:
     ```
 
 The same Mod also registers a second, tiny patcher for `Synplant2_legacyMode` that nudges an icon
-offset — a reminder that one Mod can patch several layouts.
+offset, a reminder that one Mod can patch several layouts.
 
 ## Bundled example Mods
 
 Four Mods ship as examples and are good reading:
 
--   **Favorite Button** — adds a "favorite" star to the patch display and a Favorites folder
+-   **Favorite Button**: adds a "favorite" star to the patch display and a Favorites folder
     (patches `Synplant2_main` and `Synplant2_legacyMode`). The fullest example.
--   **Detailed DNA Hints** — patches `Synplant2_dna` to show richer, value-aware hints for the genes.
--   **Graft Onto Branch** — adds a patch operation that grafts material onto a selected branch
+-   **Detailed DNA Hints**: patches `Synplant2_dna` to show richer, value-aware hints for the genes.
+-   **Graft Onto Branch**: adds a patch operation that grafts material onto a selected branch
     (patches `Synplant2_main`). See the JS Reference sections on
     [explicit branch morphs](Synplant%20JS%20Reference.md#explicit-branch-morphs) and
     [grafting](Synplant%20JS%20Reference.md#grafting) for the patch-model details behind it. The Mod
     vendors a copy of the reusable source snippet [`snippets/grafting.js`](../snippets/grafting.js)
     so the example remains self-contained.
--   **Tween Branches** — adds an operation that interpolates between branches (patches
+-   **Tween Branches**: adds an operation that interpolates between branches (patches
     `Synplant2_main`).
 
 ## Practical guidance

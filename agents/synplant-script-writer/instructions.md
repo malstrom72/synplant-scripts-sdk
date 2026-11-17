@@ -14,7 +14,7 @@ staying faithful to this SDK and its documented constraints.
 ## Source of truth
 
 Use this repository as the source of truth. Prefer repository files over memory whenever exact
-behavior matters — supported APIs, object shapes, parameters, packaging structure, or limits. If the
+behavior matters: supported APIs, object shapes, parameters, packaging structure, or limits. If the
 repository does not clearly support a capability, say so and offer the closest workable alternative.
 
 For a new project setup, start with [`vibe-coding.md`](vibe-coding.md). It contains the bootstrap
@@ -29,16 +29,16 @@ running from the SDK checkout, point the user to [`vibe-coding.md`](vibe-coding.
 layout and ask how they want to proceed before creating files.
 
 Before changing the live Synplant Scripts install, identify the exact live scripts folder. **Check
-the standard path on disk first** — do not lead with `DIRS.SCRIPTS` or **Open Scripts Folder** on a
+the standard path on disk first**; do not lead with `DIRS.SCRIPTS` or **Open Scripts Folder** on a
 cold bootstrap. There is no bridge yet, so `DIRS.SCRIPTS` is unavailable, and Synplant does not
-surface its script menu — including **Open Scripts Folder** — until the folder exists, so neither can
+surface its script menu (including **Open Scripts Folder**) until the folder exists, so neither can
 point at a folder that is not there. On macOS the standard path is
 `/Library/Application Support/Sonic Charge/Synplant Scripts`; on Windows it may be under
 `C:\Program Files\Sonic Charge\Synplant Scripts`, and `tools\locate-scripts-folder.cmd -Verify` can
 provide a candidate before the bridge exists.
 
 - **Standard path missing** → a fresh install with no `Synplant Scripts` folder yet (the absent script
-  menu confirms it). This is expected — **not** a blocker and **not** "Synplant not installed." Treat
+  menu confirms it). This is expected: **not** a blocker and **not** "Synplant not installed." Treat
   it as the first-ever-install case: offer the user the choice of creating the folder at the standard
   location or linking it to project `scripts/` (see the cold-start step in
   [`vibe-coding.md`](vibe-coding.md)). Do not scan the disk for similarly named folders and do not
@@ -69,7 +69,7 @@ When the bridge tools (`sp_status`, `sp_eval`, `sp_reload`) are available:
 
 - Call `sp_status` first; it probes the bridge and reports `bridge: LIVE` or `bridge: NOT
   RESPONDING`. `NOT RESPONDING` almost always means the JS Console is not open, or `bridge on` was
-  not typed **this session** — a leftover `bridge.json` presence file does not mean the bridge is
+  not typed **this session**: a leftover `bridge.json` presence file does not mean the bridge is
   live. Report that plainly and ask the user to complete the missing step before suspecting anything
   more exotic.
 - Use `sp_eval` for short, side-effect-free checks (read a parameter, inspect `getElement('patch')`,
@@ -78,10 +78,10 @@ When the bridge tools (`sp_status`, `sp_eval`, `sp_reload`) are available:
 - `sp_eval` runs in the shared global JavaScript scope. Wrap multi-statement snippets in an IIFE so
   temporary `var`s do not leak or shadow host globals. Avoid evals that can open modal dialogs during
   reload/startup; a modal can block the bridge tick from writing replies until the dialog is
-  dismissed. When an eval times out or `last reply seq` is frozen, **do not assume a modal — that is
+  dismissed. When an eval times out or `last reply seq` is frozen, **do not assume a modal; that is
   the least common cause.** Diagnose in order of likelihood: 1) is the JS Console window open? 2) was
   `bridge on` typed **this session** (a stale `bridge.json` does not count)? 3) is Synplant running?
-  Only if the bridge *was* working and just stopped is a modal likely — then dismiss it and run
+  Only if the bridge *was* working and just stopped is a modal likely. Then dismiss it and run
   `bridge off` / `bridge on`. `sp_status` distinguishes these by probing (LIVE vs NOT RESPONDING).
 - Run a user script over the bridge with `run()`:
   `sp_eval("run('MyScript.spscript/MyScript.js')")`.
@@ -90,17 +90,17 @@ When the bridge tools (`sp_status`, `sp_eval`, `sp_reload`) are available:
   `until` expression that becomes true once the change is loaded. The `reload` action is
   asynchronous, so `sp_eval("performCushyAction('reload')")` returning does not mean the script
   rerun is finished, and an immediate probe may still see the old code. A normal reload keeps the
-  engine and globals alive, so the bridge survives it — this is the edit → reload → re-test loop.
+  engine and globals alive, so the bridge survives it. This is the edit → reload → re-test loop.
   Do **not** drive a full reset (`performCushyAction('reload', 'reset')`) over the bridge: it wipes JS
   memory and tears the bridge down, after which it must be re-enabled with `bridge on`.
 
 The bridge brokers files in a folder under `DIRS.DOCUMENTS` (the Sonic Charge user-documents folder),
-which Synplant scripts may write to without a permission prompt — so it needs no special folder
+which Synplant scripts may write to without a permission prompt, so it needs no special folder
 setup. **One active bridge at a time (single owner):** the folder is machine-global, so only one
 Synplant instance can serve it. `bridge on` records an `owner` token in `bridge.json`; if another
 instance already owns it, `bridge on` pops an OK/Cancel dialog in that window asking whether to take
 over. Taking over writes the new owner, and the previous owner detects the change on its next tick and
-stands down — so requests are never handled by two engines at once. `sp_status`/`sp_eval` always talk
+stands down, so requests are never handled by two engines at once. `sp_status`/`sp_eval` always talk
 to whichever instance currently owns the folder. If you have several Synplant instances open, make
 sure the one you intend to drive is the current owner by running `bridge on` (and clicking OK) in its
 JS Console window; that hand-off is a GUI action you cannot perform over the bridge. See
@@ -130,9 +130,9 @@ ECMAScript 5. Shape answers around its constraints:
   retrofits and main-script helpers are fine: `JSON`, string index access, `Object.assign`,
   `Array.isArray`, `Date.now`, `Math.sign`, `Math.cbrt`, and `Math.log10`.
 - For elapsed-time measurement use `getMonotonicTime()`, not `Date.now()`.
-- The native API is authoritative (`ts/COJSEngine.d.ts`). A second layer of **host helpers** —
+- The native API is authoritative (`ts/COJSEngine.d.ts`). A second layer of **host helpers** (
   `clamp`, `lerp`, `scale`, `square`, `cube`, `fract`, `unescape`, `StringBuilder`, `createClass`,
-  the `random` object, `displayCushy`, `select`, `selected`, `getCachedPatch`, and others — is
+  the `random` object, `displayCushy`, `select`, `selected`, `getCachedPatch`, and others) is
   provided by Synplant's running main script, not the engine. They are convenient but not in the
   declarations; guard with `typeof` if unsure, and check `Synplant Resources/Synplant2_main.js`
   before rejecting helper usage from memory.
@@ -144,11 +144,11 @@ For the full picture see [`docs/Synplant JS Reference.md`](../../docs/Synplant%2
 
 There are three kinds of script; do not default to a GUI package. See [`packaging.md`](packaging.md).
 
-- **Single-file `.js`** — the default for a direct utility, generator, or patch operation with no
+- **Single-file `.js`**: the default for a direct utility, generator, or patch operation with no
   custom interface. The most robust choice.
-- **GUI package `.spscript`** — a directory with a launcher `.js` and one or more `.cushy` layouts.
+- **GUI package `.spscript`**: a directory with a launcher `.js` and one or more `.cushy` layouts.
   Use when the user wants a window, Cushy controls, or a persistent stateful tool.
-- **Mod** — a script in a `Mods/` subfolder that runs at startup and rewrites Synplant's own
+- **Mod**: a script in a `Mods/` subfolder that runs at startup and rewrites Synplant's own
   interface. The most powerful and the most version-sensitive; see the
   [Mods Guide](../../docs/Synplant%20Mods%20Guide.md). Choose this only when the user wants to change
   Synplant's built-in UI itself.
@@ -158,7 +158,7 @@ There are three kinds of script; do not default to a GUI package. See [`packagin
 - Keep script-local state in one global object named after the script, guarded so first-run state is
   created once: `if (!this.myScript) { myScript = { /* fields */ }; }`. Avoid scattering globals.
   Add `/* global myScript:writable */` at the top of each file that uses it, so ESLint accepts it.
-- GUI script startup JavaScript **runs again on every rebuild** — not only during development: an end
+- GUI script startup JavaScript **runs again on every rebuild**, not only during development: an end
   user changing Synplant's zoom scale forces a reload so graphics and coordinates rescale. Make
   startup rerun-safe: guard initial state, and reassign methods and GUI-variable handlers on rerun.
   Keep only changing state in the guarded object; constants and methods inside it would never be
@@ -180,7 +180,7 @@ For `.spscript` packages with `.cushy` files:
 
 - The `.cushy` format is validated against [`CushyLint/cushy.schema`](../../CushyLint/cushy.schema)
   (its inline comments document every view type and built-in action) plus a product schema. Do not
-  invent `.cushy` fields or actions — check the schema and the example packages first.
+  invent `.cushy` fields or actions; check the schema and the example packages first.
 - Prefer `@include scriptSupport.makaron` and the shared `@window(...)` macro for window chrome over
   rebuilding it from primitives. See [`Synplant Resources/scriptSupport.makaron`](../../Synplant%20Resources/scriptSupport.makaron)
   and [`cushy-notes.md`](cushy-notes.md).
@@ -191,7 +191,7 @@ For `.spscript` packages with `.cushy` files:
   hand-typed coordinates, and line decoration up with the control it belongs to.
 - Button labels say what the button does, in the user's words, with no developer terms such as
   variable or action names. Put explanations in the `hint`, not the label.
-- CushyLint validates Cushy syntax and schema only — never runtime behavior, and not IVG drawing.
+- CushyLint validates Cushy syntax and schema only, never runtime behavior, and not IVG drawing.
   Verify behavior with the live bridge. See [`validation.md`](validation.md) for the current state of
   the validator tooling in this SDK.
 - Run CushyLint and the other checks again after each round of edits, not only the first time. Work

@@ -5,7 +5,7 @@ range from a few lines to full GUI tools, and together they exercise most of the
 document is a guided index: what each example does and which techniques it shows.
 
 Some of these scripts ship to Synplant users; others are included here only as examples and have not
-been released. That status is noted for each — an unreleased example is still valid and instructive,
+been released. That status is noted for each. An unreleased example is still valid and instructive,
 it simply is not something an end user would already have.
 
 For the APIs referenced below, see the *Synplant JS Reference*; for the three script types
@@ -32,7 +32,7 @@ These ship with Synplant.
 
 ### Skin Chooser
 
-`Skin Chooser.spscript` — **GUI script.** Presents the skins found in `DIRS.SKINS` as a scrollable
+`Skin Chooser.spscript`: **GUI script.** Presents the skins found in `DIRS.SKINS` as a scrollable
 grid and applies the one the user picks. It first checks that the skins folder is reachable and warns
 clearly if not:
 
@@ -49,22 +49,22 @@ Shows: directory listing with `dir`, a configurable grid GUI driven by Numbstric
 
 ### Export All Genopatch Solutions
 
-`Export All Genopatch Solutions.js` — **standalone `.js`.** After a Genopatch search, walks every
-stalk and solution and exports them. It guards its preconditions first — that Papageno is initialized
-and a reference is loaded — and reports clearly when they are not:
+`Export All Genopatch Solutions.js`: **standalone `.js`.** After a Genopatch search, walks every
+stalk and solution and exports them. It guards its preconditions first (that Papageno is initialized
+and a reference is loaded) and reports clearly when they are not:
 
 ```javascript
 if (!papageno.isInitialized()) { display('Please run Genopatch first.'); return; }
 if (papageno.getReferenceInfo() === null) { display('Please load a reference sound first.'); return; }
 ```
 
-Shows: driving the `papageno` (Genopatch) API from a script — enumerating stalks/solutions and
+Shows: driving the `papageno` (Genopatch) API from a script: enumerating stalks/solutions and
 saving their patches.
 
 ### Mods
 
-The four bundled Mods — **Favorite Button**, **Detailed DNA Hints**, **Graft Onto Branch**, and
-**Tween Branches** — live in `examples/Mods/`. They patch Synplant's own interface at load time. They
+The four bundled Mods (**Favorite Button**, **Detailed DNA Hints**, **Graft Onto Branch**, and
+**Tween Branches**) live in `examples/Mods/`. They patch Synplant's own interface at load time. They
 are documented in full in the *Synplant Mods Guide*; start with **Favorite Button** as the most
 complete worked example. **Graft Onto Branch** vendors code from `snippets/grafting.js` so the
 example remains self-contained; use the snippet as source material when writing your own variants.
@@ -75,7 +75,7 @@ These are included as examples only and have not been released.
 
 ### Four Knobs
 
-`Four Knobs.spscript` — **GUI script.** Exposes four "macro" knobs that morph the genome along random
+`Four Knobs.spscript`: **GUI script.** Exposes four "macro" knobs that morph the genome along random
 direction vectors, turning 48 genes into four expressive controls:
 
 ```javascript
@@ -91,7 +91,7 @@ Shows: working with the genome through `GENES`, generating random vectors with t
 
 ### Genobatch
 
-`Genobatch.spscript` — **GUI script.** Batch Genopatch: point it at a folder of audio files and a
+`Genobatch.spscript`: **GUI script.** Batch Genopatch: point it at a folder of audio files and a
 destination, and it runs a Papageno search on each file and saves the resulting patches, with a
 progress display and an error report.
 
@@ -100,7 +100,7 @@ its own progress display, and structured result reporting.
 
 ### Patch Stack
 
-`Patch Stack.spscript` — **GUI script.** Builds a layered patch from up to three source patches and
+`Patch Stack.spscript`: **GUI script.** Builds a layered patch from up to three source patches and
 writes the generated result directly to the live patch while the window stays open.
 
 Shows: live patch ownership with a stable `patchId`, marking generated writes as `modified`, tracking
@@ -110,7 +110,7 @@ IVG assets, and layered grafting composition.
 
 ### Tuning Fork
 
-`Tuning Fork.spscript` — **GUI script.** Plays a steady reference tone you can toggle on and off,
+`Tuning Fork.spscript`: **GUI script.** Plays a steady reference tone you can toggle on and off,
 using a preview patch:
 
 ```javascript
@@ -122,15 +122,15 @@ Shows: auditioning a patch with `setPreview` and a minimal toggle GUI.
 
 ### Inverse Plant
 
-`Inverse Plant.js` — **standalone `.js`.** Operates on the currently selected branch, producing an
+`Inverse Plant.js`: **standalone `.js`.** Operates on the currently selected branch, producing an
 "inverted" plant from it.
 
 Shows: reading the current patch and selected branch, computing a transformed result, and bracketing
-the change with `saveUndo` — a good template for a one-shot patch operation.
+the change with `saveUndo`, a good template for a one-shot patch operation.
 
 ### Tween Branches
 
-`Tween Branches.js` — **standalone `.js`.** Interpolates ("tweens") between branches of the current
+`Tween Branches.js`: **standalone `.js`.** Interpolates ("tweens") between branches of the current
 patch. A Mod variant of the same idea also ships (see the Mods Guide); comparing the two is a useful
 illustration of the difference between a one-shot script and a Mod that adds the operation to
 Synplant's own interface.
