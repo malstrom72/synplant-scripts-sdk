@@ -1502,8 +1502,16 @@ when variables change, so a hit mask cannot follow dynamic content.</p>
 a GUI action — either a built-in action or a JavaScript function you
 provide. Actions receive a single string parameter in its raw, unparsed
 form (a quoted string still carries its quotes; use
-<code>unescape</code> to strip them). You may implement an action
-as:</p>
+<code>unescape</code> to strip them). Write a number unquoted
+(<code>542</code>, not <code>"542"</code>) and read it with
+<code>+p</code>; write a string quoted and read it with
+<code>unescape(p)</code>; read a structure with
+<code>parseNumbstrict(p)</code>. Declaring the parameter’s type in the
+package <code>.schema</code> lets CushyLint catch a quoted number.
+<code>unescape</code> here is Synplant’s <a
+href="#host-script-helpers">host helper</a>, which replaces the engine’s
+built-in <code>unescape</code>: it parses a quoted string and returns
+other text unchanged. You may implement an action as:</p>
 <ul>
 <li>a function with the action’s name (receives the parameter), or</li>
 <li>an object with an <code>execute(param)</code> function and optional
