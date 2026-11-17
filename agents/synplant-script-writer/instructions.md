@@ -69,7 +69,7 @@ When the bridge tools (`sp_status`, `sp_eval`, `sp_reload`) are available:
 
 - Call `sp_status` first; it probes the bridge and reports `bridge: LIVE` or `bridge: NOT
   RESPONDING`. `NOT RESPONDING` almost always means the JS Console is not open, or `bridge on` was
-  not typed **this session**; a leftover `bridge.json` presence file does not mean the bridge is
+  not typed **this session**: a leftover `bridge.json` presence file does not mean the bridge is
   live. Report that plainly and ask the user to complete the missing step before suspecting anything
   more exotic.
 - Use `sp_eval` for short, side-effect-free checks (read a parameter, inspect `getElement('patch')`,
@@ -81,7 +81,7 @@ When the bridge tools (`sp_status`, `sp_eval`, `sp_reload`) are available:
   dismissed. When an eval times out or `last reply seq` is frozen, **do not assume a modal; that is
   the least common cause.** Diagnose in order of likelihood: 1) is the JS Console window open? 2) was
   `bridge on` typed **this session** (a stale `bridge.json` does not count)? 3) is Synplant running?
-  Only if the bridge *was* working and just stopped is a modal likely; then dismiss it and run
+  Only if the bridge *was* working and just stopped is a modal likely. Then dismiss it and run
   `bridge off` / `bridge on`. `sp_status` distinguishes these by probing (LIVE vs NOT RESPONDING).
 - Run a user script over the bridge with `run()`:
   `sp_eval("run('MyScript.spscript/MyScript.js')")`.
