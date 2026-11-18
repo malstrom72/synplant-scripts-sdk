@@ -101,7 +101,9 @@ that changes over time, prefer a plain array refreshed by an `autoexecs` tick. D
 A cluster is also not always the right primitive for an overlay. If each row only needs one moving
 marker, put the marker view in a `group` and drive the group's `offset: { <var>, <var> }` and
 `visibility: <var>` from a tick. Those fields change without recreating views, and the script only
-has to write one position and visible flag per marker instead of one value per cell.
+has to write one position and visible flag per marker instead of one value per cell. An offset moves
+the view in whole pixels, so this suits a marker that steps from cell to cell; for smooth movement,
+see *Graphic choice* below.
 
 ## `mouseIndex`
 
@@ -291,7 +293,11 @@ averages rather than tracing every tick.
   from IVG are rendered once per distinct spec at the final pixel scale, so they are crisp at every
   zoom and need no `_x2` master, but their IVG cannot read Cushy variables. Use them for fixed vector
   art, PNGs for bitmap art, and `vector` views only for drawings that follow variables. A reload
-  (including a zoom change) clears the shared image cache.
+  (including a zoom change) clears the shared image cache. A view moved by `offset` snaps to whole
+  pixels, also after zoom and high-DPI scaling (see [Cushy Documentation → Coordinates, expressions,
+  and scaling](../../docs/Cushy%20Documentation.md#coordinates-expressions-and-scaling)). Something
+  that must move smoothly, at slow speeds or to fractional positions, is drawn inside one `vector`
+  view whose positions come from `bindings:`, not moved with `offset`.
 - `defines:` are constant IVG variables available during rendering; `bindings:` are variables
   available during rendering. Neither is a one-time textual substitution.
 
@@ -417,7 +423,8 @@ clipped by the handle group's bounds.
 For fixed pads, layer a full-size `click` view with `mousePosition`, `press`, and `release` actions,
 plus a `hover` view when live hover tracking is needed. Let JavaScript store a `dragging` flag,
 convert the reported mouse coordinates into the control value, and move the visual marker with group
-`offset` variables or another script-controlled visual state.
+`offset` variables or another script-controlled visual state. Group offsets are whole pixels; if the
+marker must move smoothly, draw it in a `vector` view from bound positions instead.
 
 ## Driving IVG from script state
 
